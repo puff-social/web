@@ -29,6 +29,10 @@ import { gateway, Op } from "../../utils/gateway";
 import { Counter } from "../../components/icons/Counter";
 import { Battery, BatteryBolt } from "../../components/icons/Battery";
 import { Checkmark } from "../../components/icons/Checkmark";
+import { SettingsModal } from "../../components/modals/Settings";
+import { InfoModal } from "../../components/modals/Info";
+import { Settings } from "../../components/icons/Settings";
+import { Info } from "../../components/icons/Info";
 
 export default function Group() {
   const [deviceConnected, setDeviceConnected] = useState(false);
@@ -37,12 +41,12 @@ export default function Group() {
   const [groupJoinErrorMessage, setGroupJoinErrorMessage] = useState<string>();
   const [groupMembers, setGroupMembers] = useState<GatewayGroupMember[]>([]);
 
-  const [deviceType] = useState(() =>
+  const [deviceType, setDeviceType] = useState(() =>
     typeof localStorage != "undefined"
       ? localStorage.getItem("puff-social-device-type") || "peak"
       : "peak"
   );
-  const [ourName] = useState(() =>
+  const [ourName, setOurName] = useState(() =>
     typeof localStorage != "undefined"
       ? localStorage.getItem("puff-social-name") || "Unnamed"
       : "Unnamed"
@@ -60,6 +64,13 @@ export default function Group() {
     brightness: 0,
     chargeSource: ChargeSource.None,
   });
+
+  const [userSettingsModalOpen, setUserSettingsModalOpen] = useState(false);
+  const [infoModalOpen, setInfoModalOpen] = useState(() =>
+    typeof localStorage != "undefined"
+      ? !(localStorage.getItem("puff-social-first-visit") == "false")
+      : false
+  );
 
   const router = useRouter();
   const { id } = router.query;
@@ -93,6 +104,17 @@ export default function Group() {
   );
 
   function groupMemberUpdated(member: GatewayGroupMember) {
+    if (
+      member.session_id == gateway.session_id &&
+      typeof member.name != "undefined"
+    )
+      setOurName(member.name);
+    if (
+      member.session_id == gateway.session_id &&
+      typeof member.device_type != "undefined"
+    )
+      setDeviceType(member.device_type);
+
     setGroupMembers((curr) => {
       const existing = curr.find((mem) => mem.session_id == member.session_id);
       if (!existing) return curr;
@@ -322,6 +344,12 @@ export default function Group() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
+      <SettingsModal
+        modalOpen={userSettingsModalOpen}
+        setModalOpen={setUserSettingsModalOpen}
+      />
+      <InfoModal modalOpen={infoModalOpen} setModalOpen={setInfoModalOpen} />
+
       {groupConnected ? (
         <>
           <div className="flex flex-row items-center m-4">
@@ -338,7 +366,7 @@ export default function Group() {
               </p>
             </div>
 
-            <div className="flex flex-row text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 m-2">
+            <div className="flex flex-row text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 m-2 justify-center items-center">
               <button
                 className={`flex justify-center items-center text-white w-fit m-2 p-2 ${
                   group.state == "awaiting" ? "bg-green-700" : "bg-green-800"
@@ -363,6 +391,18 @@ export default function Group() {
               >
                 Leave
               </button>
+              <div
+                className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+                onClick={() => setUserSettingsModalOpen(true)}
+              >
+                <Settings />
+              </div>
+              <div
+                className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+                onClick={() => setInfoModalOpen(true)}
+              >
+                <Info />
+              </div>
             </div>
           </div>
 

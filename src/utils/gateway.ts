@@ -273,4 +273,4 @@ export class Gateway extends EventEmitter {
 }
 
 export const SOCKET_URL = typeof location != 'undefined' && ['localhost', '127.0.0.1', 'dev.puff.social'].includes(location.hostname) ? (location.hostname == 'dev.puff.social' ? 'wss://flower.puff.social' : 'ws://127.0.0.1:9000') : 'wss://rosin.puff.social';
-export const gateway = typeof window != "undefined" && (['ws://127.0.0.1:9000', 'wss://flower.puff.social'].includes(SOCKET_URL) ? new Gateway(SOCKET_URL, 'json', 'none') : new Gateway(SOCKET_URL));
+export const gateway = typeof window != "undefined" && (['ws://127.0.0.1:9000', 'wss://flower.puff.social'].includes(SOCKET_URL) || ['stage.puff.social'].includes(location.hostname) ? new Gateway(SOCKET_URL, 'json', 'none') : new Gateway(SOCKET_URL));
