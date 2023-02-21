@@ -1,12 +1,10 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { toast } from "react-hot-toast";
 import { useCallback, useEffect, useState } from "react";
 
 import { APIGroup } from "../types/api";
 import { getGroups } from "../utils/api";
 import { gateway, Op } from "../utils/gateway";
-import { GatewayError, GatewayGroupCreate } from "../types/gateway";
 import { Settings } from "../components/icons/Settings";
 import { SettingsModal } from "../components/modals/Settings";
 import { InfoModal } from "../components/modals/Info";

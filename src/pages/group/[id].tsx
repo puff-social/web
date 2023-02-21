@@ -414,7 +414,7 @@ export default function Group() {
                     {time}
                   </p>
                   <span className="flex flex-row text-center self-center items-center">
-                    <h1 className="m-0 text-center text-2xl font-bold">
+                    <h1 className="m-0 text-center text-xl font-bold w-48 truncate">
                       {ourName}
                     </h1>
                     {readyMembers.includes(gateway.session_id) ? (
@@ -491,7 +491,7 @@ export default function Group() {
                         {time}
                       </p>
                       <span className="flex flex-row text-center self-center items-center">
-                        <h1 className="m-0 text-center text-2xl font-bold">
+                        <h1 className="m-0 text-center text-xl font-bold w-48 truncate">
                           {member.name}
                         </h1>
                         {readyMembers.includes(member.session_id) ? (
@@ -529,7 +529,7 @@ export default function Group() {
                       />
                     </div>
                     <div className="flex flex-col p-4 justify-center items-center text-center">
-                      <h2 className="text-[45px] m-0">
+                      <h2 className="text-[32px]">
                         {member.device_state.temperature
                           ? Math.floor(
                               member.device_state.temperature * 1.8 + 32
