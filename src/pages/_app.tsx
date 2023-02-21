@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
 
 import "../assets/app.css";
