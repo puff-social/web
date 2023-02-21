@@ -53,7 +53,6 @@ export function PuffcoContainer({
       case ChargeSource.Wireless:
       case ChargeSource.USB: {
         setBrightness(100);
-        setRgb(255, 144, 0);
         interval = setInterval(() => {
           animateBrightness(100, 30, 5000);
           setTimeout(() => animateBrightness(30, 100, 5000), 5000);
@@ -62,7 +61,6 @@ export function PuffcoContainer({
       }
       default: {
         setBrightness(100);
-        setRgb(0, 0, 0);
         break;
       }
     }
