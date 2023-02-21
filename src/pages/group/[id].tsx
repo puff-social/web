@@ -404,13 +404,11 @@ export default function Group() {
                 </div>
                 {deviceConnected ? (
                   <>
-                    <div>
-                      <PuffcoContainer
-                        id="self"
-                        model={deviceType}
-                        demo={myDevice}
-                      />
-                    </div>
+                    <PuffcoContainer
+                      id="self"
+                      model={deviceType}
+                      demo={myDevice}
+                    />
                     <div className="flex flex-col p-4 justify-center items-center text-center">
                       <h2 className="text-[45px] m-0">
                         {myDevice.temperature

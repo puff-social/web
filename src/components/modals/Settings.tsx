@@ -4,6 +4,9 @@ import { useCallback, useState } from "react";
 import usePrefersColorScheme from "use-prefers-color-scheme";
 
 import { gateway, Op } from "../../utils/gateway";
+import { PuffcoContainer } from "../puffco";
+import { PuffcoOperatingState } from "../../types/gateway";
+import { ChargeSource } from "../../utils/puffco";
 
 export function SettingsModal({ modalOpen, setModalOpen }: any) {
   const prefersColorScheme = usePrefersColorScheme();
@@ -54,7 +57,7 @@ export function SettingsModal({ modalOpen, setModalOpen }: any) {
         },
       }}
     >
-      <div className="flex flex-col justify-center items-center m-2 w-[500px] h-80 rounded-md bg-white dark:bg-neutral-800 text-black dark:text-white">
+      <div className="flex flex-col justify-center items-center m-2 p-4 rounded-md bg-white dark:bg-neutral-800 text-black dark:text-white">
         <h3 className="font-bold m-1 text-center">Client Options</h3>
         <div className="flex flex-row space-x-16 justify-center m-2">
           <div>
@@ -64,7 +67,7 @@ export function SettingsModal({ modalOpen, setModalOpen }: any) {
                 value={ourName}
                 placeholder="Display name"
                 maxLength={32}
-                className="w-full rounded-md p-2 m-1 text-black"
+                className="w-full rounded-md p-2 m-1 border-2 border-slate-300 text-black"
                 onChange={({ target: { value } }) => setOurName(value)}
               />
             </div>
@@ -72,46 +75,81 @@ export function SettingsModal({ modalOpen, setModalOpen }: any) {
 
           <div className="flex flex-col items-center justify-center text-center m-2">
             <h3 className="font-bold m-1">Select your device</h3>
-            <div className="flex space-x-2">
+            <div className="flex space-x-4">
               <div
-                className={`flex rounded-md ${
-                  deviceType == "peak"
-                    ? "bg-neutral-300 dark:bg-neutral-500"
-                    : "bg-neutral-500 dark:bg-neutral-700"
-                } pt-2 pb-2 hover:bg-neutral-300 dark:hover:bg-neutral-500 drop-shadow-xl`}
+                className={`flex rounded-md bg-neutral-100 dark:bg-neutral-700 pt-2 pb-2 hover:bg-neutral-200 dark:hover:bg-neutral-600 drop-shadow-xl w-32 h-64 self-center flex`}
+                onClick={() => setDeviceType("peak")}
               >
-                <img
-                  width="96px"
-                  src={`/peak/device.png`}
-                  onClick={() => setDeviceType("peak")}
+                <PuffcoContainer
+                  model="peak"
+                  id="peak"
+                  className="flex items-center justify-center self-center w-full"
+                  demo={{
+                    activeColor: {
+                      r: deviceType == "peak" ? 32 : 0,
+                      g: 0,
+                      b: deviceType == "peak" ? 23 : 0,
+                    },
+                    state: PuffcoOperatingState.IDLE,
+                    chargeSource: ChargeSource.None,
+                  }}
                 />
               </div>
               <div
-                className={`flex rounded-md ${
-                  deviceType == "opal"
-                    ? "bg-neutral-300 dark:bg-neutral-500"
-                    : "bg-neutral-500 dark:bg-neutral-700"
-                } pt-2 pb-2 hover:bg-neutral-300 dark:hover:bg-neutral-500 drop-shadow-xl`}
+                className={`flex rounded-md bg-neutral-100 dark:bg-neutral-700 pt-2 pb-2 hover:bg-neutral-200 dark:hover:bg-neutral-600 drop-shadow-xl w-32 h-64 self-center flex`}
+                onClick={() => setDeviceType("opal")}
               >
-                <img
-                  width="96px"
-                  src={`/opal/${
-                    prefersColorScheme == "dark" ? "device" : "device-light-bg"
-                  }.png`}
-                  onClick={() => setDeviceType("opal")}
+                <PuffcoContainer
+                  model="opal"
+                  id="opal"
+                  className="flex items-center justify-center self-center w-full"
+                  demo={{
+                    activeColor: {
+                      r: 0,
+                      g: deviceType == "opal" ? 32 : 0,
+                      b: deviceType == "opal" ? 64 : 0,
+                    },
+                    state: PuffcoOperatingState.IDLE,
+                    chargeSource: ChargeSource.None,
+                  }}
                 />
               </div>
               <div
-                className={`flex rounded-md ${
-                  deviceType == "indiglow"
-                    ? "bg-neutral-300 dark:bg-neutral-500"
-                    : "bg-neutral-500 dark:bg-neutral-700"
-                } pt-2 pb-2 hover:bg-neutral-300 dark:hover:bg-neutral-500 drop-shadow-xl`}
+                className={`flex rounded-md bg-neutral-100 dark:bg-neutral-700 pt-2 pb-2 hover:bg-neutral-200 dark:hover:bg-neutral-600 drop-shadow-xl w-32 h-64 self-center flex`}
+                onClick={() => setDeviceType("indiglow")}
               >
-                <img
-                  width="96px"
-                  src={`/indiglow/device.png`}
-                  onClick={() => setDeviceType("indiglow")}
+                <PuffcoContainer
+                  model="indiglow"
+                  id="indiglow"
+                  className="flex items-center justify-center self-center w-full"
+                  demo={{
+                    activeColor: {
+                      r: 0,
+                      g: 0,
+                      b: deviceType == "indiglow" ? 255 : 0,
+                    },
+                    state: PuffcoOperatingState.IDLE,
+                    chargeSource: ChargeSource.None,
+                  }}
+                />
+              </div>
+              <div
+                className={`flex rounded-md bg-neutral-100 dark:bg-neutral-700 pt-2 pb-2 hover:bg-neutral-200 dark:hover:bg-neutral-600 drop-shadow-xl w-32 h-64 self-center flex`}
+                onClick={() => setDeviceType("guardian")}
+              >
+                <PuffcoContainer
+                  model="guardian"
+                  id="guardian"
+                  className="flex items-center justify-center self-center w-full"
+                  demo={{
+                    activeColor: {
+                      r: 0,
+                      g: deviceType == "guardian" ? 64 : 0,
+                      b: deviceType == "guardian" ? 255 : 0,
+                    },
+                    state: PuffcoOperatingState.IDLE,
+                    chargeSource: ChargeSource.None,
+                  }}
                 />
               </div>
             </div>

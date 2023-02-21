@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { PropsWithoutRef, useEffect, useState } from "react";
 import usePrefersColorScheme from "use-prefers-color-scheme";
 
 import { PuffcoOperatingState } from "../types/gateway";
@@ -17,11 +17,12 @@ export function PuffcoContainer({
   id,
   demo,
   model = "peak",
+  className,
 }: {
   id: string;
   demo?: DemoProps;
   model?: string;
-}) {
+} & PropsWithoutRef<any>) {
   const [r, setRed] = useState(0);
   const [g, setGreen] = useState(0);
   const [b, setBlue] = useState(0);
@@ -108,11 +109,13 @@ export function PuffcoContainer({
 
   return (
     <div
-      className="flex flex-col justify-center items-center"
+      className={`flex flex-col justify-center items-center ${className}`}
       suppressHydrationWarning
     >
-      <div className="flex justify-center items-center self-center h-[34em] w-[18em]">
-        <svg className="flex absolute w-[35em] h-[35em]">
+      <div
+        className={`flex justify-center items-center self-center h-full w-full`}
+      >
+        <svg className="flex absolute w-full h-full">
           <image
             x="0"
             y="0"
@@ -127,7 +130,7 @@ export function PuffcoContainer({
             }.png`}
           ></image>
         </svg>
-        <svg className="flex absolute w-[35em] h-[35em]">
+        <svg className="flex absolute w-full h-full">
           <filter
             id={`${id}-svg2Matrix`}
             x="0"
@@ -152,7 +155,7 @@ export function PuffcoContainer({
             href={`/peak/device-glass-left.png`}
           ></image>
         </svg>
-        <svg className="flex absolute w-[35em] h-[35em]">
+        <svg className="flex absolute w-full h-full">
           <filter
             id={`${id}-svg3Matrix`}
             x="0"
@@ -177,7 +180,7 @@ export function PuffcoContainer({
             href={`/peak/device-glass-right.png`}
           ></image>
         </svg>
-        <svg className="flex absolute w-[35em] h-[35em]">
+        <svg className="flex absolute w-full h-full">
           <filter
             id={`${id}-svg4Matrix`}
             x="0"
@@ -202,7 +205,7 @@ export function PuffcoContainer({
             href={`/peak/device-base-left.png`}
           ></image>
         </svg>
-        <svg className="flex absolute w-[35em] h-[35em]">
+        <svg className="flex absolute w-full h-full">
           <filter
             id={`${id}-svg5Matrix`}
             x="0"
