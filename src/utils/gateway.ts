@@ -253,8 +253,8 @@ export class Gateway extends EventEmitter {
 
   private opened(): void {
     console.log(
-      "%cGateway%c Socket connection opened",
-      "padding: 10px; font-size: 1em; line-height: 1.4em; color: white; background: #151515; border-radius: 15px;",
+      `%c${SOCKET_URL.includes('puff.social') ? SOCKET_URL.split('.')[0].split('//')[1] : 'Local'}%c Socket connection opened`,
+      "padding: 10px; text-transform: capitalize; font-size: 1em; line-height: 1.4em; color: white; background: #151515; border-radius: 15px;",
       "font-size: 1em;"
     );
     this.emit("connected");
@@ -263,8 +263,8 @@ export class Gateway extends EventEmitter {
 
   private closed(): void {
     console.log(
-      "%cGateway%c Socket connection closed",
-      "padding: 10px; font-size: 1em; line-height: 1.4em; color: white; background: #151515; border-radius: 15px;",
+      `%c${SOCKET_URL.includes('puff.social') ? SOCKET_URL.split('.')[0].split('//')[1] : 'Local'}%c Socket connection closed`,
+      "padding: 10px; text-transform: capitalize; font-size: 1em; line-height: 1.4em; color: white; background: #151515; border-radius: 15px;",
       "font-size: 1em;"
     );
     clearInterval(this.heartbeat);
@@ -272,5 +272,5 @@ export class Gateway extends EventEmitter {
   }
 }
 
-const SOCKET_URL = typeof location != 'undefined' && ['localhost', '127.0.0.1'].includes(location.hostname) ? 'ws://127.0.0.1:9000' : 'wss://rosin.puff.social';
-export const gateway = typeof window != "undefined" && (SOCKET_URL == 'ws://127.0.0.1:9000' ? new Gateway(SOCKET_URL, 'json', 'none') : new Gateway(SOCKET_URL));
+export const SOCKET_URL = typeof location != 'undefined' && ['localhost', '127.0.0.1', 'dev.puff.social'].includes(location.hostname) ? (location.hostname == 'dev.puff.social' ? 'wss://flower.puff.social' : 'ws://127.0.0.1:9000') : 'wss://rosin.puff.social';
+export const gateway = typeof window != "undefined" && (['ws://127.0.0.1:9000', 'wss://flower.puff.social'].includes(SOCKET_URL) ? new Gateway(SOCKET_URL, 'json', 'none') : new Gateway(SOCKET_URL));

@@ -117,9 +117,9 @@ export default function Group() {
     });
   }
 
-  function groupMemberJoin({ session_id, name }: GroupUserJoin) {
+  function groupMemberJoin({ session_id, name, device_type }: GroupUserJoin) {
     toast(`${name} joined`);
-    setGroupMembers((curr) => [...curr, { session_id, name }]);
+    setGroupMembers((curr) => [...curr, { session_id, name, device_type }]);
   }
 
   function groupMemberLeft({ session_id }: GroupUserLeft) {
@@ -314,7 +314,7 @@ export default function Group() {
   }, [groupMembers]);
 
   return (
-    <div className="flex flex-col justify-center text-black bg-white dark:text-white dark:bg-zinc-900 h-screen">
+    <div className="flex flex-col justify-center text-black bg-white dark:text-white dark:bg-neutral-900 h-screen">
       <Head>
         <title>
           {groupConnected ? group.name : "Connecting"} - puff.social
@@ -338,7 +338,7 @@ export default function Group() {
               </p>
             </div>
 
-            <div className="flex flex-row bg-white dark:bg-zinc-900 text-black dark:text-white drop-shadow-xl rounded-md p-2 m-2">
+            <div className="flex flex-row text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 m-2">
               <button
                 className={`flex justify-center items-center text-white w-fit m-2 p-2 ${
                   group.state == "awaiting" ? "bg-green-700" : "bg-green-800"
@@ -368,7 +368,7 @@ export default function Group() {
 
           <div className="flex flex-row">
             <>
-              <div className="flex flex-col bg-white dark:bg-zinc-900 text-black dark:text-white drop-shadow-xl rounded-md m-4 w-64 h-[800px] justify-between items-center">
+              <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md m-4 w-64 h-[800px] justify-between items-center">
                 <div className="flex flex-col p-8 text-center justify-center items-center">
                   <p style={{ visibility: "hidden", display: "none" }}>
                     {time}
@@ -447,7 +447,7 @@ export default function Group() {
                     mem.session_id != gateway.session_id
                 )
                 .map((member) => (
-                  <div className="flex flex-col bg-white dark:bg-zinc-900 text-black dark:text-white drop-shadow-xl rounded-md m-4 w-64 h-[800px] justify-between items-center">
+                  <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md m-4 w-64 h-[800px] justify-between items-center">
                     <div className="flex flex-col p-8 text-center justify-center items-center">
                       <p style={{ visibility: "hidden", display: "none" }}>
                         {time}

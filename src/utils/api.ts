@@ -1,6 +1,6 @@
 import { APIGroup, APIResponse } from "../types/api";
 
-const API_URL = typeof location != 'undefined' && ['localhost', '127.0.0.1'].includes(location.hostname) ? 'http://127.0.0.1:9000' : 'https://rosin.puff.social';
+export const API_URL = typeof location != 'undefined' && ['localhost', '127.0.0.1', 'dev.puff.social'].includes(location.hostname) ? (location.hostname == 'dev.puff.social' ? 'https://flower.puff.social' : 'http://127.0.0.1:9000') : 'https://rosin.puff.social';
 
 export async function getGroups() {
   const req: APIResponse<APIGroup[]> = await fetch(`${API_URL}/v1/groups`).then(r => r.json());
