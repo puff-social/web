@@ -35,20 +35,6 @@ export default function Home() {
     setItems(groups);
   }
 
-  function groupCreated(group: GatewayGroupCreate) {
-    toast(`Group ${group.name} (${group.group_id}) created`);
-    connectGroup(group);
-  }
-
-  function groupCreateError(error: GatewayError) {
-    switch (error.code) {
-      case "INVALID_GROUP_NAME": {
-        toast("Too long or invalid group name (max 32 characters)");
-        break;
-      }
-    }
-  }
-
   const groupsUpdated = useCallback(
     (groups: APIGroup[]) => {
       setItems(groups);
@@ -62,12 +48,8 @@ export default function Home() {
     if (typeof localStorage != "undefined")
       localStorage.setItem("puff-social-first-visit", "false");
 
-    gateway.on("group_create", groupCreated);
-    gateway.on("group_create_error", groupCreateError);
     gateway.on("public_groups_update", groupsUpdated);
     return () => {
-      gateway.removeListener("group_create", groupCreated);
-      gateway.removeListener("group_create_error", groupCreateError);
       gateway.removeListener("public_groups_update", groupsUpdated);
     };
   }, []);
