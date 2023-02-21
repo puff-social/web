@@ -60,6 +60,7 @@ export function SettingsModal({ modalOpen, setModalOpen }: any) {
               <input
                 value={ourName}
                 placeholder="Display name"
+                maxLength={32}
                 className="w-full rounded-md p-2 m-1 text-black"
                 onChange={({ target: { value } }) => setOurName(value)}
               />
