@@ -101,6 +101,19 @@ export function SettingsModal({ modalOpen, setModalOpen }: any) {
                   onClick={() => setDeviceType("opal")}
                 />
               </div>
+              <div
+                className={`flex rounded-md ${
+                  deviceType == "indiglow"
+                    ? "bg-neutral-300 dark:bg-neutral-500"
+                    : "bg-neutral-500 dark:bg-neutral-700"
+                } pt-2 pb-2 hover:bg-neutral-300 dark:hover:bg-neutral-500 drop-shadow-xl`}
+              >
+                <img
+                  width="96px"
+                  src={`/indiglow/device.png`}
+                  onClick={() => setDeviceType("indiglow")}
+                />
+              </div>
             </div>
           </div>
         </div>
