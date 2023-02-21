@@ -182,6 +182,7 @@ export default function Home() {
           <div className="flex">
             <input
               value={groupName}
+              maxLength={32}
               onChange={(e) => setGroupName(e.target.value)}
               className="w-full rounded-md p-2 m-1 text-black border-2 border-slate-300"
               placeholder="Group name"
