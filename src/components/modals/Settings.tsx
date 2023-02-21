@@ -1,10 +1,13 @@
 import Modal from "react-modal";
 import toast from "react-hot-toast";
 import { useCallback, useState } from "react";
+import usePrefersColorScheme from "use-prefers-color-scheme";
 
 import { gateway, Op } from "../../utils/gateway";
 
 export function SettingsModal({ modalOpen, setModalOpen }: any) {
+  const prefersColorScheme = usePrefersColorScheme();
+
   const closeModal = useCallback(() => {
     setModalOpen(false);
   }, []);
@@ -92,7 +95,9 @@ export function SettingsModal({ modalOpen, setModalOpen }: any) {
               >
                 <img
                   width="96px"
-                  src={`/opal/device.png`}
+                  src={`/opal/${
+                    prefersColorScheme == "dark" ? "device" : "device-light-bg"
+                  }.png`}
                   onClick={() => setDeviceType("opal")}
                 />
               </div>
