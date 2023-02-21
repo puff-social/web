@@ -32,7 +32,8 @@ enum Event {
   GroupUserReady = "GROUP_USER_READY",
   GroupActionError = "GROUP_ACTION_ERROR",
   GroupVisibilityChange = "GROUP_VISIBILITY_CHANGE",
-  PublicGroupsUpdate = "PUBLIC_GROUPS_UPDATE"
+  PublicGroupsUpdate = "PUBLIC_GROUPS_UPDATE",
+  GroupCreateError = "GROUP_CREATE_ERROR"
 }
 
 interface SocketData {
@@ -76,6 +77,7 @@ export interface Gateway {
   on(event: "group_heat_begin", listener: () => void): this;
   on(event: "group_user_ready", listener: (action: GroupActionInitiator) => void): this;
   on(event: "public_groups_update", listener: (groups: APIGroup[]) => void): this;
+  on(event: "group_create_error", listener: (error: GatewayError) => void): this;
 }
 export class Gateway extends EventEmitter {
   constructor(
@@ -228,6 +230,10 @@ export class Gateway extends EventEmitter {
           }
           case Event.GroupActionError: {
             this.emit('group_action_error', data.d);
+            break;
+          }
+          case Event.GroupCreateError: {
+            this.emit('group_create_error', data.d);
             break;
           }
         }

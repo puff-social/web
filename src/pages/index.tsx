@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { APIGroup } from "../types/api";
 import { getGroups } from "../utils/api";
 import { gateway, Op } from "../utils/gateway";
-import { GatewayGroupCreate } from "../types/gateway";
+import { GatewayError, GatewayGroupCreate } from "../types/gateway";
 import { Settings } from "../components/icons/Settings";
 import { SettingsModal } from "../components/modals/Settings";
 import { InfoModal } from "../components/modals/Info";
@@ -40,6 +40,15 @@ export default function Home() {
     connectGroup(group);
   }
 
+  function groupCreateError(error: GatewayError) {
+    switch (error.code) {
+      case "INVALID_GROUP_NAME": {
+        toast("Too long or invalid group name (max 32 characters)");
+        break;
+      }
+    }
+  }
+
   const groupsUpdated = useCallback(
     (groups: APIGroup[]) => {
       setItems(groups);
@@ -54,9 +63,11 @@ export default function Home() {
       localStorage.setItem("puff-social-first-visit", "false");
 
     gateway.on("group_create", groupCreated);
+    gateway.on("group_create_error", groupCreateError);
     gateway.on("public_groups_update", groupsUpdated);
     return () => {
       gateway.removeListener("group_create", groupCreated);
+      gateway.removeListener("group_create_error", groupCreateError);
       gateway.removeListener("public_groups_update", groupsUpdated);
     };
   }, []);
