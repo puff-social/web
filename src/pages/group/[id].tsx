@@ -514,7 +514,9 @@ export default function Group() {
 
                       <span className="flex flex-row text-center self-center items-center">
                         <h3 className="text-[25px] m-0">
-                          {readyMembers.includes(gateway.session_id)
+                          {readyMembers.includes(gateway.session_id) &&
+                          myDevice.state !=
+                            PuffcoOperatingState.HEAT_CYCLE_ACTIVE
                             ? "Ready"
                             : PuffcoOperatingMap[myDevice.state]}
                         </h3>
@@ -597,7 +599,9 @@ export default function Group() {
                       </h2>
                       <span className="flex flex-row text-center self-center items-center">
                         <h3 className="text-[25px] m-0">
-                          {readyMembers.includes(member.session_id)
+                          {readyMembers.includes(member.session_id) &&
+                          member.device_state.state !=
+                            PuffcoOperatingState.HEAT_CYCLE_ACTIVE
                             ? "Ready"
                             : PuffcoOperatingMap[member.device_state.state]}
                         </h3>

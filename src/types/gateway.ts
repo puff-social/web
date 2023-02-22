@@ -28,7 +28,7 @@ export const PuffcoOperatingMap = [
   "Idle",
   "Temp Sel",
   "Preheat",
-  "Active",
+  "Seshin",
   "Fade"
 ];
 

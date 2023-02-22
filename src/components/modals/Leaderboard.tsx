@@ -60,8 +60,8 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                 <span className="flex flex-row">
                   <h3 className="mr-2 opacity-60">#{index + 1}</h3>
                   <span className="flex flex-col">
-                    <h3 className="font-bold">{lb.owner_name}</h3>
-                    <p className="opacity-60 italic">{lb.device_name}</p>
+                    <h3 className="font-bold">{lb.device_name}</h3>
+                    <p className="opacity-60 italic">{lb.owner_name}</p>
                   </span>
                 </span>
                 <span className="flex flex-col">
