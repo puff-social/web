@@ -19,6 +19,7 @@ export const decoder = new TextDecoder('utf-8');
 
 export const Characteristic = {
   ACCESS_KEY: `${BASE_CHARACTERISTIC}e0`,
+  EUID: `${BASE_CHARACTERISTIC}01`,
   COMMAND: `${BASE_CHARACTERISTIC}40`,
   BATTERY_SOC: `${BASE_CHARACTERISTIC}20`,
   BATTERY_VOLTAGE: `${BASE_CHARACTERISTIC}21`,
@@ -70,6 +71,12 @@ export const DeviceCommand = {
   TEMP_SELECT_BEGIN: new Uint8Array([0, 0, 64, 64]),
   HEAT_CYCLE_BEGIN: new Uint8Array([0, 0, 224, 64])
 };
+
+export enum ChamberType {
+  None,
+  Normal = 1,
+  "3D" = 3
+}
 
 export enum ChargeSource {
   USB,
@@ -173,6 +180,12 @@ export async function startPolling() {
 
   const [_____, initDeviceBirthday] = await getValue(service, Characteristic.DEVICE_BIRTHDAY);
   deviceInfo.id = Buffer.from(unpack(new Uint8Array(initDeviceBirthday.buffer), { bits: 32 }).toString()).toString('base64');
+
+  const [______, initEuid] = await getValue(service, Characteristic.EUID);
+  deviceInfo.uid = Buffer.from(unpack(new Uint8Array(initEuid.buffer), { bits: 32 }).toString()).toString('base64');
+
+  const [_______, initChamberType] = await getValue(service, Characteristic.CHAMBER_TYPE, 1);
+  initState.chamberType = (unpack(new Uint8Array(initChamberType.buffer), { bits: 8 }));
 
   const chargingPoll = await gattPoller(service, Characteristic.BATTERY_CHARGE_SOURCE, 5000);
   chargingPoll.on('change', (data, raw) => {

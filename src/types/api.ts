@@ -19,6 +19,7 @@ export interface APIGroup {
 export interface DeviceInformation {
   id: string;
   name: string;
+  uid: string;
   totalDabs: number;
   owner: string;
 }
