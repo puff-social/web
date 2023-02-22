@@ -2,6 +2,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import { useCallback, useEffect, useState } from "react";
+import { Tippy } from "../../components/Tippy";
 
 import { PuffcoContainer } from "../../components/puffco";
 import {
@@ -409,7 +410,7 @@ export default function Group() {
               <h1 className="text-4xl text-black dark:text-white font-bold">
                 {group.name}
               </h1>
-              <h3 className="text-black dark:text-white font-bold">
+              <h3 className="text-black dark:text-white font-bold capitalize">
                 State: {group.state}
               </h3>
               <p className="text-black dark:text-white font-bold">
@@ -453,18 +454,22 @@ export default function Group() {
               ) : (
                 <></>
               )}
-              <div
-                className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-                onClick={() => setUserSettingsModalOpen(true)}
-              >
-                <Settings />
-              </div>
-              <div
-                className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-                onClick={() => setInfoModalOpen(true)}
-              >
-                <Info />
-              </div>
+              <Tippy content="User Settings" placement="bottom">
+                <div
+                  className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+                  onClick={() => setUserSettingsModalOpen(true)}
+                >
+                  <Settings />
+                </div>
+              </Tippy>
+              <Tippy content="Information" placement="bottom">
+                <div
+                  className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+                  onClick={() => setInfoModalOpen(true)}
+                >
+                  <Info />
+                </div>
+              </Tippy>
             </div>
           </div>
 

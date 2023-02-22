@@ -126,9 +126,9 @@ export function InfoModal({ modalOpen, setModalOpen }: any) {
         </p>
 
         <p className="w-[496px] italic text-xs">
-          If you're reading this and work at Puffco, just want to give cool
+          If you're reading this and work at Puffco, I just want to give cool
           tools to the community, would love to see a group sesh feature in the
-          app (let's chat) :)
+          app (maybe we can chat about that) :)
         </p>
       </div>
     </Modal>

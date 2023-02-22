@@ -13,6 +13,7 @@ import { FeedbackModal } from "../components/modals/Feedback";
 import { Mail } from "../components/icons/Mail";
 import { LeaderboardIcon } from "../components/icons/LeaderboardIcon";
 import { LeaderboardModal } from "../components/modals/Leaderboard";
+import { Tippy } from "../components/Tippy";
 
 export default function Home() {
   const router = useRouter();
@@ -84,30 +85,38 @@ export default function Home() {
             (idea by Roberto)
           </h3>
         </div>
-        <div
-          className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-          onClick={() => setSettingsModalOpen(true)}
-        >
-          <Settings />
-        </div>
-        <div
-          className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-          onClick={() => setInfoModalOpen(true)}
-        >
-          <Info />
-        </div>
-        <div
-          className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-          onClick={() => setFeedbackModalOpen(true)}
-        >
-          <Mail />
-        </div>
-        <div
-          className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-          onClick={() => setLeaderboardOpen(true)}
-        >
-          <LeaderboardIcon />
-        </div>
+        <Tippy content="User Settings" placement="bottom">
+          <div
+            className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+            onClick={() => setSettingsModalOpen(true)}
+          >
+            <Settings />
+          </div>
+        </Tippy>
+        <Tippy content="Information" placement="bottom">
+          <div
+            className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+            onClick={() => setInfoModalOpen(true)}
+          >
+            <Info />
+          </div>
+        </Tippy>
+        <Tippy content="Send Feedback" placement="bottom">
+          <div
+            className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+            onClick={() => setFeedbackModalOpen(true)}
+          >
+            <Mail />
+          </div>
+        </Tippy>
+        <Tippy content="Dab Leaderboard" placement="bottom">
+          <div
+            className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+            onClick={() => setLeaderboardOpen(true)}
+          >
+            <LeaderboardIcon />
+          </div>
+        </Tippy>
       </div>
 
       <SettingsModal
@@ -137,7 +146,7 @@ export default function Home() {
                 >
                   <span>
                     <h3 className="m-0">{item.name}</h3>
-                    <p className="m-0 opacity-60 uppercase">{item.state}</p>
+                    <p className="m-0 opacity-60 capitalize">{item.state}</p>
                   </span>
                   <span>
                     <p className="m-0 opacity-80">

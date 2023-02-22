@@ -109,7 +109,9 @@ export function PuffcoContainer({
 
   return (
     <div
-      className={`flex flex-col justify-center items-center ${className}`}
+      className={`flex flex-col justify-center items-center${
+        className ? ` ${className}` : ""
+      }`}
       suppressHydrationWarning
     >
       <div

@@ -5,6 +5,7 @@ import { Cross } from "../icons/Cross";
 import { getLeaderboard } from "../../utils/analytics";
 import { DeviceLeaderboard } from "../../types/api";
 import { automaticRelativeDifference } from "../../utils/time";
+import { Tippy } from "../Tippy";
 
 const formatter = new Intl.RelativeTimeFormat("en", {
   style: "long",
@@ -73,21 +74,34 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                   <span className="flex flex-row">
                     <h3 className="mr-2 opacity-60">#{index + 1}</h3>
                     <span className="flex flex-col">
-                      <h3 className="font-bold">{lb.device_name}</h3>
-                      <p className="opacity-60 italic">{lb.owner_name}</p>
-                      <p className="text-right opacity-60">
-                        🎂 {new Date(lb.device_birthday).toLocaleDateString()}
-                      </p>
+                      <Tippy content="Device Name" placement="left">
+                        <h3 className="font-bold">{lb.device_name}</h3>
+                      </Tippy>
+                      <Tippy content="Owner Display Name" placement="left">
+                        <p className="opacity-60 italic">{lb.owner_name}</p>
+                      </Tippy>
+                      <Tippy content="Device Birthday" placement="left">
+                        <p className="opacity-60">
+                          🎂 {new Date(lb.device_birthday).toLocaleDateString()}
+                        </p>
+                      </Tippy>
                     </span>
                   </span>
                   <span className="flex flex-col justify-between">
-                    <p className="text-right font-bold text-lg">
-                      {lb.total_dabs.toLocaleString()}
-                    </p>
-                    <p className="text-right opacity-60">
-                      {formatter.format(last_active.duration, last_active.unit)}{" "}
-                      🕐
-                    </p>
+                    <Tippy content="Total Dabs" placement="right">
+                      <p className="text-right font-bold text-lg">
+                        {lb.total_dabs.toLocaleString()}
+                      </p>
+                    </Tippy>
+                    <Tippy content="Last Active" placement="right">
+                      <p className="text-right opacity-60">
+                        {formatter.format(
+                          last_active.duration,
+                          last_active.unit
+                        )}{" "}
+                        🕐
+                      </p>
+                    </Tippy>
                   </span>
                 </span>
               );
