@@ -142,6 +142,8 @@ export async function startPolling() {
   const initState: Partial<GatewayMemberDeviceState> = {};
   const deviceInfo: Partial<DeviceInformation> = {};
 
+  await new Promise((resolve) => setTimeout(() => resolve(true), 500));
+
   const [initTemperature] = await getValue(service, Characteristic.HEATER_TEMP);
   initState.temperature = Number(hexToFloat(initTemperature).toFixed(0));
 

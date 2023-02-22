@@ -13,5 +13,5 @@ export async function getLeaderboard() {
 }
 
 export async function trackDevice(device: Partial<DeviceInformation>, name: string) {
-  await fetch(`${API_URL}/v1/track`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ device, name }) });
+  fetch(`${API_URL}/v1/track`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ device, name }) });
 }

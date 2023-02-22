@@ -49,7 +49,7 @@ export async function getValue(service: BluetoothRemoteGATTService, characterist
     const char = await service.getCharacteristic(characteristic);
     const value = await char.readValue();
 
-    let str: string;
+    let str = '';
     for (let i = 0; i < bytes; i++) str += decimalToHexString(value.getUint8(i)).toString();
     const hex = flipHexString('0x' + str, 8)
     return [hex, value];
