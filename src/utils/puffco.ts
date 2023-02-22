@@ -1,7 +1,9 @@
 import { createHash } from "crypto";
 import { EventEmitter } from "events";
+import { unpack } from 'byte-data';
 import { GatewayMemberDeviceState } from "../types/gateway";
 import { convertFromHex, convertHexStringToNumArray, decimalToHexString, flipHexString, gattPoller, getValue, hexToFloat } from "./functions";
+import { DeviceInformation } from "../types/api";
 
 export const SERVICE = '06caf9c0-74d3-454f-9be9-e30cd999c17a';
 export const MODEL_INFORMATION = '00002a24-0000-1000-8000-00805f9b34fb';
@@ -138,6 +140,7 @@ export async function startPolling() {
   if (!service) return;
 
   const initState: Partial<GatewayMemberDeviceState> = {};
+  const deviceInfo: Partial<DeviceInformation> = {};
 
   const [initTemperature] = await getValue(service, Characteristic.HEATER_TEMP);
   initState.temperature = Number(hexToFloat(initTemperature).toFixed(0));
@@ -157,12 +160,17 @@ export async function startPolling() {
   const [___, initTotalDabs] = await getValue(service, Characteristic.TOTAL_HEAT_CYCLES);
   const dabsString = decimalToHexString(initTotalDabs.getUint8(0)).toString() + decimalToHexString(initTotalDabs.getUint8(1)).toString() + decimalToHexString(initTotalDabs.getUint8(2)).toString() + decimalToHexString(initTotalDabs.getUint8(3)).toString();
   initState.totalDabs = Number(hexToFloat(flipHexString('0x' + dabsString, 8)));
+  deviceInfo.totalDabs = initState.totalDabs;
 
   const [__, initDeviceName] = await getValue(service, Characteristic.DEVICE_NAME);
   initState.deviceName = decoder.decode(initDeviceName);
+  deviceInfo.name = initState.deviceName;
 
   const [____, initProfileName] = await getValue(service, Characteristic.PROFILE_NAME);
   initState.profileName = decoder.decode(initProfileName);
+
+  const [_____, initDeviceBirthday] = await getValue(service, Characteristic.DEVICE_BIRTHDAY);
+  deviceInfo.id = Buffer.from(unpack(new Uint8Array(initDeviceBirthday.buffer), { bits: 32 }).toString()).toString('base64');
 
   const chargingPoll = await gattPoller(service, Characteristic.BATTERY_CHARGE_SOURCE, 5000);
   chargingPoll.on('change', (data, raw) => {
@@ -228,5 +236,5 @@ export async function startPolling() {
     poller.removeAllListeners();
   });
 
-  return { poller, initState };
+  return { poller, initState, deviceInfo };
 }

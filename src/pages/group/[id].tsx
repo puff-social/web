@@ -33,6 +33,7 @@ import { SettingsModal } from "../../components/modals/Settings";
 import { InfoModal } from "../../components/modals/Info";
 import { Settings } from "../../components/icons/Settings";
 import { Info } from "../../components/icons/Info";
+import { trackDevice } from "../../utils/analytics";
 
 export default function Group() {
   const [deviceConnected, setDeviceConnected] = useState(false);
@@ -343,21 +344,23 @@ export default function Group() {
     };
   }, [updatedGroup]);
 
-  async function connectToDevice() {
+  const connectToDevice = useCallback(async () => {
     try {
       const device = await startConnection();
       toast(`Connected to ${device.name}`, { icon: "✅" });
       setDeviceConnected(true);
-      const { poller, initState } = await startPolling();
+      const { poller, initState, deviceInfo } = await startPolling();
+      await trackDevice(deviceInfo, ourName);
       gateway.send(Op.SendDeviceState, initState);
-      poller.on("data", (data) => {
+      poller.on("data", async (data) => {
+        if (data.totalDabs) await trackDevice(deviceInfo, ourName);
         setMyDevice((curr) => ({ ...curr, ...data }));
         gateway.send(Op.SendDeviceState, data);
       });
     } catch (error) {
       console.error(error);
     }
-  }
+  }, [ourName]);
 
   async function toggleVisbility() {
     gateway.send(Op.UpdateGroup, {

@@ -11,6 +11,8 @@ import { InfoModal } from "../components/modals/Info";
 import { Info } from "../components/icons/Info";
 import { FeedbackModal } from "../components/modals/Feedback";
 import { Mail } from "../components/icons/Mail";
+import { LeaderboardIcon } from "../components/icons/LeaderboardIcon";
+import { LeaderboardModal } from "../components/modals/Leaderboard";
 
 export default function Home() {
   const router = useRouter();
@@ -18,6 +20,7 @@ export default function Home() {
   const [groupId, setGroupId] = useState<string>();
   const [groupName, setGroupName] = useState<string>();
 
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [infoModalOpen, setInfoModalOpen] = useState(() =>
@@ -99,6 +102,12 @@ export default function Home() {
         >
           <Mail />
         </div>
+        <div
+          className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+          onClick={() => setLeaderboardOpen(true)}
+        >
+          <LeaderboardIcon />
+        </div>
       </div>
 
       <SettingsModal
@@ -106,6 +115,10 @@ export default function Home() {
         setModalOpen={setSettingsModalOpen}
       />
 
+      <LeaderboardModal
+        modalOpen={leaderboardOpen}
+        setModalOpen={setLeaderboardOpen}
+      />
       <InfoModal modalOpen={infoModalOpen} setModalOpen={setInfoModalOpen} />
       <FeedbackModal
         modalOpen={feedbackModalOpen}
