@@ -139,6 +139,18 @@ export default function Group() {
     });
   }
 
+  function groupMemberDeviceDisconnected({
+    session_id,
+  }: GroupUserDeviceUpdate) {
+    setGroupMembers((curr) => {
+      const existing = curr.find((mem) => mem.session_id == session_id);
+      if (!existing || typeof existing.device_state != "object") return curr;
+      for (const key in existing.device_state)
+        delete existing.device_state[key];
+      return [...curr];
+    });
+  }
+
   function groupMemberJoin({ session_id, name, device_type }: GroupUserJoin) {
     toast(`${name} joined`);
     setGroupMembers((curr) => [...curr, { session_id, name, device_type }]);
@@ -218,6 +230,29 @@ export default function Group() {
     [groupMembers]
   );
 
+  const groupMemberUnready = useCallback(
+    (data: GroupActionInitiator) => {
+      setGroupMembers((groupMembers) => {
+        const initiator = groupMembers.find(
+          (mem) => mem.session_id == data.session_id
+        );
+
+        setReadyMembers((curr) => [
+          ...curr.filter((item) => item != data.session_id),
+        ]);
+
+        toast(
+          `${
+            data.session_id == gateway.session_id ? ourName : initiator.name
+          } is no longer ready`,
+          { icon: "🚫", duration: 5000 }
+        );
+        return groupMembers;
+      });
+    },
+    [groupMembers]
+  );
+
   function groupJoinError(error: GatewayError) {
     switch (error.code) {
       case "INVALID_GROUP_ID": {
@@ -246,6 +281,12 @@ export default function Group() {
     [groupMembers]
   );
 
+  function disconnect() {
+    disconnectBluetooth();
+    setDeviceConnected(false);
+    gateway.send(Op.DisconnectDevice);
+  }
+
   useEffect(() => {
     if (id) {
       setInterval(() => setTime(Date.now()), 500);
@@ -253,11 +294,13 @@ export default function Group() {
       gateway.on("group_join_error", groupJoinError);
       gateway.on("group_user_update", groupMemberUpdated);
       gateway.on("group_user_device_update", groupMemberDeviceUpdated);
+      gateway.on("group_user_device_disconnect", groupMemberDeviceDisconnected);
       gateway.on("group_heat_begin", startDab);
       gateway.on("group_heat_inquiry", inquireDab);
       gateway.on("group_visibility_change", groupChangeVisibility);
 
       gateway.on("group_user_ready", groupMemberReady);
+      gateway.on("group_user_unready", groupMemberUnready);
       gateway.on("group_user_join", groupMemberJoin);
       gateway.on("group_user_left", groupMemberLeft);
       if (gateway.ws.readyState == gateway.ws.OPEN)
@@ -275,6 +318,10 @@ export default function Group() {
           "group_user_device_update",
           groupMemberDeviceUpdated
         );
+        gateway.removeListener(
+          "group_user_device_disconnect",
+          groupMemberDeviceDisconnected
+        );
         gateway.removeListener("group_heat_inquiry", inquireDab);
         gateway.removeListener(
           "group_visibility_change",
@@ -282,6 +329,7 @@ export default function Group() {
         );
         gateway.removeListener("group_heat_begin", startDab);
         gateway.removeListener("group_user_ready", groupMemberReady);
+        gateway.removeListener("group_user_unready", groupMemberUnready);
         gateway.removeListener("group_user_join", groupMemberJoin);
         gateway.removeListener("group_user_left", groupMemberLeft);
       };
@@ -391,6 +439,16 @@ export default function Group() {
               >
                 Leave
               </button>
+              {deviceConnected ? (
+                <button
+                  className="flex justify-center items-center text-white w-fit m-2 p-2 bg-red-800 rounded-md"
+                  onClick={() => disconnect()}
+                >
+                  Disconnect
+                </button>
+              ) : (
+                <></>
+              )}
               <div
                 className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
                 onClick={() => setUserSettingsModalOpen(true)}

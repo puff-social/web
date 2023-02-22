@@ -105,6 +105,11 @@ export interface GroupUserDeviceUpdate {
   session_id: string;
 }
 
+export interface GroupUserDeviceDisconnect {
+  group_id: string;
+  session_id: string;
+}
+
 export interface GroupActionInitiator {
   session_id: string;
 }

@@ -1,7 +1,7 @@
 import { EventEmitter } from "events";
 import { inflate, deflate } from "pako";
 import { APIGroup } from "../types/api";
-import { GatewayError, GatewayGroup, GatewayGroupCreate, GroupActionInitiator, GroupUserDeviceUpdate, GroupUserJoin, GroupUserLeft, GroupUserUpdate } from "../types/gateway";
+import { GatewayError, GatewayGroup, GatewayGroupCreate, GroupActionInitiator, GroupUserDeviceDisconnect, GroupUserDeviceUpdate, GroupUserJoin, GroupUserLeft, GroupUserUpdate } from "../types/gateway";
 
 export enum Op {
   Hello,
@@ -14,6 +14,7 @@ export enum Op {
   LeaveGroup,
   InquireHeating,
   StartWithReady,
+  DisconnectDevice,
   Heartbeat = 420
 }
 
@@ -30,11 +31,13 @@ enum Event {
   GroupHeatBegin = "GROUP_START_HEATING",
   GroupHeatInquiry = "GROUP_HEAT_INQUIRY",
   GroupUserReady = "GROUP_USER_READY",
+  GroupUserUnready = "GROUP_USER_UNREADY",
   GroupActionError = "GROUP_ACTION_ERROR",
   GroupVisibilityChange = "GROUP_VISIBILITY_CHANGE",
   PublicGroupsUpdate = "PUBLIC_GROUPS_UPDATE",
   GroupCreateError = "GROUP_CREATE_ERROR",
   UserUpdateError = "USER_UPDATE_ERROR",
+  GroupUserDeviceDisconnect = "GROUP_USER_DEVICE_DISCONNECT"
 }
 
 interface SocketData {
@@ -73,10 +76,12 @@ export interface Gateway {
   on(event: "group_update", listener: (group: GatewayGroup) => void): this;
   on(event: "group_user_update", listener: (group: GroupUserUpdate) => void): this;
   on(event: "group_user_device_update", listener: (group: GroupUserDeviceUpdate) => void): this;
+  on(event: "group_user_device_disconnect", listener: (group: GroupUserDeviceDisconnect) => void): this;
   on(event: "group_action_error", listener: (error: GatewayError) => void): this;
   on(event: "group_heat_inquiry", listener: (group: GroupActionInitiator) => void): this;
   on(event: "group_heat_begin", listener: () => void): this;
   on(event: "group_user_ready", listener: (action: GroupActionInitiator) => void): this;
+  on(event: "group_user_unready", listener: (action: GroupActionInitiator) => void): this;
   on(event: "public_groups_update", listener: (groups: APIGroup[]) => void): this;
   on(event: "group_create_error", listener: (error: GatewayError) => void): this;
   on(event: "user_update_error", listener: (error: GatewayError) => void): this;
@@ -240,6 +245,14 @@ export class Gateway extends EventEmitter {
           }
           case Event.UserUpdateError: {
             this.emit('user_update_error', data.d);
+            break;
+          }
+          case Event.GroupUserDeviceDisconnect: {
+            this.emit('group_user_device_disconnect', data.d);
+            break;
+          }
+          case Event.GroupUserUnready: {
+            this.emit('group_user_unready', data.d);
             break;
           }
         }
