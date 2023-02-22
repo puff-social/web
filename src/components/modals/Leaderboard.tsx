@@ -81,7 +81,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                     </span>
                   </span>
                   <span className="flex flex-col justify-between">
-                    <p className="text-right font-bold">
+                    <p className="text-right font-bold text-lg">
                       {lb.total_dabs.toLocaleString()}
                     </p>
                     <p className="text-right opacity-60">

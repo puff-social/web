@@ -505,7 +505,7 @@ export default function Group() {
                       demo={myDevice}
                     />
                     <div className="flex flex-col p-4 justify-center items-center text-center">
-                      <h2 className="text-[45px] m-0">
+                      <h2 className="text-[32px] m-0">
                         {myDevice.temperature
                           ? Math.floor(myDevice.temperature * 1.8 + 32)
                           : "--"}
