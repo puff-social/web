@@ -1,5 +1,6 @@
 import { createHash } from "crypto";
 import { EventEmitter } from "events";
+import { GatewayMemberDeviceState } from "../types/gateway";
 import { convertFromHex, convertHexStringToNumArray, decimalToHexString, flipHexString, gattPoller, getValue, hexToFloat } from "./functions";
 
 export const SERVICE = '06caf9c0-74d3-454f-9be9-e30cd999c17a';
@@ -136,6 +137,33 @@ export async function startPolling() {
   poller = new EventEmitter();
   if (!service) return;
 
+  const initState: Partial<GatewayMemberDeviceState> = {};
+
+  const [initTemperature] = await getValue(service, Characteristic.HEATER_TEMP);
+  initState.temperature = Number(hexToFloat(initTemperature).toFixed(0));
+
+  const [_, initActiveColor] = await getValue(service, Characteristic.ACTIVE_LED_COLOR);
+  initState.activeColor = { r: initActiveColor.getUint8(0), g: initActiveColor.getUint8(1), b: initActiveColor.getUint8(2) };
+
+  const [initBattery] = await getValue(service, Characteristic.BATTERY_SOC);
+  initState.battery = Number(hexToFloat(initBattery).toFixed(0));
+
+  const [initStateState] = await getValue(service, Characteristic.OPERATING_STATE);
+  initState.state = hexToFloat(initStateState);
+
+  const [initChargeSource] = await getValue(service, Characteristic.BATTERY_CHARGE_SOURCE);
+  initState.chargeSource = Number(hexToFloat(initChargeSource).toFixed(0));
+
+  const [___, initTotalDabs] = await getValue(service, Characteristic.TOTAL_HEAT_CYCLES);
+  const dabsString = decimalToHexString(initTotalDabs.getUint8(0)).toString() + decimalToHexString(initTotalDabs.getUint8(1)).toString() + decimalToHexString(initTotalDabs.getUint8(2)).toString() + decimalToHexString(initTotalDabs.getUint8(3)).toString();
+  initState.totalDabs = Number(hexToFloat(flipHexString('0x' + dabsString, 8)));
+
+  const [__, initDeviceName] = await getValue(service, Characteristic.DEVICE_NAME);
+  initState.deviceName = decoder.decode(initDeviceName);
+
+  const [____, initProfileName] = await getValue(service, Characteristic.PROFILE_NAME);
+  initState.profileName = decoder.decode(initProfileName);
+
   const chargingPoll = await gattPoller(service, Characteristic.BATTERY_CHARGE_SOURCE, 5000);
   chargingPoll.on('change', (data, raw) => {
     poller.emit('data', { chargeSource: Number(hexToFloat(data).toFixed(0)) });
@@ -200,5 +228,5 @@ export async function startPolling() {
     poller.removeAllListeners();
   });
 
-  return poller;
+  return { poller, initState };
 }

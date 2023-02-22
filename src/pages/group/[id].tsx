@@ -348,7 +348,8 @@ export default function Group() {
       const device = await startConnection();
       toast(`Connected to ${device.name}`, { icon: "✅" });
       setDeviceConnected(true);
-      const poller = await startPolling();
+      const { poller, initState } = await startPolling();
+      gateway.send(Op.SendDeviceState, initState);
       poller.on("data", (data) => {
         setMyDevice((curr) => ({ ...curr, ...data }));
         gateway.send(Op.SendDeviceState, data);

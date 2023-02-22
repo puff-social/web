@@ -41,6 +41,8 @@ export interface PuffcoState {
   activeColor: Colors;
   state: PuffcoOperatingState;
   chargeSource: ChargeSource;
+  deviceName: string;
+  profileName: string;
 }
 
 export interface GatewayGroupCreate {
@@ -92,6 +94,8 @@ export interface GatewayMemberDeviceState {
   temperature: number;
   totalDabs: number;
   chargeSource: ChargeSource;
+  deviceName: string;
+  profileName: string;
 }
 
 export interface GroupUserUpdate {

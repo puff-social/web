@@ -45,14 +45,14 @@ export function hexToFloat(hex: string) {
     return s * (int & 8388607 | 8388608) * 1.0 / Math.pow(2, 23) * Math.pow(2, (e - 127))
 }
 
-export async function getValue(service: BluetoothRemoteGATTService, characteristic: string, bytes = 4): Promise<[string, Buffer]> {
+export async function getValue(service: BluetoothRemoteGATTService, characteristic: string, bytes = 4): Promise<[string, DataView]> {
     const char = await service.getCharacteristic(characteristic);
     const value = await char.readValue();
 
     let str: string;
     for (let i = 0; i < bytes; i++) str += decimalToHexString(value.getUint8(i)).toString();
     const hex = flipHexString('0x' + str, 8)
-    return [hex, value as unknown as Buffer];
+    return [hex, value];
 }
 
 export async function gattPoller(service: BluetoothRemoteGATTService, characteristic: string, time?: number): Promise<EventEmitter> {
