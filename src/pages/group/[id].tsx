@@ -471,16 +471,9 @@ export default function Group() {
                   <p style={{ visibility: "hidden", display: "none" }}>
                     {time}
                   </p>
-                  <span className="flex flex-row text-center self-center items-center">
-                    <h1 className="m-0 text-center text-xl font-bold w-48 truncate">
-                      {ourName}
-                    </h1>
-                    {readyMembers.includes(gateway.session_id) ? (
-                      <Checkmark className="ml-2 text-green-700 w-[20px] h-[20px]" />
-                    ) : (
-                      <></>
-                    )}
-                  </span>
+                  <h1 className="m-0 text-center text-xl font-bold w-48 truncate">
+                    {ourName}
+                  </h1>
                   {deviceConnected && (
                     <div className="flex space-x-3 justify-center">
                       <span className="flex flex-row justify-center items-center">
@@ -514,9 +507,19 @@ export default function Group() {
                           : "--"}
                         °
                       </h2>
-                      <h3 className="text-[25px] m-0">
-                        {PuffcoOperatingMap[myDevice.state]}
-                      </h3>
+
+                      <span className="flex flex-row text-center self-center items-center">
+                        <h3 className="text-[25px] m-0">
+                          {readyMembers.includes(gateway.session_id)
+                            ? "Ready"
+                            : PuffcoOperatingMap[myDevice.state]}
+                        </h3>
+                        {readyMembers.includes(gateway.session_id) ? (
+                          <Checkmark className="ml-2 text-green-700 w-[20px] h-[20px]" />
+                        ) : (
+                          <></>
+                        )}
+                      </span>
                     </div>
                   </>
                 ) : (
@@ -548,16 +551,9 @@ export default function Group() {
                       <p style={{ visibility: "hidden", display: "none" }}>
                         {time}
                       </p>
-                      <span className="flex flex-row text-center self-center items-center">
-                        <h1 className="m-0 text-center text-xl font-bold w-48 truncate">
-                          {member.name}
-                        </h1>
-                        {readyMembers.includes(member.session_id) ? (
-                          <Checkmark className="ml-2 text-green-700 w-[20px] h-[20px]" />
-                        ) : (
-                          <></>
-                        )}
-                      </span>
+                      <h1 className="m-0 text-center text-xl font-bold w-48 truncate">
+                        {member.name}
+                      </h1>
                       <div className="flex space-x-3 justify-center">
                         <span className="flex flex-row justify-center items-center">
                           <Counter className="m-1" />
@@ -595,9 +591,18 @@ export default function Group() {
                           : "--"}
                         °
                       </h2>
-                      <h3 className="text-[25px] m-0">
-                        {PuffcoOperatingMap[member.device_state.state]}
-                      </h3>
+                      <span className="flex flex-row text-center self-center items-center">
+                        <h3 className="text-[25px] m-0">
+                          {readyMembers.includes(member.session_id)
+                            ? "Ready"
+                            : PuffcoOperatingMap[member.device_state.state]}
+                        </h3>
+                        {readyMembers.includes(member.session_id) ? (
+                          <Checkmark className="ml-2 text-green-700 w-[20px] h-[20px]" />
+                        ) : (
+                          <></>
+                        )}
+                      </span>
                     </div>
                   </div>
                 ))}
