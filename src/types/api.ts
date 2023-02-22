@@ -31,4 +31,5 @@ export interface DeviceLeaderboard {
   id: string;
   owner_name: string;
   total_dabs: number;
+  last_active: string;
 }

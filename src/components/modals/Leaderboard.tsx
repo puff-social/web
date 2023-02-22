@@ -4,6 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import { Cross } from "../icons/Cross";
 import { getLeaderboard } from "../../utils/analytics";
 import { DeviceLeaderboard } from "../../types/api";
+import { automaticRelativeDifference } from "../../utils/time";
+
+const formatter = new Intl.RelativeTimeFormat("en", {
+  style: "long",
+  numeric: "always",
+});
 
 export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
   const [leaderboard, setLeaderboard] = useState<DeviceLeaderboard[]>();
@@ -45,7 +51,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
     >
       <div className="flex flex-col m-2 p-10 w-[700px] rounded-md bg-white dark:bg-neutral-800 text-black space-y-3 dark:text-white justify-center">
         <div className="flex justify-between justify-center items-center">
-          <h1 className="text-xl">Leaderboards</h1>
+          <h1 className="text-xl">Total Dabs Leaderboards</h1>
 
           <Cross
             className="opacity-50 hover:opacity-100"
@@ -55,25 +61,37 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
 
         <div className="flex flex-col space-y-2">
           {leaderboard ? (
-            leaderboard.map((lb, index) => (
-              <span className="flex flex-row justify-between p-2 bg-neutral-900 rounded-md">
-                <span className="flex flex-row">
-                  <h3 className="mr-2 opacity-60">#{index + 1}</h3>
-                  <span className="flex flex-col">
-                    <h3 className="font-bold">{lb.device_name}</h3>
-                    <p className="opacity-60 italic">{lb.owner_name}</p>
+            leaderboard.map((lb, index) => {
+              const last_active = automaticRelativeDifference(
+                new Date(lb.last_active)
+              );
+              return (
+                <span
+                  key={index}
+                  className="flex flex-row justify-between p-2 bg-white dark:bg-neutral-900 rounded-md drop-shadow-xl"
+                >
+                  <span className="flex flex-row">
+                    <h3 className="mr-2 opacity-60">#{index + 1}</h3>
+                    <span className="flex flex-col">
+                      <h3 className="font-bold">{lb.device_name}</h3>
+                      <p className="opacity-60 italic">{lb.owner_name}</p>
+                      <p className="text-right opacity-60">
+                        🎂 {new Date(lb.device_birthday).toLocaleDateString()}
+                      </p>
+                    </span>
+                  </span>
+                  <span className="flex flex-col justify-between">
+                    <p className="text-right font-bold">
+                      {lb.total_dabs.toLocaleString()}
+                    </p>
+                    <p className="text-right opacity-60">
+                      {formatter.format(last_active.duration, last_active.unit)}{" "}
+                      🕐
+                    </p>
                   </span>
                 </span>
-                <span className="flex flex-col">
-                  <h3 className="text-right opacity-70">
-                    {lb.total_dabs.toLocaleString()}
-                  </h3>
-                  <h3 className="text-right opacity-70">
-                    {new Date(lb.device_birthday).toLocaleDateString()} 🎂
-                  </h3>
-                </span>
-              </span>
-            ))
+              );
+            })
           ) : (
             <></>
           )}
