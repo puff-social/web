@@ -71,10 +71,10 @@ export function InfoModal({ modalOpen, setModalOpen }: any) {
             </p>
 
             <p className="w-[550px]">
-              After tons of iterations and bugs, I'm deeming this ready for
-              anyone to use. You can set your display name and device type (I'd
-              love to get this from the device, but you blame web bluetooth api
-              for that one) You can manage this in user setting.
+              After tons of iterations and bugs fixed, I'm deeming this ready
+              for anyone to use. You can set your display name and device type
+              (I'd love to get this from the device, but you blame web bluetooth
+              api for that one) You can manage this in user setting.
             </p>
 
             <p className="w-[550px]">
