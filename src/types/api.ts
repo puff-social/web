@@ -11,6 +11,8 @@ export interface APIResponse<T> {
 export interface APIGroup {
   group_id: string;
   member_count: number;
+  sesher_count: number;
+  watcher_count: number;
   name: string;
   visibility: string;
   state: string;

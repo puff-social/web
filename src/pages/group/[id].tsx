@@ -35,6 +35,7 @@ import { InfoModal } from "../../components/modals/Info";
 import { Settings } from "../../components/icons/Settings";
 import { Info } from "../../components/icons/Info";
 import { trackDevice } from "../../utils/analytics";
+import { GroupMeta } from "../../components/GroupMeta";
 
 export default function Group() {
   const [deviceConnected, setDeviceConnected] = useState(false);
@@ -390,12 +391,7 @@ export default function Group() {
 
   return (
     <div className="flex flex-col justify-center text-black bg-white dark:text-white dark:bg-neutral-900 h-screen">
-      <Head>
-        <title>
-          {groupConnected ? group.name : "Connecting"} - puff.social
-        </title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      {group ? <GroupMeta group={group} /> : <></>}
 
       <SettingsModal
         modalOpen={userSettingsModalOpen}

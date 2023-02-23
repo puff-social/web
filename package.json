@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@tippyjs/react": "^4.2.6",
+    "@vercel/og": "^0.1.0",
     "autoprefixer": "^10.4.13",
     "byte-data": "^19.0.1",
     "csstype": "^3.1.1",
