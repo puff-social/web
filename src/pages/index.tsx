@@ -72,6 +72,7 @@ export default function Home() {
     <div className="flex flex-col justify-center h-screen text-black bg-white dark:text-white dark:bg-neutral-900">
       <Head>
         <title>puff.social</title>
+        <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <div className="flex flex-row items-center m-4">
