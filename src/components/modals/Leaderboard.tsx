@@ -6,6 +6,7 @@ import { getLeaderboard } from "../../utils/analytics";
 import { DeviceLeaderboard } from "../../types/api";
 import { automaticRelativeDifference } from "../../utils/time";
 import { Tippy } from "../Tippy";
+import { DeviceModelMap } from "../../utils/puffco";
 
 const formatter = new Intl.RelativeTimeFormat("en", {
   style: "long",
@@ -72,14 +73,17 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                   className="flex flex-row justify-between p-2 bg-white dark:bg-neutral-900 rounded-md drop-shadow-xl"
                 >
                   <span className="flex flex-row">
-                    <h3 className="mr-2 opacity-60">#{index + 1}</h3>
+                    <p className="mr-2 opacity-60">#{index + 1}</p>
                     <span className="flex flex-col">
                       <Tippy content="Device Name" placement="left">
-                        <h3 className="font-bold">{lb.device_name}</h3>
+                        <p className="font-bold">
+                          {lb.device_name} -{" "}
+                          {lb.device_model
+                            ? DeviceModelMap[lb.device_model]
+                            : "Unknown"}
+                        </p>
                       </Tippy>
-                      <Tippy content="Owner Display Name" placement="left">
-                        <p className="opacity-60 italic">{lb.owner_name}</p>
-                      </Tippy>
+                      <p className="opacity-60 italic">{lb.owner_name}</p>
                       <Tippy content="Device Birthday" placement="left">
                         <p className="opacity-60">
                           🎂 {new Date(lb.device_birthday).toLocaleDateString()}

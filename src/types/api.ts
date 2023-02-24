@@ -33,6 +33,7 @@ export interface DeviceLeaderboard {
   device_birthday: string;
   device_id: string;
   device_name: string;
+  device_model: DeviceModel;
   id: string;
   owner_name: string;
   total_dabs: number;

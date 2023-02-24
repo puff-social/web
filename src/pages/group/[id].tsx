@@ -392,15 +392,17 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   }, [groupMembers]);
 
   return !initGroup ? (
-    <div className="flex flex-col justify-center items-center text-center text-black dark:text-white">
-      <h2 className="text-xl m-4">Unknown Group</h2>
+    <div className="flex flex-col justify-center text-black bg-white dark:text-white dark:bg-neutral-900 h-screen">
+      <div className="flex flex-col justify-center items-center text-center text-black dark:text-white">
+        <h2 className="text-xl m-4">Unknown Group</h2>
 
-      <button
-        className="w-48 self-center rounded-md bg-indigo-700 hover:bg-indigo-800 p-1 mb-5 text-white"
-        onClick={() => router.push("/")}
-      >
-        Back
-      </button>
+        <button
+          className="w-48 self-center rounded-md bg-indigo-700 hover:bg-indigo-800 p-1 mb-5 text-white"
+          onClick={() => router.push("/")}
+        >
+          Back
+        </button>
+      </div>
     </div>
   ) : (
     <div className="flex flex-col justify-center text-black bg-white dark:text-white dark:bg-neutral-900 h-screen">

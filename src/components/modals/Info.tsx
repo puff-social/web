@@ -48,16 +48,20 @@ export function InfoModal({ modalOpen, setModalOpen }: any) {
 
             <p className="w-[550px]">
               I decided to build this because A friend of mine and I smoke a lot
-              over discord, we both have a peak pro, and whilst not super easy
-              it is possible to interact with the device functions over BLE (
+              over discord, we both have a peak pro, and while not super easy it
+              is possible to interact with the device functions over BLE
+              initially started by digging through the react native bundle for
+              the official web app, and after getting pretty far, I found this{" "}
               <a
                 href="https://github.com/Fr0st3h/Puffco-Reverse-Engineering-Writeup"
                 className="text-blue-700 dark:text-blue-400"
                 target="_blank"
               >
-                Thanks to this writeup I learned a lot
+                writeup
               </a>
-              ) along with that I just love realtime applications, so I built a{" "}
+              , which helped better understand the characteristics and what they
+              do, plus all the other obscure things you can do, along with that
+              I just love realtime applications, so I built a{" "}
               <a
                 className="text-blue-700 dark:text-blue-400"
                 target="_blank"
@@ -71,10 +75,10 @@ export function InfoModal({ modalOpen, setModalOpen }: any) {
             </p>
 
             <p className="w-[550px]">
-              After tons of iterations and bugs fixed, I'm deeming this ready
-              for anyone to use. You can set your public display name in user
-              settings (seperate from device name, which is only used on the
-              leaderboards)
+              After many iterations and plenty of bugs made and then fixed, I'm
+              making this ready for anyone to use. You can set your public
+              display name in user settings (separate from the device name,
+              which is only used on the leaderboards)
             </p>
 
             <p className="w-[550px]">
