@@ -72,6 +72,7 @@ export const DeviceCommand = {
   IDLE: new Uint8Array([0, 0, 0, 64]),
   SHOW_VERSION: new Uint8Array([0, 0, 192, 64]),
   TEMP_SELECT_BEGIN: new Uint8Array([0, 0, 64, 64]),
+  TEMP_SELECT_STOP: new Uint8Array([0, 0, 296, 64]),
   HEAT_CYCLE_BEGIN: new Uint8Array([0, 0, 224, 64])
 };
 

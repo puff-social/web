@@ -41,9 +41,9 @@ export function InfoModal({ modalOpen, setModalOpen }: any) {
         <div className="flex flex-row space-x-8">
           <div className="flex flex-col rounded-md space-y-3 justify-center">
             <p className="w-[500px]">
-              <span className="font-bold">Important:</span> your Puffco Peak Pro
-              device must be running firmware X or later to connect to this
-              site.
+              <span className="font-bold">Important:</span> This should work
+              with any device running firmware X or later, but has only been
+              tested with firmware Y (3D Chamber W)
             </p>
 
             <p className="w-[550px]">
