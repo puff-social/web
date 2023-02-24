@@ -29,6 +29,12 @@ export interface DeviceInformation {
   model: DeviceModel;
 }
 
+export interface DiagData {
+  device_firmware: number;
+  device_model: number;
+  device_name: string;
+}
+
 export interface DeviceLeaderboard {
   device_dob: string;
   device_id: string;

@@ -3,7 +3,8 @@ import { EventEmitter } from "events";
 import { unpack } from 'byte-data';
 import { GatewayMemberDeviceState } from "../types/gateway";
 import { convertFromHex, convertHexStringToNumArray, decimalToHexString, flipHexString, gattPoller, getValue, hexToFloat } from "./functions";
-import { DeviceInformation } from "../types/api";
+import { DeviceInformation, DiagData } from "../types/api";
+import { trackDiags } from "./analytics";
 
 export const SERVICE = '06caf9c0-74d3-454f-9be9-e30cd999c17a';
 export const MODEL_SERVICE = '0000180a-0000-1000-8000-00805f9b34fb';
@@ -12,6 +13,7 @@ export const FIRMWARE_INFORMATION = '00002a28-0000-1000-8000-00805f9b34fb';
 export const BASE_CHARACTERISTIC = `f9a98c15-c651-4f34-b656-d100bf5800`;
 export const HANDSHAKE_KEY = Buffer.from("FUrZc0WilhUBteT2JlCc+A==", "base64");
 
+export let deviceModel: DeviceModel;
 export let modelService: BluetoothRemoteGATTService;
 export let service: BluetoothRemoteGATTService;
 export let device: BluetoothDevice;
@@ -57,6 +59,7 @@ export const Characteristic = {
   MODE_COMMAND: `${BASE_CHARACTERISTIC}40`,
   STEALTH_MODE: `${BASE_CHARACTERISTIC}42`,
   TEMPERATURE_OVERRIDE: `${BASE_CHARACTERISTIC}45`,
+  LANTERN_START: `${BASE_CHARACTERISTIC}4a`,
   LANTERN_COLOR: `${BASE_CHARACTERISTIC}48`,
   PROFILE_NAME: `${BASE_CHARACTERISTIC}62`,
   PROFILE_COLOR: `${BASE_CHARACTERISTIC}65`,
@@ -73,7 +76,7 @@ export const DeviceCommand = {
   SHOW_VERSION: new Uint8Array([0, 0, 192, 64]),
   TEMP_SELECT_BEGIN: new Uint8Array([0, 0, 64, 64]),
   TEMP_SELECT_STOP: new Uint8Array([0, 0, 296, 64]),
-  HEAT_CYCLE_BEGIN: new Uint8Array([0, 0, 224, 64])
+  HEAT_CYCLE_BEGIN: new Uint8Array([0, 0, 224, 64]),
 };
 
 export enum ChamberType {
@@ -102,6 +105,53 @@ export const DeviceModelMap = {
   0x33: "Guardian",
 }
 
+export enum ColorMode {
+  Preserve = 0x00,
+  Static = 0x01,
+  Breathing = 0x05,
+  Rising = 0x06,
+  Circling = 0x07,
+  BrightBaseTwinkle = 0x08,
+  Logo = 0x12,
+  LogoBaseCircleFast = 0x13,
+  LogoBaseCircleSlow = 0x14,
+  FullCirclingSlow = 0x15
+}
+
+export const LightCommands = {
+  LANTERN_ON: new Uint8Array([0x01, 0x00, 0x00, 0x00]),
+  LANTERN_OFF: new Uint8Array([0x00, 0x00, 0x00, 0x00]),
+  LIGHT_NEUTRAL: new Uint8Array([255, 50, 0, ColorMode.Static]),
+  LIGHT_QUERY_READY: new Uint8Array([0, 255, 50, 0, ColorMode.LogoBaseCircleFast]),
+  LIGHT_MARKED_READY: new Uint8Array([255, 50, ColorMode.Logo, 1]),
+};
+
+export enum PuffLightMode {
+  QueryReady,
+  MarkedReady,
+  Default
+}
+
+export async function setLightMode(mode: PuffLightMode) {
+  switch (mode) {
+    case PuffLightMode.QueryReady: {
+      await writeValue(Characteristic.LANTERN_COLOR, LightCommands.LIGHT_QUERY_READY);
+      await writeValue(Characteristic.LANTERN_START, LightCommands.LANTERN_ON);
+      break;
+    }
+    case PuffLightMode.MarkedReady: {
+      await writeValue(Characteristic.LANTERN_COLOR, LightCommands.LIGHT_MARKED_READY);
+      await writeValue(Characteristic.LANTERN_START, LightCommands.LANTERN_ON);
+      break;
+    }
+    case PuffLightMode.Default: {
+      await writeValue(Characteristic.LANTERN_START, LightCommands.LANTERN_OFF);
+      await writeValue(Characteristic.LANTERN_COLOR, LightCommands.LIGHT_NEUTRAL);
+      break;
+    }
+  }
+}
+
 export async function startConnection() {
   try {
     try {
@@ -125,6 +175,16 @@ export async function startConnection() {
     modelService = await server.getPrimaryService(
       MODEL_SERVICE
     );
+
+    const diagData: DiagData = {
+      device_firmware: Number((await getValue(modelService, FIRMWARE_INFORMATION, 1).catch(() => [null, null]))[0]),
+      device_model: Number((await getValue(modelService, MODEL_INFORMATION, 1).catch(() => [null, null]))[0]),
+      device_name: device.name
+    };
+
+    deviceModel = diagData.device_model;
+
+    trackDiags(diagData);
 
     const accessSeedKey = await service.getCharacteristic(Characteristic.ACCESS_KEY);
     const value = await accessSeedKey.readValue();
@@ -159,9 +219,14 @@ export async function disconnectBluetooth() {
 
 export async function sendCommand(command: Uint8Array) {
   if (!service) return;
+  await writeValue(Characteristic.COMMAND, command);
+}
 
-  const char = await service.getCharacteristic(Characteristic.COMMAND);
-  await char.writeValue(Buffer.from(command));
+export async function writeValue(characteristic: string, value: Uint8Array) {
+  if (!service) return;
+
+  const char = await service.getCharacteristic(characteristic);
+  await char.writeValue(Buffer.from(value));
 }
 
 export async function startPolling() {

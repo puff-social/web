@@ -23,7 +23,9 @@ import {
   DeviceModel,
   DeviceModelMap,
   disconnectBluetooth,
+  PuffLightMode,
   sendCommand,
+  setLightMode,
   startConnection,
   startPolling,
 } from "../../utils/puffco";
@@ -108,6 +110,11 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       )
         setReadyMembers([]);
       setGroup(newGroup);
+
+      if (newGroup.state == GroupState.Awaiting)
+        setLightMode(PuffLightMode.QueryReady);
+      else if (newGroup.state == GroupState.Chilling)
+        setLightMode(PuffLightMode.Default);
     },
     [readyMembers, group]
   );
@@ -358,13 +365,23 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       setMyDevice((curr) => ({ ...curr, ...initState }));
       poller.on("data", async (data) => {
         if (data.totalDabs) await trackDevice(deviceInfo, ourName);
+        setGroup((currGroup) => {
+          if (
+            currGroup.state == GroupState.Awaiting &&
+            data.state == PuffcoOperatingState.TEMP_SELECT
+          ) {
+            setLightMode(PuffLightMode.MarkedReady);
+          }
+
+          return currGroup;
+        });
         setMyDevice((curr) => ({ ...curr, ...data }));
         gateway.send(Op.SendDeviceState, data);
       });
     } catch (error) {
       console.error(error);
     }
-  }, [ourName]);
+  }, [ourName, group]);
 
   async function toggleVisbility() {
     gateway.send(Op.UpdateGroup, {
