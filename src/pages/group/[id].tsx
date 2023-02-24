@@ -393,6 +393,8 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
 
   return !initGroup ? (
     <div className="flex flex-col justify-center text-black bg-white dark:text-white dark:bg-neutral-900 h-screen">
+      <GroupMeta />
+
       <div className="flex flex-col justify-center items-center text-center text-black dark:text-white">
         <h2 className="text-xl m-4">Unknown Group</h2>
 
