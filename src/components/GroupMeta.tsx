@@ -5,7 +5,7 @@ import { APIGroup } from "../types/api";
 export function GroupMeta({ group }: { group: APIGroup }) {
   return (
     <Head>
-      <title>{group.name} - puff.social</title>
+      <title>{`${group.name} - puff.social`}</title>
       <link rel="icon" href="/favicon.ico" />
 
       <meta httpEquiv="X-UA-Compatible" content="ie=edge" />
@@ -19,12 +19,13 @@ export function GroupMeta({ group }: { group: APIGroup }) {
       <meta name="description" content={`Join ${group.name} on puff.social`} />
       <meta name="twitter:creator" content="@dustinrouillard" />
       <meta name="twitter:site" content="@dustinrouillard" />
+      <meta content="summary_large_image" name="twitter:card" />
       <meta
-        property="og:image"
+        name="twitter:image"
         content={`https://puff.social/api/group/${group.group_id}`}
       />
       <meta
-        property="twitter:image"
+        property="og:image"
         content={`https://puff.social/api/group/${group.group_id}`}
       />
     </Head>
