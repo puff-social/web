@@ -86,7 +86,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                       <p className="opacity-60 italic">{lb.owner_name}</p>
                       <Tippy content="Device Birthday" placement="left">
                         <p className="opacity-60">
-                          🎂 {new Date(lb.device_birthday).toLocaleDateString()}
+                          🎂 {new Date(lb.device_dob).toLocaleDateString()}
                         </p>
                       </Tippy>
                     </span>

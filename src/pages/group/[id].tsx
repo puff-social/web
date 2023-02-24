@@ -419,16 +419,21 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       {groupConnected ? (
         <>
           <div className="flex flex-row items-center m-4">
-            <div>
-              <h1 className="text-4xl text-black dark:text-white font-bold">
-                {group.name}
-              </h1>
-              <h3 className="text-black dark:text-white font-bold capitalize">
-                State: {group.state}
-              </h3>
+            <div className="flex flex-col">
+              <div>
+                <h1 className="text-4xl text-black dark:text-white font-bold">
+                  {group.name}
+                </h1>
+                <h3 className="text-black dark:text-white font-bold capitalize">
+                  State: {group.state}
+                </h3>
+                <p className="text-black dark:text-white font-bold">
+                  {seshers} sesher{seshers > 1 ? "s" : ""} - {watchers} watcher
+                  {watchers ? "s" : ""}
+                </p>
+              </div>
               <p className="text-black dark:text-white font-bold">
-                {seshers} sesher{seshers > 1 ? "s" : ""} - {watchers} watcher
-                {watchers ? "s" : ""}
+                {group.sesh_counter.toLocaleString()} seshes this group
               </p>
             </div>
 

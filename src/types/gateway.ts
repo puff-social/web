@@ -80,6 +80,7 @@ export interface GatewayGroup {
   name: string;
   state: GroupState;
   visibility: string;
+  sesh_counter: number;
 }
 
 export interface GatewayGroupMember {
