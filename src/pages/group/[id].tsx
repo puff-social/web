@@ -515,7 +515,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                   <>
                     <PuffcoContainer
                       id="self"
-                      model={DeviceModelMap[myDevice.deviceModel]}
+                      model={DeviceModelMap[myDevice.deviceModel].toLowerCase()}
                       demo={myDevice}
                     />
                     <div className="flex flex-col p-4 justify-center items-center text-center">
@@ -598,7 +598,9 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                     <div>
                       <PuffcoContainer
                         id={member.session_id}
-                        model={DeviceModelMap[member.device_state.deviceModel]}
+                        model={DeviceModelMap[
+                          member.device_state.deviceModel
+                        ].toLowerCase()}
                         demo={member.device_state}
                       />
                     </div>
