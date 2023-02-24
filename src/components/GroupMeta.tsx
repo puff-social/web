@@ -1,8 +1,8 @@
 import Head from "next/head";
 
-import { GatewayGroup } from "../types/gateway";
+import { APIGroup } from "../types/api";
 
-export function GroupMeta({ group }: { group: GatewayGroup }) {
+export function GroupMeta({ group }: { group: APIGroup }) {
   return (
     <Head>
       <title>{group.name} - puff.social</title>
@@ -21,6 +21,10 @@ export function GroupMeta({ group }: { group: GatewayGroup }) {
       <meta name="twitter:site" content="@dustinrouillard" />
       <meta
         property="og:image"
+        content={`https://puff.social/api/group/${group.group_id}`}
+      />
+      <meta
+        property="twitter:image"
         content={`https://puff.social/api/group/${group.group_id}`}
       />
     </Head>

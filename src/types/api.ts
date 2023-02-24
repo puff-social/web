@@ -1,3 +1,5 @@
+import { DeviceModel } from "../utils/puffco";
+
 export interface APIResponse<T> {
   data: T;
   error?: {
@@ -24,6 +26,7 @@ export interface DeviceInformation {
   uid: string;
   totalDabs: number;
   owner: string;
+  model: DeviceModel;
 }
 
 export interface DeviceLeaderboard {

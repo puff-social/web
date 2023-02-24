@@ -103,7 +103,11 @@ export default async function handler(req: NextRequest) {
             >
               {data.name}
             </span>
-            <span>
+            <span
+              style={{
+                fontSize: 35,
+              }}
+            >
               {data.sesher_count} sesher
               {data.sesher_count > 1 || data.sesher_count == 0
                 ? "s"

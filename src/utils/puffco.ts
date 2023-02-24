@@ -6,10 +6,13 @@ import { convertFromHex, convertHexStringToNumArray, decimalToHexString, flipHex
 import { DeviceInformation } from "../types/api";
 
 export const SERVICE = '06caf9c0-74d3-454f-9be9-e30cd999c17a';
+export const MODEL_SERVICE = '0000180a-0000-1000-8000-00805f9b34fb';
 export const MODEL_INFORMATION = '00002a24-0000-1000-8000-00805f9b34fb';
+export const FIRMWARE_INFORMATION = '00002a28-0000-1000-8000-00805f9b34fb';
 export const BASE_CHARACTERISTIC = `f9a98c15-c651-4f34-b656-d100bf5800`;
 export const HANDSHAKE_KEY = Buffer.from("FUrZc0WilhUBteT2JlCc+A==", "base64");
 
+export let modelService: BluetoothRemoteGATTService;
 export let service: BluetoothRemoteGATTService;
 export let device: BluetoothDevice;
 export let server: BluetoothRemoteGATTServer;
@@ -84,6 +87,20 @@ export enum ChargeSource {
   None = 3
 }
 
+export enum DeviceModel {
+  Peak = 0x30,
+  Opal = 0x31,
+  Indiglow = 0x32,
+  Guardian = 0x33
+}
+
+export const DeviceModelMap = {
+  0x30: "Peak",
+  0x31: "Opal",
+  0x32: "Indiglow",
+  0x33: "Guardian",
+}
+
 export async function startConnection() {
   try {
     try {
@@ -94,6 +111,7 @@ export async function startConnection() {
             services: [SERVICE],
           },
         ],
+        optionalServices: [MODEL_SERVICE]
       });
     } catch (error) {
       throw error;
@@ -102,6 +120,9 @@ export async function startConnection() {
     server = await device.gatt.connect();
     service = await server.getPrimaryService(
       SERVICE
+    );
+    modelService = await server.getPrimaryService(
+      MODEL_SERVICE
     );
 
     const accessSeedKey = await service.getCharacteristic(Characteristic.ACCESS_KEY);
@@ -149,7 +170,11 @@ export async function startPolling() {
   const initState: Partial<GatewayMemberDeviceState> = {};
   const deviceInfo: Partial<DeviceInformation> = {};
 
-  await new Promise((resolve) => setTimeout(() => resolve(true), 500));
+  await new Promise((resolve) => setTimeout(() => resolve(true), 200));
+
+  const [initDeviceModal] = await getValue(modelService, MODEL_INFORMATION, 1);
+  initState.deviceModel = Number(initDeviceModal);
+  deviceInfo.model = Number(initDeviceModal);
 
   const [initTemperature] = await getValue(service, Characteristic.HEATER_TEMP);
   initState.temperature = Number(hexToFloat(initTemperature).toFixed(0));

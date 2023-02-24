@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import { useCallback, useEffect, useState } from "react";
@@ -21,6 +20,8 @@ import {
 import {
   ChargeSource,
   DeviceCommand,
+  DeviceModel,
+  DeviceModelMap,
   disconnectBluetooth,
   sendCommand,
   startConnection,
@@ -36,19 +37,17 @@ import { Settings } from "../../components/icons/Settings";
 import { Info } from "../../components/icons/Info";
 import { trackDevice } from "../../utils/analytics";
 import { GroupMeta } from "../../components/GroupMeta";
+import { NextPageContext } from "next";
+import { getGroupById } from "../../utils/api";
+import { APIGroup } from "../../types/api";
 
-export default function Group() {
+export default function Group({ group: initGroup }: { group: APIGroup }) {
   const [deviceConnected, setDeviceConnected] = useState(false);
   const [groupConnected, setGroupConnected] = useState(false);
   const [group, setGroup] = useState<GatewayGroup>();
   const [groupJoinErrorMessage, setGroupJoinErrorMessage] = useState<string>();
   const [groupMembers, setGroupMembers] = useState<GatewayGroupMember[]>([]);
 
-  const [deviceType, setDeviceType] = useState(() =>
-    typeof localStorage != "undefined"
-      ? localStorage.getItem("puff-social-device-type") || "peak"
-      : "peak"
-  );
   const [ourName, setOurName] = useState(() =>
     typeof localStorage != "undefined"
       ? localStorage.getItem("puff-social-name") || "Unnamed"
@@ -66,6 +65,7 @@ export default function Group() {
     battery: 0,
     brightness: 0,
     chargeSource: ChargeSource.None,
+    deviceModel: DeviceModel.Peak,
   });
 
   const [userSettingsModalOpen, setUserSettingsModalOpen] = useState(false);
@@ -80,7 +80,13 @@ export default function Group() {
 
   function validState(state: GatewayMemberDeviceState) {
     if (!state) return false;
-    const required = ["temperature", "battery", "totalDabs", "state"];
+    const required = [
+      "temperature",
+      "battery",
+      "totalDabs",
+      "state",
+      "deviceModel",
+    ];
     for (const key of required) {
       if (typeof state[key] == "undefined") return false;
     }
@@ -112,11 +118,6 @@ export default function Group() {
       typeof member.name != "undefined"
     )
       setOurName(member.name);
-    if (
-      member.session_id == gateway.session_id &&
-      typeof member.device_type != "undefined"
-    )
-      setDeviceType(member.device_type);
 
     setGroupMembers((curr) => {
       const existing = curr.find((mem) => mem.session_id == member.session_id);
@@ -291,7 +292,7 @@ export default function Group() {
   }
 
   useEffect(() => {
-    if (id) {
+    if (initGroup && initGroup.group_id) {
       setInterval(() => setTime(Date.now()), 500);
       gateway.on("joined_group", joinedGroup);
       gateway.on("group_join_error", groupJoinError);
@@ -337,7 +338,7 @@ export default function Group() {
         gateway.removeListener("group_user_left", groupMemberLeft);
       };
     }
-  }, [id]);
+  }, [initGroup]);
 
   useEffect(() => {
     gateway.on("group_update", updatedGroup);
@@ -354,6 +355,7 @@ export default function Group() {
       const { poller, initState, deviceInfo } = await startPolling();
       await trackDevice(deviceInfo, ourName);
       gateway.send(Op.SendDeviceState, initState);
+      setMyDevice((curr) => ({ ...curr, ...initState }));
       poller.on("data", async (data) => {
         if (data.totalDabs) await trackDevice(deviceInfo, ourName);
         setMyDevice((curr) => ({ ...curr, ...data }));
@@ -389,9 +391,20 @@ export default function Group() {
     setWatchers(currentWatchers + (!deviceConnected ? 1 : 0));
   }, [groupMembers]);
 
-  return (
+  return !initGroup ? (
+    <div className="flex flex-col justify-center items-center text-center text-black dark:text-white">
+      <h2 className="text-xl m-4">Unknown Group</h2>
+
+      <button
+        className="w-48 self-center rounded-md bg-indigo-700 hover:bg-indigo-800 p-1 mb-5 text-white"
+        onClick={() => router.push("/")}
+      >
+        Back
+      </button>
+    </div>
+  ) : (
     <div className="flex flex-col justify-center text-black bg-white dark:text-white dark:bg-neutral-900 h-screen">
-      {group ? <GroupMeta group={group} /> : <></>}
+      <GroupMeta group={initGroup} />
 
       <SettingsModal
         modalOpen={userSettingsModalOpen}
@@ -502,7 +515,7 @@ export default function Group() {
                   <>
                     <PuffcoContainer
                       id="self"
-                      model={deviceType}
+                      model={DeviceModelMap[myDevice.deviceModel]}
                       demo={myDevice}
                     />
                     <div className="flex flex-col p-4 justify-center items-center text-center">
@@ -585,7 +598,7 @@ export default function Group() {
                     <div>
                       <PuffcoContainer
                         id={member.session_id}
-                        model={member.device_type}
+                        model={DeviceModelMap[member.device_state.deviceModel]}
                         demo={member.device_state}
                       />
                     </div>
@@ -623,7 +636,7 @@ export default function Group() {
           <h2 className="text-xl m-4">
             {!!groupJoinErrorMessage
               ? groupJoinErrorMessage
-              : `Connecting to ${id}...`}
+              : `Connecting to ${initGroup.name}...`}
           </h2>
 
           <button
@@ -636,4 +649,19 @@ export default function Group() {
       )}
     </div>
   );
+}
+
+export async function getServerSideProps(context: NextPageContext) {
+  try {
+    const group = await getGroupById(context.query.id as string);
+    return {
+      props: { group },
+    };
+  } catch (error) {
+    return {
+      props: {
+        group: null,
+      },
+    };
+  }
 }
