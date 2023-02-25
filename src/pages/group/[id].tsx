@@ -111,12 +111,16 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
         setReadyMembers([]);
       setGroup(newGroup);
 
-      if (newGroup.state == GroupState.Awaiting)
+      if (newGroup.state == GroupState.Awaiting && deviceConnected)
         setLightMode(PuffLightMode.QueryReady);
-      else if (newGroup.state == GroupState.Chilling)
+      else if (
+        newGroup.state == GroupState.Chilling &&
+        deviceConnected &&
+        validState(myDevice as unknown as GatewayMemberDeviceState)
+      )
         setLightMode(PuffLightMode.Default);
     },
-    [readyMembers, group]
+    [readyMembers, group, deviceConnected, myDevice]
   );
 
   function groupMemberUpdated(member: GatewayGroupMember) {
@@ -193,6 +197,10 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
 
   async function sendStartDab() {
     gateway.send(Op.InquireHeating);
+  }
+
+  async function stopSesh() {
+    gateway.send(Op.StopAwaiting);
   }
 
   const inquireDab = useCallback(
@@ -292,11 +300,12 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     [groupMembers]
   );
 
-  function disconnect() {
+  const disconnect = useCallback(async () => {
+    if (deviceConnected) await setLightMode(PuffLightMode.Default);
     disconnectBluetooth();
     setDeviceConnected(false);
     gateway.send(Op.DisconnectDevice);
-  }
+  }, [deviceConnected]);
 
   useEffect(() => {
     if (initGroup && initGroup.group_id) {
@@ -358,10 +367,10 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     try {
       const device = await startConnection();
       toast(`Connected to ${device.name}`, { icon: "✅" });
-      setDeviceConnected(true);
       const { poller, initState, deviceInfo } = await startPolling();
       await trackDevice(deviceInfo, ourName);
       gateway.send(Op.SendDeviceState, initState);
+      setDeviceConnected(true);
       setMyDevice((curr) => ({ ...curr, ...initState }));
       poller.on("data", async (data) => {
         if (data.totalDabs) await trackDevice(deviceInfo, ourName);
@@ -465,6 +474,16 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
               >
                 {group.state == "awaiting" ? "Start with ready" : "Start"}
               </button>
+              {group.state == "awaiting" ? (
+                <button
+                  className={`flex justify-center items-center text-white w-fit m-2 p-2 bg-red-500 rounded-md`}
+                  onClick={() => stopSesh()}
+                >
+                  Stop
+                </button>
+              ) : (
+                <></>
+              )}
               <button
                 className={`flex justify-center items-center text-white w-fit m-2 p-2 ${
                   group.visibility == "public" ? "bg-blue-700" : "bg-indigo-800"

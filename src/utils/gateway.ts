@@ -15,6 +15,9 @@ export enum Op {
   InquireHeating,
   StartWithReady,
   DisconnectDevice,
+  SendMessage,
+  StopAwaiting,
+  ResumeSession,
   Heartbeat = 420
 }
 
@@ -42,6 +45,7 @@ enum Event {
 
 interface SocketData {
   session_id?: string;
+  session_token?: string;
   heartbeat_interval?: number;
 }
 
@@ -56,6 +60,7 @@ export interface Gateway {
   heartbeat: NodeJS.Timer;
 
   session_id: string;
+  session_token: string;
   group_id: string;
 
   connectionAttempt: number;
@@ -168,13 +173,17 @@ export class Gateway extends EventEmitter {
           data.d.heartbeat_interval
         );
 
-        this.session_id = data.d.session_id;
+        // if (this.group_id)
+        //   this.send(Op.Join, { group_id: this.group_id });
 
         if (typeof localStorage != 'undefined')
           this.send(Op.UpdateUser, { name: localStorage.getItem('puff-social-name') || 'Unnamed', device_type: localStorage.getItem('puff-social-device-type') || 'peak' });
 
-        if (this.group_id)
-          this.send(Op.Join, { group_id: this.group_id });
+        if (this.session_token && this.session_id)
+          this.send(Op.ResumeSession, { session_id: this.session_id, session_token: this.session_token });
+
+        this.session_id = data.d.session_id;
+        this.session_token = data.d.session_token;
 
         this.emit("init");
 
