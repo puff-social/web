@@ -40,7 +40,8 @@ enum Event {
   PublicGroupsUpdate = "PUBLIC_GROUPS_UPDATE",
   GroupCreateError = "GROUP_CREATE_ERROR",
   UserUpdateError = "USER_UPDATE_ERROR",
-  GroupUserDeviceDisconnect = "GROUP_USER_DEVICE_DISCONNECT"
+  GroupUserDeviceDisconnect = "GROUP_USER_DEVICE_DISCONNECT",
+  SessionResumed = "SESSION_RESUMED"
 }
 
 interface SocketData {
@@ -61,7 +62,6 @@ export interface Gateway {
 
   session_id: string;
   session_token: string;
-  group_id: string;
 
   connectionAttempt: number;
   connectionTimeout: NodeJS.Timeout | null;
@@ -173,17 +173,15 @@ export class Gateway extends EventEmitter {
           data.d.heartbeat_interval
         );
 
-        // if (this.group_id)
-        //   this.send(Op.Join, { group_id: this.group_id });
-
         if (typeof localStorage != 'undefined')
           this.send(Op.UpdateUser, { name: localStorage.getItem('puff-social-name') || 'Unnamed', device_type: localStorage.getItem('puff-social-device-type') || 'peak' });
 
         if (this.session_token && this.session_id)
           this.send(Op.ResumeSession, { session_id: this.session_id, session_token: this.session_token });
-
-        this.session_id = data.d.session_id;
-        this.session_token = data.d.session_token;
+        else {
+          this.session_id = data.d.session_id;
+          this.session_token = data.d.session_token;
+        }
 
         this.emit("init");
 
@@ -193,7 +191,6 @@ export class Gateway extends EventEmitter {
         switch (data.t) {
           case Event.JoinedGroup: {
             this.emit('joined_group', data.d);
-            this.group_id = (data.d as GatewayGroup).group_id;
             break;
           }
           case Event.GroupCreate: {
@@ -264,6 +261,11 @@ export class Gateway extends EventEmitter {
             this.emit('group_user_unready', data.d);
             break;
           }
+          case Event.SessionResumed: {
+            this.session_id = data.d.session_id;
+            this.emit('session_resumed', data.d);
+            break;
+          }
         }
 
         break;
@@ -283,7 +285,7 @@ export class Gateway extends EventEmitter {
     this.resetConnectionThrottle();
   }
 
-  private closed(): void {
+  closed(): void {
     console.log(
       `%c${SOCKET_URL.includes('puff.social') ? SOCKET_URL.split('.')[0].split('//')[1] : 'Local'}%c Socket connection closed`,
       "padding: 10px; text-transform: capitalize; font-size: 1em; line-height: 1.4em; color: white; background: #151515; border-radius: 15px;",
@@ -296,3 +298,6 @@ export class Gateway extends EventEmitter {
 
 export const SOCKET_URL = typeof location != 'undefined' && ['localhost', 'dev.puff.social'].includes(location.hostname) ? (location.hostname == 'dev.puff.social' ? 'wss://flower.puff.social' : 'ws://127.0.0.1:9000') : 'wss://rosin.puff.social';
 export const gateway = typeof window != "undefined" && (['ws://127.0.0.1:9000', 'wss://flower.puff.social'].includes(SOCKET_URL) || ['stage.puff.social'].includes(location.hostname) ? new Gateway(SOCKET_URL, 'json', 'none') : new Gateway(SOCKET_URL));
+
+// @ts-ignore
+if (typeof window != 'undefined') window.socket = gateway.ws.close.bind(gateway.ws);
