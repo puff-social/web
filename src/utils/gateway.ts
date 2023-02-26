@@ -143,13 +143,13 @@ export class Gateway extends EventEmitter {
     this.connectionTimeout = setTimeout(
       () => this.init(),
       this.connectionAttempt == 1
-        ? 1000 * 10
+        ? 1000 * 3
         : this.connectionAttempt == 2
-          ? 1000 * 40
+          ? 1000 * 10
           : this.connectionAttempt == 3
-            ? 1000 * 60 * 1
-            : 1000 * 60 * 5
-    ); // 10sx40sx1mx5m*
+            ? 1000 * 30 * 1
+            : 1000 * 30 * 5
+    );
   }
 
   send(op: Op, d?: any): void {
