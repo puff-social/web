@@ -113,7 +113,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
             <>
               <div className="flex space-x-2">
                 {leaderboard.slice(0, 3).map((lb, index) => (
-                  <span className="flex flex-col bg-white dark:bg-neutral-900 rounded-md w-96 p-3">
+                  <span className="flex flex-col bg-white dark:bg-neutral-900 rounded-md drop-shadow-xl rounded-md w-96 p-3">
                     <span className="flex flex-col justify-center align-center">
                       <div className="flex flex-row drop-shadow justify-between">
                         <span className="flex flex-col justify-between">
