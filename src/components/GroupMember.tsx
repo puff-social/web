@@ -9,8 +9,8 @@ import { ChargeSource, DeviceModelMap } from "../utils/puffco";
 import { Battery, BatteryBolt } from "./icons/Battery";
 import { Checkmark } from "./icons/Checkmark";
 import { Counter } from "./icons/Counter";
-import { Cross } from "./icons/Cross";
 import { PuffcoContainer } from "./puffco";
+import { Tippy } from "./Tippy";
 
 interface GroupMemberProps {
   name?: string;
@@ -62,18 +62,22 @@ export function GroupMember(props: GroupMemberProps) {
                 <div className="flex space-x-3 justify-center">
                   <span className="flex flex-row justify-center items-center">
                     <Counter className="m-1 ml-0" />
-                    <p className="m-0 p-1 text-lg">
-                      {props.device.totalDabs.toLocaleString()}
-                    </p>
+                    <Tippy content="Total Dabs" placement="bottom">
+                      <p className="m-0 p-1 text-lg">
+                        {props.device.totalDabs.toLocaleString()}
+                      </p>
+                    </Tippy>
                   </span>
-                  <span className="flex flex-row justify-center items-center">
-                    {props.device.chargeSource == ChargeSource.None ? (
-                      <Battery className="m-1" />
-                    ) : (
-                      <BatteryBolt className="m-1" />
-                    )}
-                    <p className="m-0 p-1 text-lg">{props.device.battery}%</p>
-                  </span>
+                  <Tippy content="Battery" placement="bottom">
+                    <span className="flex flex-row justify-center items-center">
+                      {props.device.chargeSource == ChargeSource.None ? (
+                        <Battery className="m-1" />
+                      ) : (
+                        <BatteryBolt className="m-1" />
+                      )}
+                      <p className="m-0 p-1 text-lg">{props.device.battery}%</p>
+                    </span>
+                  </Tippy>
                 </div>
               ))}
 
@@ -85,7 +89,7 @@ export function GroupMember(props: GroupMemberProps) {
                 °
               </h2>
               <span className="flex flex-row">
-                <h3 className="text-2xl m-0">
+                <h3 className="text-lg m-0">
                   {props.ready &&
                   props.device.state != PuffcoOperatingState.HEAT_CYCLE_ACTIVE
                     ? "Ready"
