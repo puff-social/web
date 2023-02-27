@@ -511,6 +511,14 @@ export default function Group({
                 <></>
               )}
               <button
+                className={`flex justify-center items-center text-white w-fit m-2 p-2 ${
+                  group.visibility == "public" ? "bg-blue-700" : "bg-indigo-800"
+                } rounded-md`}
+                onClick={() => toggleVisbility()}
+              >
+                Make {group.visibility == "public" ? "private" : "public"}
+              </button>
+              <button
                 className="flex justify-center items-center text-white w-fit m-2 p-2 bg-red-800 rounded-md"
                 onClick={() => leaveGroup()}
               >
