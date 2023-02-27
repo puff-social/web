@@ -373,6 +373,8 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       setDeviceConnected(true);
       setMyDevice((curr) => ({ ...curr, ...initState }));
       poller.on("data", async (data) => {
+        if (data.totalDabs)
+          trackDevice({ ...deviceInfo, totalDabs: data.totalDabs }, ourName);
         setGroup((currGroup) => {
           if (
             currGroup.state == GroupState.Awaiting &&
@@ -384,15 +386,17 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
           return currGroup;
         });
         setMyDevice((curr) => {
-          if (data.totalDabs) trackDevice({ ...curr, ...data }, ourName);
           return { ...curr, ...data };
         });
         gateway.send(Op.SendDeviceState, data);
       });
-      poller.on("disconnected", () => {
-        // Handle device disconnected here
-        // Also add the code to emit the event when bluetooth device is disconnected
-      });
+      device.ongattserverdisconnected = async () => {
+        if (deviceConnected) await setLightMode(PuffLightMode.Default);
+        poller.emit("stop");
+        setDeviceConnected(false);
+        gateway.send(Op.DisconnectDevice);
+        toast(`Disconnected from ${device.name}`, { icon: "🚫" });
+      };
     } catch (error) {
       console.error(error);
     }
