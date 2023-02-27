@@ -40,13 +40,27 @@ export function InfoModal({ modalOpen, setModalOpen }: any) {
         </div>
         <div className="flex flex-row space-x-8">
           <div className="flex flex-col rounded-md space-y-3 justify-center">
-            <p className="w-[500px]">
+            <p className="w-[700px]">
               <span className="font-bold">Important:</span> This should work
-              with any device running firmware X or later, but has only been
-              tested with firmware Y (3D Chamber dub)
+              with any device running firmware X or later, and has been
+              validated to work with firmware{" "}
+              <span className="font-bold text-teal-100 bg-gray-700 px-1 rounded-md">
+                Y
+              </span>{" "}
+              and{" "}
+              <span className="font-bold text-teal-100 bg-gray-700 px-1 rounded-md">
+                AA
+              </span>
+            </p>
+            <p className="w-[700px]">
+              <span className="font-bold">Also Important:</span> This will only
+              work on browsers that support the Bluetooth API, so most likely if
+              you don't use Google Chrome, you're probably only here to watch.
+              (iOS can use the Path Browser, however it's fairly slow and there
+              is a better option in the works soon)
             </p>
 
-            <p className="w-[550px]">
+            <p className="w-[700px]">
               I decided to build this because A friend of mine and I smoke a lot
               over discord, we both have a peak pro, and while not super easy it
               is possible to interact with the device functions over BLE
@@ -74,14 +88,14 @@ export function InfoModal({ modalOpen, setModalOpen }: any) {
               multiple people.
             </p>
 
-            <p className="w-[550px]">
+            <p className="w-[700px]">
               After many iterations and plenty of bugs made and then fixed, I'm
               making this ready for anyone to use. You can set your public
               display name in user settings (separate from the device name,
               which is only used on the leaderboards)
             </p>
 
-            <p className="w-[550px]">
+            <p className="w-[700px]">
               If you encounter any issues, let me know on discord (Dustin#1999
               find me in the server below for dm) or Twitter (
               <a
@@ -94,7 +108,7 @@ export function InfoModal({ modalOpen, setModalOpen }: any) {
               )
             </p>
 
-            <p className="w-[550px]">
+            <p className="w-[700px]">
               Join my{" "}
               <a
                 className="text-blue-700 dark:text-blue-400"
@@ -106,9 +120,9 @@ export function InfoModal({ modalOpen, setModalOpen }: any) {
               , maybe we can sesh sometime :)
             </p>
 
-            <p className="w-[550px] flex flex-col">
-              The source is public for both the realtime server and this web
-              app.
+            <p className="w-[700px] flex flex-col">
+              The source for the application and server side code is open, you
+              can find the various repositories below.
               <span className="pt-1">
                 Web:{" "}
                 <a
@@ -129,9 +143,19 @@ export function InfoModal({ modalOpen, setModalOpen }: any) {
                   dustinrouillard/puffsocial-gateway
                 </a>
               </span>
+              <span>
+                Analytics Tracking:{" "}
+                <a
+                  className="text-blue-700 dark:text-blue-400"
+                  target="_blank"
+                  href="https://github.com/dustinrouillard/puffsocial-analytics"
+                >
+                  dustinrouillard/puffsocial-analytics
+                </a>
+              </span>
             </p>
 
-            <p className="w-[550px] italic text-xs">
+            <p className="w-[700px] italic text-xs p-4">
               If you're reading this and work at Puffco, I just want to give
               cool tools to the community, would love to see a group sesh
               feature in the app (maybe we can chat about that) :)

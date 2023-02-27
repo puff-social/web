@@ -98,7 +98,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
         },
       }}
     >
-      <div className="flex flex-col m-2 p-10 w-[800px] rounded-md bg-white dark:bg-neutral-800 text-black space-y-3 dark:text-white justify-center">
+      <div className="flex flex-col m-2 p-10 rounded-md bg-white dark:bg-neutral-800 text-black space-y-3 dark:text-white justify-center w-[1000px]">
         <div className="flex justify-between justify-center items-center">
           <h1 className="text-xl">Total Dabs Leaderboards</h1>
 
@@ -202,7 +202,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
           )}
         </div>
 
-        <p className="pt-4 opacity-60">
+        <p className="pt-4 opacity-60 flex flex-wrap">
           Leaderboard entries are entered once total dabs counter is reported
           from device, and on device connection.{" "}
           <span className="font-black">
