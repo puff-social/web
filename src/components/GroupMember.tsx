@@ -40,7 +40,7 @@ export function GroupMember(props: GroupMemberProps) {
 
   return (
     <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md m-4 w-96 h-80 justify-center items-center">
-      {(props.us && props.connected) || props.device ? (
+      {(props.us && !!props.device) || props.device ? (
         <div className="flex flex-row">
           <PuffcoContainer
             id={
@@ -57,29 +57,28 @@ export function GroupMember(props: GroupMemberProps) {
             <h1 className="m-0 text-xl font-bold truncate">
               {props.us ? props.name : props.member.name}
             </h1>
-            {(props.us && props.connected) ||
-              (props.device && (
-                <div className="flex space-x-3 justify-center">
-                  <span className="flex flex-row justify-center items-center">
-                    <Counter className="m-1 ml-0" />
-                    <Tippy content="Total Dabs" placement="bottom">
-                      <p className="m-0 p-1 text-lg">
-                        {props.device.totalDabs.toLocaleString()}
-                      </p>
-                    </Tippy>
-                  </span>
-                  <Tippy content="Battery" placement="bottom">
-                    <span className="flex flex-row justify-center items-center">
-                      {props.device.chargeSource == ChargeSource.None ? (
-                        <Battery className="m-1" />
-                      ) : (
-                        <BatteryBolt className="m-1" />
-                      )}
-                      <p className="m-0 p-1 text-lg">{props.device.battery}%</p>
-                    </span>
+            {props.device && (
+              <div className="flex space-x-3 justify-center">
+                <span className="flex flex-row justify-center items-center">
+                  <Counter className="m-1 ml-0" />
+                  <Tippy content="Total Dabs" placement="bottom">
+                    <p className="m-0 p-1 text-lg">
+                      {props.device.totalDabs.toLocaleString()}
+                    </p>
                   </Tippy>
-                </div>
-              ))}
+                </span>
+                <Tippy content="Battery" placement="bottom">
+                  <span className="flex flex-row justify-center items-center">
+                    {props.device.chargeSource == ChargeSource.None ? (
+                      <Battery className="m-1" />
+                    ) : (
+                      <BatteryBolt className="m-1" />
+                    )}
+                    <p className="m-0 p-1 text-lg">{props.device.battery}%</p>
+                  </span>
+                </Tippy>
+              </div>
+            )}
 
             <span className="mt-4">
               <h2 className="text-2xl m-0">

@@ -39,6 +39,7 @@ import { LeaderboardModal } from "../../components/modals/Leaderboard";
 import { FeedbackModal } from "../../components/modals/Feedback";
 import { Mail } from "../../components/icons/Mail";
 import { LeaderboardIcon } from "../../components/icons/LeaderboardIcon";
+import NoSSR from "../../components/NoSSR";
 
 export default function Group({
   group: initGroup,
@@ -103,9 +104,10 @@ export default function Group({
         setReadyMembers([]);
       setGroup(newGroup);
 
-      if (newGroup.state == GroupState.Awaiting && deviceConnected)
+      if (newGroup.state == GroupState.Awaiting && deviceConnected) {
+        sendCommand(DeviceCommand.BONDING);
         setLightMode(PuffLightMode.QueryReady);
-      else if (
+      } else if (
         newGroup.state == GroupState.Chilling &&
         deviceConnected &&
         validState(myDevice as unknown as GatewayMemberDeviceState)
@@ -306,6 +308,7 @@ export default function Group({
     if (deviceConnected) await setLightMode(PuffLightMode.Default);
     disconnectBluetooth();
     setDeviceConnected(false);
+    setMyDevice(null);
     gateway.send(Op.DisconnectDevice);
   }, [deviceConnected]);
 
@@ -469,7 +472,7 @@ export default function Group({
       />
 
       {groupConnected ? (
-        <>
+        <NoSSR>
           <div className="flex flex-col sm:flex-row m-4">
             <div className="flex flex-col">
               <div>
@@ -592,7 +595,7 @@ export default function Group({
           </div>
 
           <div />
-        </>
+        </NoSSR>
       ) : (
         <>
           <div />

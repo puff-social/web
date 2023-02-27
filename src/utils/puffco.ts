@@ -59,6 +59,7 @@ export const Characteristic = {
   MODE_COMMAND: `${BASE_CHARACTERISTIC}40`,
   STEALTH_MODE: `${BASE_CHARACTERISTIC}42`,
   TEMPERATURE_OVERRIDE: `${BASE_CHARACTERISTIC}45`,
+  TIME_OVERRIDE: `${BASE_CHARACTERISTIC}46`,
   LANTERN_START: `${BASE_CHARACTERISTIC}4a`,
   LANTERN_COLOR: `${BASE_CHARACTERISTIC}48`,
   PROFILE_NAME: `${BASE_CHARACTERISTIC}62`,
@@ -77,6 +78,7 @@ export const DeviceCommand = {
   TEMP_SELECT_BEGIN: new Uint8Array([0, 0, 64, 64]),
   TEMP_SELECT_STOP: new Uint8Array([0, 0, 296, 64]),
   HEAT_CYCLE_BEGIN: new Uint8Array([0, 0, 224, 64]),
+  BONDING: new Uint8Array([0, 0, 0x30, 0x41]),
 };
 
 export enum ChamberType {
@@ -175,6 +177,25 @@ export async function startConnection() {
     modelService = await server.getPrimaryService(
       MODEL_SERVICE
     );
+
+    // @ts-ignore
+    if (typeof window != 'undefined') window.service = service;
+    // @ts-ignore
+    if (typeof window != 'undefined') window.Characteristic = Characteristic;
+    // @ts-ignore
+    if (typeof window != 'undefined') window.getValue = getValue;
+    // @ts-ignore
+    if (typeof window != 'undefined') window.unpack = unpack;
+    // @ts-ignore
+    if (typeof window != 'undefined') window.writeValue = writeValue;
+    // @ts-ignore
+    if (typeof window != 'undefined') window.hexToFloat = hexToFloat;
+    // @ts-ignore
+    if (typeof window != 'undefined') window.decimalToHexString = decimalToHexString;
+    // @ts-ignore
+    if (typeof window != 'undefined') window.sendCommand = sendCommand;
+    // @ts-ignore
+    if (typeof window != 'undefined') window.DeviceCommand = DeviceCommand;
 
     const diagData: DiagData = {
       device_firmware: Number((await getValue(modelService, FIRMWARE_INFORMATION, 1).catch(() => [null, null]))[0]),
