@@ -9,6 +9,7 @@ import { ChargeSource, DeviceModelMap } from "../utils/puffco";
 import { Battery, BatteryBolt } from "./icons/Battery";
 import { Checkmark } from "./icons/Checkmark";
 import { Counter } from "./icons/Counter";
+import { Cross } from "./icons/Cross";
 import { PuffcoContainer } from "./puffco";
 
 interface GroupMemberProps {
@@ -23,6 +24,7 @@ interface GroupMemberProps {
 
 export function GroupMember(props: GroupMemberProps) {
   const [time, setTime] = useState(Date.now());
+  const [connectDismissed, setConnectDismissed] = useState(false);
 
   const [bluetooth] = useState<boolean>(() => {
     if (typeof window == "undefined") false;
@@ -34,83 +36,93 @@ export function GroupMember(props: GroupMemberProps) {
   }, []);
 
   if (!bluetooth && props.us) return <></>;
+  if (props.us && !props.connected && connectDismissed) return <></>;
 
   return (
-    <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md m-4 w-64 h-[800px] justify-between items-center">
-      <div className="flex flex-col p-8 text-center justify-center items-center">
-        <p style={{ visibility: "hidden", display: "none" }}>{time}</p>
-        <h1 className="m-0 text-center text-xl font-bold w-48 truncate">
-          {props.us ? props.name : props.member.name}
-        </h1>
-        {(props.us && props.connected) ||
-          (props.device && (
-            <div className="flex space-x-3 justify-center">
-              <span className="flex flex-row justify-center items-center">
-                <Counter className="m-1" />
-                <p className="m-0 p-1 text-lg">
-                  {props.device.totalDabs.toLocaleString()}
-                </p>
-              </span>
-              <span className="flex flex-row justify-center items-center">
-                {props.device.chargeSource == ChargeSource.None ? (
-                  <Battery className="m-1" />
-                ) : (
-                  <BatteryBolt className="m-1" />
-                )}
-                <p className="m-0 p-1 text-lg">{props.device.battery}%</p>
-              </span>
-            </div>
-          ))}
-      </div>
+    <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md m-4 w-96 h-80 justify-center items-center">
       {(props.us && props.connected) || props.device ? (
-        <>
+        <div className="flex flex-row">
           <PuffcoContainer
             id={
               props.us
                 ? "self"
                 : `${props.member.session_id}-${props.device.deviceName}`
             }
+            className="-z-50 h-full w-[120px]"
             model={DeviceModelMap[props.device.deviceModel].toLowerCase()}
             demo={props.device}
           />
-          <div className="flex flex-col p-4 justify-center items-center text-center">
-            <h2 className="text-[32px] m-0">
-              {props.device.temperature
-                ? Math.floor(props.device.temperature * 1.8 + 32)
-                : "--"}
-              °
-            </h2>
+          <span className="flex flex-col p-4">
+            <p style={{ visibility: "hidden", display: "none" }}>{time}</p>
+            <h1 className="m-0 text-xl font-bold truncate">
+              {props.us ? props.name : props.member.name}
+            </h1>
+            {(props.us && props.connected) ||
+              (props.device && (
+                <div className="flex space-x-3 justify-center">
+                  <span className="flex flex-row justify-center items-center">
+                    <Counter className="m-1 ml-0" />
+                    <p className="m-0 p-1 text-lg">
+                      {props.device.totalDabs.toLocaleString()}
+                    </p>
+                  </span>
+                  <span className="flex flex-row justify-center items-center">
+                    {props.device.chargeSource == ChargeSource.None ? (
+                      <Battery className="m-1" />
+                    ) : (
+                      <BatteryBolt className="m-1" />
+                    )}
+                    <p className="m-0 p-1 text-lg">{props.device.battery}%</p>
+                  </span>
+                </div>
+              ))}
 
-            <span className="flex flex-row text-center self-center items-center">
-              <h3 className="text-[25px] m-0">
-                {props.ready &&
-                props.device.state != PuffcoOperatingState.HEAT_CYCLE_ACTIVE
-                  ? "Ready"
-                  : PuffcoOperatingMap[props.device.state]}
-              </h3>
-              {props.ready ? (
-                <Checkmark className="ml-2 text-green-700 w-[20px] h-[20px]" />
-              ) : (
-                <></>
-              )}
+            <span className="mt-4">
+              <h2 className="text-2xl m-0">
+                {props.device.temperature
+                  ? Math.floor(props.device.temperature * 1.8 + 32)
+                  : "--"}
+                °
+              </h2>
+              <span className="flex flex-row">
+                <h3 className="text-2xl m-0">
+                  {props.ready &&
+                  props.device.state != PuffcoOperatingState.HEAT_CYCLE_ACTIVE
+                    ? "Ready"
+                    : PuffcoOperatingMap[props.device.state]}
+                </h3>
+                {props.ready ? (
+                  <Checkmark className="ml-2 text-green-700 w-[20px] h-[20px]" />
+                ) : (
+                  <></>
+                )}
+              </span>
             </span>
-          </div>
-        </>
+          </span>
+        </div>
       ) : (
-        <>
-          <div className="flex flex-col items-center justify-center w-64 mb-16">
-            <img width="250px" src="/peak.gif" />
-            <p className="text-center text-lg break-normal">
+        <span className="flex flex-col space-y-8 justify-center items-center">
+          <div className="flex flex-row items-center justify-center space-x-6">
+            <img width="70px" src="/peak.gif" />
+            <p className="text-center text-lg break-normal w-48">
               Connect a device to join the sesh
             </p>
           </div>
-          <button
-            className="w-48 self-center rounded-md bg-indigo-700 hover:bg-indigo-800 text-white p-1 mb-5"
-            onClick={() => props.connectToDevice()}
-          >
-            Connect
-          </button>
-        </>
+          <span className="flex space-x-4">
+            <button
+              className="w-32 self-center rounded-md bg-indigo-700 hover:bg-indigo-800 text-white p-1"
+              onClick={() => props.connectToDevice()}
+            >
+              Connect
+            </button>
+            <button
+              className="w-32 self-center rounded-md bg-gray-700 hover:bg-gray-800 text-white p-1"
+              onClick={() => setConnectDismissed(true)}
+            >
+              Dismiss
+            </button>
+          </span>
+        </span>
       )}
     </div>
   );

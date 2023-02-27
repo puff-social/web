@@ -12,14 +12,18 @@ export default function App({ Component, pageProps }) {
   const router = useRouter();
 
   function groupCreated(group: GatewayGroupCreate) {
-    toast(`Group ${group.name} (${group.group_id}) created`);
+    toast(`Group ${group.name} (${group.group_id}) created`, {
+      position: "bottom-right",
+    });
     connectGroup(group);
   }
 
   function groupCreateError(error: GatewayError) {
     switch (error.code) {
       case "INVALID_GROUP_NAME": {
-        toast("Too long or invalid group name (max 32 characters)");
+        toast("Too long or invalid group name (max 32 characters)", {
+          position: "bottom-right",
+        });
         break;
       }
     }
@@ -28,7 +32,9 @@ export default function App({ Component, pageProps }) {
   function userUpdateError(error: GatewayError) {
     switch (error.code) {
       case "INVALID_NAME": {
-        toast("Too long or invalid name (max 32 characters)");
+        toast("Too long or invalid name (max 32 characters)", {
+          position: "bottom-right",
+        });
         break;
       }
     }

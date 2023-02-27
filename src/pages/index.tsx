@@ -80,7 +80,7 @@ export default function Home() {
   }, [groupName, groupVisibility]);
 
   return (
-    <div className="flex flex-col justify-center h-screen text-black bg-white dark:text-white dark:bg-neutral-900">
+    <div className="flex flex-col justify-between h-screen">
       <Head>
         <title>puff.social</title>
         <link rel="icon" href="/favicon.ico" />
@@ -240,6 +240,8 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      <div />
     </div>
   );
 }

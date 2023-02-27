@@ -26,7 +26,9 @@ export function UserSettingsModal({ modalOpen, setModalOpen }: any) {
     gateway.send(Op.UpdateUser, { name: ourName });
     localStorage.setItem("puff-social-name", ourName);
     localStorage.setItem("puff-default-visbility", defaultVisibility);
-    toast("Updated user settings");
+    toast("Updated user settings", {
+      position: "bottom-right",
+    });
     closeModal();
   }, [ourName, defaultVisibility]);
 

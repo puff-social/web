@@ -15,7 +15,11 @@ export function FeedbackModal({ modalOpen, setModalOpen }: any) {
   const send = useCallback(() => {
     sendFeedback(message);
     setMessage("");
-    toast("Feedback sent", { icon: "✅", duration: 2000 });
+    toast("Feedback sent", {
+      icon: "✅",
+      duration: 2000,
+      position: "bottom-right",
+    });
     closeModal();
   }, [message]);
 

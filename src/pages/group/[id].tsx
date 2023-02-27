@@ -35,8 +35,18 @@ import { NextPageContext } from "next";
 import { getGroupById } from "../../utils/api";
 import { APIGroup } from "../../types/api";
 import { GroupMember } from "../../components/GroupMember";
+import { LeaderboardModal } from "../../components/modals/Leaderboard";
+import { FeedbackModal } from "../../components/modals/Feedback";
+import { Mail } from "../../components/icons/Mail";
+import { LeaderboardIcon } from "../../components/icons/LeaderboardIcon";
 
-export default function Group({ group: initGroup }: { group: APIGroup }) {
+export default function Group({
+  group: initGroup,
+  group: { group_id: id },
+}: {
+  group: APIGroup;
+}) {
+  const router = useRouter();
   const [deviceConnected, setDeviceConnected] = useState(false);
   const [groupConnected, setGroupConnected] = useState(false);
   const [group, setGroup] = useState<GatewayGroup>();
@@ -53,15 +63,14 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
 
   const [myDevice, setMyDevice] = useState<GatewayMemberDeviceState>();
 
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false);
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [userSettingsModalOpen, setUserSettingsModalOpen] = useState(false);
   const [infoModalOpen, setInfoModalOpen] = useState(() =>
     typeof localStorage != "undefined"
       ? !(localStorage.getItem("puff-social-first-visit") == "false")
       : false
   );
-
-  const router = useRouter();
-  const { id } = router.query;
 
   function validState(state: GatewayMemberDeviceState) {
     if (!state) return false;
@@ -150,25 +159,30 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   }
 
   function groupMemberJoin({ session_id, name, device_type }: GroupUserJoin) {
-    toast(`${name} joined`);
+    toast(`${name} joined`, {
+      position: "bottom-right",
+    });
     setGroupMembers((curr) => [...curr, { session_id, name, device_type }]);
   }
 
   function groupMemberLeft({ session_id }: GroupUserLeft) {
     setGroupMembers((curr) => {
       const member = curr.find((mem) => mem.session_id == session_id);
-      if (member) toast(`${member.name} left`);
+      if (member)
+        toast(`${member.name} left`, {
+          position: "bottom-right",
+        });
       return [...curr.filter((mem) => mem.session_id != session_id)];
     });
   }
 
   async function startDab() {
-    toast("3...", { duration: 1000 });
+    toast("3...", { duration: 1000, position: "bottom-right" });
     setTimeout(() => {
-      toast("2...", { duration: 1000 });
+      toast("2...", { duration: 1000, position: "bottom-right" });
       setTimeout(() => {
-        toast("1...", { duration: 900 });
-        toast("Dab", { duration: 1000 });
+        toast("1...", { duration: 900, position: "bottom-right" });
+        toast("Dab", { duration: 1000, position: "bottom-right" });
         sendCommand(DeviceCommand.HEAT_CYCLE_BEGIN);
       }, 1000);
     }, 1000);
@@ -197,11 +211,12 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
           `${
             data.session_id == gateway.session_id ? ourName : initiator.name
           } wants to start`,
-          { icon: "🔥", duration: 5000 }
+          { icon: "🔥", duration: 5000, position: "bottom-right" }
         );
         toast(`Confirm by pressing your button`, {
           icon: "🔘",
           duration: 8000,
+          position: "bottom-right",
         });
         return groupMembers;
       });
@@ -224,7 +239,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
           `${
             data.session_id == gateway.session_id ? ourName : initiator.name
           } is ready`,
-          { icon: "✅", duration: 5000 }
+          { icon: "✅", duration: 5000, position: "bottom-right" }
         );
         return groupMembers;
       });
@@ -247,7 +262,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
           `${
             data.session_id == gateway.session_id ? ourName : initiator.name
           } is no longer ready`,
-          { icon: "🚫", duration: 5000 }
+          { icon: "🚫", duration: 5000, position: "bottom-right" }
         );
         return groupMembers;
       });
@@ -275,7 +290,11 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
           `${
             data.session_id == gateway.session_id ? ourName : initiator.name
           } made the group ${data.visibility}`,
-          { icon: data.visibility == "public" ? "🌍" : "🔒", duration: 5000 }
+          {
+            icon: data.visibility == "public" ? "🌍" : "🔒",
+            duration: 5000,
+            position: "bottom-right",
+          }
         );
         return groupMembers;
       });
@@ -348,7 +367,10 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   const connectToDevice = useCallback(async () => {
     try {
       const device = await startConnection();
-      toast(`Connected to ${device.name}`, { icon: "✅" });
+      toast(`Connected to ${device.name}`, {
+        icon: "✅",
+        position: "bottom-right",
+      });
       const { poller, initState, deviceInfo } = await startPolling();
       await trackDevice(deviceInfo, ourName);
       gateway.send(Op.SendDeviceState, initState);
@@ -377,7 +399,10 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
         poller.emit("stop");
         setDeviceConnected(false);
         gateway.send(Op.DisconnectDevice);
-        toast(`Disconnected from ${device.name}`, { icon: "🚫" });
+        toast(`Disconnected from ${device.name}`, {
+          icon: "🚫",
+          position: "bottom-right",
+        });
       };
     } catch (error) {
       console.error(error);
@@ -425,7 +450,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       </div>
     </div>
   ) : (
-    <div className="flex flex-col justify-center text-black bg-white dark:text-white dark:bg-neutral-900 h-screen">
+    <div className="flex flex-col justify-between h-screen">
       <GroupMeta group={initGroup} />
 
       <UserSettingsModal
@@ -434,9 +459,18 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       />
       <InfoModal modalOpen={infoModalOpen} setModalOpen={setInfoModalOpen} />
 
+      <LeaderboardModal
+        modalOpen={leaderboardOpen}
+        setModalOpen={setLeaderboardOpen}
+      />
+      <FeedbackModal
+        modalOpen={feedbackModalOpen}
+        setModalOpen={setFeedbackModalOpen}
+      />
+
       {groupConnected ? (
         <>
-          <div className="flex flex-row items-center m-4">
+          <div className="flex flex-col sm:flex-row m-4">
             <div className="flex flex-col">
               <div>
                 <h1 className="text-4xl text-black dark:text-white font-bold">
@@ -455,7 +489,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
               </p>
             </div>
 
-            <div className="flex flex-row text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 m-2 justify-center items-center">
+            <div className="flex flex-row drop-shadow-xl rounded-md p-2 m-2 justify-center items-center flex-wrap">
               <button
                 className={`flex justify-center items-center text-white w-fit m-2 p-2 ${
                   group.state == "awaiting" ? "bg-green-700" : "bg-green-800"
@@ -476,14 +510,6 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
               ) : (
                 <></>
               )}
-              <button
-                className={`flex justify-center items-center text-white w-fit m-2 p-2 ${
-                  group.visibility == "public" ? "bg-blue-700" : "bg-indigo-800"
-                } rounded-md`}
-                onClick={() => toggleVisbility()}
-              >
-                Make {group.visibility == "public" ? "private" : "public"}
-              </button>
               <button
                 className="flex justify-center items-center text-white w-fit m-2 p-2 bg-red-800 rounded-md"
                 onClick={() => leaveGroup()}
@@ -516,10 +542,26 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                   <Info />
                 </div>
               </Tippy>
+              <Tippy content="Send Feedback" placement="bottom">
+                <div
+                  className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+                  onClick={() => setFeedbackModalOpen(true)}
+                >
+                  <Mail />
+                </div>
+              </Tippy>
+              <Tippy content="Dab Leaderboard" placement="bottom">
+                <div
+                  className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+                  onClick={() => setLeaderboardOpen(true)}
+                >
+                  <LeaderboardIcon />
+                </div>
+              </Tippy>
             </div>
           </div>
 
-          <div className="flex flex-row">
+          <div className="flex flex-row flex-wrap">
             <>
               <GroupMember
                 device={myDevice}
@@ -540,22 +582,28 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                 ))}
             </>
           </div>
+
+          <div />
         </>
       ) : (
-        <div className="flex flex-col justify-center items-center text-center text-black dark:text-white">
-          <h2 className="text-xl m-4">
-            {!!groupJoinErrorMessage
-              ? groupJoinErrorMessage
-              : `Connecting to ${initGroup.name}...`}
-          </h2>
+        <>
+          <div />
+          <div className="flex flex-col justify-center items-center text-center text-black dark:text-white">
+            <h2 className="text-xl m-4">
+              {!!groupJoinErrorMessage
+                ? groupJoinErrorMessage
+                : `Connecting to ${initGroup.name}...`}
+            </h2>
 
-          <button
-            className="w-48 self-center rounded-md bg-indigo-700 hover:bg-indigo-800 p-1 mb-5 text-white"
-            onClick={() => router.push("/")}
-          >
-            Back
-          </button>
-        </div>
+            <button
+              className="w-48 self-center rounded-md bg-indigo-700 hover:bg-indigo-800 p-1 mb-5 text-white"
+              onClick={() => router.push("/")}
+            >
+              Back
+            </button>
+          </div>
+          <div />
+        </>
       )}
     </div>
   );

@@ -11,7 +11,7 @@ import { PuffcoContainer } from "../puffco";
 import { PuffcoOperatingState } from "../../types/gateway";
 
 const formatter = new Intl.RelativeTimeFormat("en", {
-  style: "long",
+  style: "short",
   numeric: "always",
 });
 
@@ -124,8 +124,10 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                                 {lb.total_dabs.toLocaleString()}
                               </p>
                             </Tippy>
-                            <p className="text">{lb.device_name}</p>
-                            <p className="opacity-60 italic">{lb.owner_name}</p>
+                            <p className="text truncate">{lb.device_name}</p>
+                            <p className="opacity-60 italic truncate">
+                              {lb.owner_name}
+                            </p>
                             <Tippy content="Device Birthday" placement="bottom">
                               <p className="opacity-60">
                                 🎂{" "}
@@ -153,7 +155,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                               lb.device_model
                             ].toLowerCase()}
                             id={index.toString()}
-                            className="flex items-center justify-center self-center w-20"
+                            className="flex items-center justify-center self-center w-[90px]"
                             demo={{
                               activeColor:
                                 index == 0

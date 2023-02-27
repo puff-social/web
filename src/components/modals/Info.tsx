@@ -34,7 +34,7 @@ export function InfoModal({ modalOpen, setModalOpen }: any) {
           <h1 className="text-xl">Heyo! Welcome to puff.social</h1>
 
           <Cross
-            className="opacity-50 hover:opacity-100"
+            className="opacity-50 hover:opacity-100 cursor-pointer"
             onClick={() => closeModal()}
           />
         </div>
@@ -43,7 +43,7 @@ export function InfoModal({ modalOpen, setModalOpen }: any) {
             <p className="w-[500px]">
               <span className="font-bold">Important:</span> This should work
               with any device running firmware X or later, but has only been
-              tested with firmware Y (3D Chamber W)
+              tested with firmware Y (3D Chamber dub)
             </p>
 
             <p className="w-[550px]">
@@ -137,7 +137,10 @@ export function InfoModal({ modalOpen, setModalOpen }: any) {
               feature in the app (maybe we can chat about that) :)
             </p>
           </div>
-          <img className="h-[560px] self-center rounded-md" src="/puff.webp" />
+          <img
+            className="h-96 sm:h-[560px] self-center rounded-md"
+            src="/puff.webp"
+          />
         </div>
       </div>
     </Modal>
