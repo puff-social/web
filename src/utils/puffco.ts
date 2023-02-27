@@ -257,25 +257,25 @@ export async function startPolling() {
   const [initChargeSource] = await getValue(service, Characteristic.BATTERY_CHARGE_SOURCE);
   initState.chargeSource = Number(hexToFloat(initChargeSource).toFixed(0));
 
-  const [___, initTotalDabs] = await getValue(service, Characteristic.TOTAL_HEAT_CYCLES);
+  const [, initTotalDabs] = await getValue(service, Characteristic.TOTAL_HEAT_CYCLES);
   const dabsString = decimalToHexString(initTotalDabs.getUint8(0)).toString() + decimalToHexString(initTotalDabs.getUint8(1)).toString() + decimalToHexString(initTotalDabs.getUint8(2)).toString() + decimalToHexString(initTotalDabs.getUint8(3)).toString();
   initState.totalDabs = Number(hexToFloat(flipHexString('0x' + dabsString, 8)));
   deviceInfo.totalDabs = initState.totalDabs;
 
-  const [__, initDeviceName] = await getValue(service, Characteristic.DEVICE_NAME);
+  const [, initDeviceName] = await getValue(service, Characteristic.DEVICE_NAME);
   initState.deviceName = decoder.decode(initDeviceName);
   deviceInfo.name = initState.deviceName;
 
-  const [____, initProfileName] = await getValue(service, Characteristic.PROFILE_NAME);
+  const [, initProfileName] = await getValue(service, Characteristic.PROFILE_NAME);
   initState.profileName = decoder.decode(initProfileName);
 
-  const [_____, initDeviceBirthday] = await getValue(service, Characteristic.DEVICE_BIRTHDAY);
+  const [, initDeviceBirthday] = await getValue(service, Characteristic.DEVICE_BIRTHDAY);
   deviceInfo.id = Buffer.from(unpack(new Uint8Array(initDeviceBirthday.buffer), { bits: 32 }).toString()).toString('base64');
 
-  const [______, initEuid] = await getValue(service, Characteristic.EUID);
+  const [, initEuid] = await getValue(service, Characteristic.EUID);
   deviceInfo.uid = Buffer.from(unpack(new Uint8Array(initEuid.buffer), { bits: 32 }).toString()).toString('base64');
 
-  const [_______, initChamberType] = await getValue(service, Characteristic.CHAMBER_TYPE, 1);
+  const [, initChamberType] = await getValue(service, Characteristic.CHAMBER_TYPE, 1);
   initState.chamberType = (unpack(new Uint8Array(initChamberType.buffer), { bits: 8 }));
 
   const chargingPoll = await gattPoller(service, Characteristic.BATTERY_CHARGE_SOURCE, 5000);
