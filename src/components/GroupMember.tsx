@@ -24,9 +24,16 @@ interface GroupMemberProps {
 export function GroupMember(props: GroupMemberProps) {
   const [time, setTime] = useState(Date.now());
 
+  const [bluetooth] = useState<boolean>(() => {
+    if (typeof window == "undefined") false;
+    return typeof window.navigator.bluetooth !== "undefined";
+  });
+
   useEffect(() => {
     setInterval(() => setTime(Date.now()), 800);
   }, []);
+
+  if (!bluetooth && props.us) return <></>;
 
   return (
     <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md m-4 w-64 h-[800px] justify-between items-center">
