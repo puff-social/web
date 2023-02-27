@@ -6,7 +6,7 @@ import { APIGroup } from "../types/api";
 import { getGroups } from "../utils/api";
 import { gateway, Op } from "../utils/gateway";
 import { Settings } from "../components/icons/Settings";
-import { SettingsModal } from "../components/modals/Settings";
+import { UserSettingsModal } from "../components/modals/UserSettings";
 import { InfoModal } from "../components/modals/Info";
 import { Info } from "../components/icons/Info";
 import { FeedbackModal } from "../components/modals/Feedback";
@@ -14,6 +14,8 @@ import { Mail } from "../components/icons/Mail";
 import { LeaderboardIcon } from "../components/icons/LeaderboardIcon";
 import { LeaderboardModal } from "../components/modals/Leaderboard";
 import { Tippy } from "../components/Tippy";
+import { Checkmark } from "../components/icons/Checkmark";
+import NoSSR from "../components/NoSSR";
 
 export default function Home() {
   const router = useRouter();
@@ -28,6 +30,12 @@ export default function Home() {
     typeof localStorage != "undefined"
       ? !(localStorage.getItem("puff-social-first-visit") == "false")
       : false
+  );
+
+  const [groupVisibility, getGroupVisbility] = useState(() =>
+    typeof localStorage != "undefined"
+      ? localStorage.getItem("puff-default-visbility") || "private"
+      : "private"
   );
 
   const [items, setItems] = useState([]);
@@ -64,9 +72,12 @@ export default function Home() {
     router.push(`/group/${id}`);
   }
 
-  async function createGroup(group_name: string) {
-    gateway.send(Op.CreateGroup, { name: group_name });
-  }
+  const createGroup = useCallback(() => {
+    gateway.send(Op.CreateGroup, {
+      name: groupName,
+      visibility: groupVisibility,
+    });
+  }, [groupName, groupVisibility]);
 
   return (
     <div className="flex flex-col justify-center h-screen text-black bg-white dark:text-white dark:bg-neutral-900">
@@ -120,7 +131,7 @@ export default function Home() {
         </Tippy>
       </div>
 
-      <SettingsModal
+      <UserSettingsModal
         modalOpen={settingsModalOpen}
         setModalOpen={setSettingsModalOpen}
       />
@@ -165,7 +176,7 @@ export default function Home() {
               </div>
             )}
           </div>
-          <div className=" flex flex-row rounded-md bg-white dark:bg-neutral-800 justify-center">
+          <div className="flex flex-row rounded-md bg-white dark:bg-neutral-800 justify-center">
             <input
               value={groupId}
               onChange={(e) => setGroupId(e.target.value)}
@@ -182,20 +193,50 @@ export default function Home() {
         </div>
         <div className="flex flex-col rounded-md bg-white dark:bg-neutral-800 p-2 m-3 justify-center w-[600px] text-black dark:text-white drop-shadow-xl">
           <h2 className="text-xl font-bold p-1">Create a new group</h2>
-          <div className="flex">
-            <input
-              value={groupName}
-              maxLength={32}
-              onChange={(e) => setGroupName(e.target.value)}
-              className="w-full rounded-md p-2 m-1 text-black border-2 border-slate-300"
-              placeholder="Group name"
-            />
-            <button
-              onClick={() => createGroup(groupName)}
-              className="w-full rounded-md bg-lime-700 text-white p-1 m-1"
-            >
-              Create Group
-            </button>
+          <div className="flex flex-col space-y-2">
+            <span className="flex flex-row rounded-md bg-white dark:bg-neutral-800 justify-center space-x-2">
+              <input
+                value={groupName}
+                maxLength={32}
+                onChange={(e) => setGroupName(e.target.value)}
+                className="w-full rounded-md p-2 text-black border-2 border-slate-300"
+                placeholder="Group name"
+              />
+              <button
+                onClick={() => createGroup()}
+                className="w-full rounded-md bg-lime-700 text-white p-2"
+              >
+                Create Group
+              </button>
+            </span>
+            <div className="flex flex-row space-x-2 items-center">
+              <div
+                className="p-4 bg-white dark:bg-stone-800 drop-shadow-lg hover:bg-gray-300 dark:hover:bg-stone-900 rounded-md w-full flex flex-row justify-between items-center"
+                onClick={() => getGroupVisbility("public")}
+              >
+                <p>🌍 Public</p>
+                <NoSSR>
+                  {groupVisibility == "public" ? (
+                    <Checkmark className="h-5 text-green-600 dark:text-green-500" />
+                  ) : (
+                    <></>
+                  )}
+                </NoSSR>
+              </div>
+              <div
+                className="p-4 bg-white dark:bg-stone-800 drop-shadow-lg hover:bg-gray-300 dark:hover:bg-stone-900 rounded-md w-full flex flex-row justify-between items-center"
+                onClick={() => getGroupVisbility("private")}
+              >
+                <p>🔒 Private</p>
+                <NoSSR>
+                  {groupVisibility == "private" ? (
+                    <Checkmark className="h-5 text-green-600 dark:text-green-500" />
+                  ) : (
+                    <></>
+                  )}
+                </NoSSR>
+              </div>
+            </div>
           </div>
         </div>
       </div>

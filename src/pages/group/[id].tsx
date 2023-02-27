@@ -33,7 +33,7 @@ import { gateway, Op } from "../../utils/gateway";
 import { Counter } from "../../components/icons/Counter";
 import { Battery, BatteryBolt } from "../../components/icons/Battery";
 import { Checkmark } from "../../components/icons/Checkmark";
-import { SettingsModal } from "../../components/modals/Settings";
+import { UserSettingsModal } from "../../components/modals/UserSettings";
 import { InfoModal } from "../../components/modals/Info";
 import { Settings } from "../../components/icons/Settings";
 import { Info } from "../../components/icons/Info";
@@ -373,7 +373,6 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       setDeviceConnected(true);
       setMyDevice((curr) => ({ ...curr, ...initState }));
       poller.on("data", async (data) => {
-        if (data.totalDabs) await trackDevice(deviceInfo, ourName);
         setGroup((currGroup) => {
           if (
             currGroup.state == GroupState.Awaiting &&
@@ -384,8 +383,15 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
 
           return currGroup;
         });
-        setMyDevice((curr) => ({ ...curr, ...data }));
+        setMyDevice((curr) => {
+          if (data.totalDabs) trackDevice({ ...curr, ...data }, ourName);
+          return { ...curr, ...data };
+        });
         gateway.send(Op.SendDeviceState, data);
+      });
+      poller.on("disconnected", () => {
+        // Handle device disconnected here
+        // Also add the code to emit the event when bluetooth device is disconnected
       });
     } catch (error) {
       console.error(error);
@@ -436,7 +442,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     <div className="flex flex-col justify-center text-black bg-white dark:text-white dark:bg-neutral-900 h-screen">
       <GroupMeta group={initGroup} />
 
-      <SettingsModal
+      <UserSettingsModal
         modalOpen={userSettingsModalOpen}
         setModalOpen={setUserSettingsModalOpen}
       />
