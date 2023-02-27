@@ -29,7 +29,9 @@ export const PuffcoOperatingMap = [
   "Temp Sel",
   "Heating",
   "Seshin",
-  "Fade"
+  "Fade",
+  "Idle",
+  "Idle",
 ];
 
 export interface PuffcoState {
@@ -84,7 +86,6 @@ export interface GatewayGroup {
 }
 
 export interface GatewayGroupMember {
-  device_type?: string;
   device_state?: GatewayMemberDeviceState;
   name: string;
   session_id: string;

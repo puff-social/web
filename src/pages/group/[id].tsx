@@ -3,7 +3,6 @@ import { toast } from "react-hot-toast";
 import { useCallback, useEffect, useState } from "react";
 import { Tippy } from "../../components/Tippy";
 
-import { PuffcoContainer } from "../../components/puffco";
 import {
   GatewayError,
   GatewayGroup,
@@ -14,14 +13,10 @@ import {
   GroupUserDeviceUpdate,
   GroupUserJoin,
   GroupUserLeft,
-  PuffcoOperatingMap,
   PuffcoOperatingState,
 } from "../../types/gateway";
 import {
-  ChargeSource,
   DeviceCommand,
-  DeviceModel,
-  DeviceModelMap,
   disconnectBluetooth,
   PuffLightMode,
   sendCommand,
@@ -30,9 +25,6 @@ import {
   startPolling,
 } from "../../utils/puffco";
 import { gateway, Op } from "../../utils/gateway";
-import { Counter } from "../../components/icons/Counter";
-import { Battery, BatteryBolt } from "../../components/icons/Battery";
-import { Checkmark } from "../../components/icons/Checkmark";
 import { UserSettingsModal } from "../../components/modals/UserSettings";
 import { InfoModal } from "../../components/modals/Info";
 import { Settings } from "../../components/icons/Settings";
@@ -42,6 +34,7 @@ import { GroupMeta } from "../../components/GroupMeta";
 import { NextPageContext } from "next";
 import { getGroupById } from "../../utils/api";
 import { APIGroup } from "../../types/api";
+import { GroupMember } from "../../components/GroupMember";
 
 export default function Group({ group: initGroup }: { group: APIGroup }) {
   const [deviceConnected, setDeviceConnected] = useState(false);
@@ -57,18 +50,8 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   );
 
   const [readyMembers, setReadyMembers] = useState<string[]>([]);
-  const [time, setTime] = useState(Date.now());
 
-  const [myDevice, setMyDevice] = useState({
-    temperature: 0,
-    activeColor: { r: 0, g: 0, b: 0 },
-    state: PuffcoOperatingState.IDLE,
-    totalDabs: 0,
-    battery: 0,
-    brightness: 0,
-    chargeSource: ChargeSource.None,
-    deviceModel: DeviceModel.Peak,
-  });
+  const [myDevice, setMyDevice] = useState<GatewayMemberDeviceState>();
 
   const [userSettingsModalOpen, setUserSettingsModalOpen] = useState(false);
   const [infoModalOpen, setInfoModalOpen] = useState(() =>
@@ -309,7 +292,6 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
 
   useEffect(() => {
     if (initGroup && initGroup.group_id) {
-      setInterval(() => setTime(Date.now()), 500);
       gateway.on("joined_group", joinedGroup);
       gateway.on("group_join_error", groupJoinError);
       gateway.on("group_user_update", groupMemberUpdated);
@@ -539,151 +521,22 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
 
           <div className="flex flex-row">
             <>
-              <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md m-4 w-64 h-[800px] justify-between items-center">
-                <div className="flex flex-col p-8 text-center justify-center items-center">
-                  <p style={{ visibility: "hidden", display: "none" }}>
-                    {time}
-                  </p>
-                  <h1 className="m-0 text-center text-xl font-bold w-48 truncate">
-                    {ourName}
-                  </h1>
-                  {deviceConnected && (
-                    <div className="flex space-x-3 justify-center">
-                      <span className="flex flex-row justify-center items-center">
-                        <Counter className="m-1" />
-                        <p className="m-0 p-1 text-lg">
-                          {myDevice.totalDabs.toLocaleString()}
-                        </p>
-                      </span>
-                      <span className="flex flex-row justify-center items-center">
-                        {myDevice.chargeSource == ChargeSource.None ? (
-                          <Battery className="m-1" />
-                        ) : (
-                          <BatteryBolt className="m-1" />
-                        )}
-                        <p className="m-0 p-1 text-lg">{myDevice.battery}%</p>
-                      </span>
-                    </div>
-                  )}
-                </div>
-                {deviceConnected ? (
-                  <>
-                    <PuffcoContainer
-                      id="self"
-                      model={DeviceModelMap[myDevice.deviceModel].toLowerCase()}
-                      demo={myDevice}
-                    />
-                    <div className="flex flex-col p-4 justify-center items-center text-center">
-                      <h2 className="text-[32px] m-0">
-                        {myDevice.temperature
-                          ? Math.floor(myDevice.temperature * 1.8 + 32)
-                          : "--"}
-                        °
-                      </h2>
-
-                      <span className="flex flex-row text-center self-center items-center">
-                        <h3 className="text-[25px] m-0">
-                          {readyMembers.includes(gateway.session_id) &&
-                          myDevice.state !=
-                            PuffcoOperatingState.HEAT_CYCLE_ACTIVE
-                            ? "Ready"
-                            : PuffcoOperatingMap[myDevice.state]}
-                        </h3>
-                        {readyMembers.includes(gateway.session_id) ? (
-                          <Checkmark className="ml-2 text-green-700 w-[20px] h-[20px]" />
-                        ) : (
-                          <></>
-                        )}
-                      </span>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex flex-col items-center justify-center w-64 mb-16">
-                      <img width="250px" src="/peak.gif" />
-                      <p className="text-center text-lg break-normal">
-                        Connect a device to join the sesh
-                      </p>
-                    </div>
-                    <button
-                      className="w-48 self-center rounded-md bg-indigo-700 hover:bg-indigo-800 text-white p-1 mb-5"
-                      onClick={() => connectToDevice()}
-                    >
-                      Connect
-                    </button>
-                  </>
-                )}
-              </div>
+              <GroupMember
+                device={myDevice}
+                name={ourName}
+                ready={readyMembers.includes(gateway.session_id)}
+                connectToDevice={connectToDevice}
+                us
+              />
               {groupMembers
-                .filter(
-                  (mem) =>
-                    validState(mem.device_state) &&
-                    mem.session_id != gateway.session_id
-                )
+                .filter((mem) => validState(mem.device_state))
                 .map((member) => (
-                  <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md m-4 w-64 h-[800px] justify-between items-center">
-                    <div className="flex flex-col p-8 text-center justify-center items-center">
-                      <p style={{ visibility: "hidden", display: "none" }}>
-                        {time}
-                      </p>
-                      <h1 className="m-0 text-center text-xl font-bold w-48 truncate">
-                        {member.name}
-                      </h1>
-                      <div className="flex space-x-3 justify-center">
-                        <span className="flex flex-row justify-center items-center">
-                          <Counter className="m-1" />
-                          <p className="m-0 p-1 text-lg">
-                            {member.device_state.totalDabs.toLocaleString()}
-                          </p>
-                        </span>
-                        <span className="flex flex-row justify-center items-center">
-                          {member.device_state.chargeSource ==
-                          ChargeSource.None ? (
-                            <Battery className="m-1" />
-                          ) : (
-                            <BatteryBolt className="m-1" />
-                          )}
-
-                          <p className="m-0 p-1 text-lg">
-                            {member.device_state.battery}%
-                          </p>
-                        </span>
-                      </div>
-                    </div>
-                    <div>
-                      <PuffcoContainer
-                        id={member.session_id}
-                        model={DeviceModelMap[
-                          member.device_state.deviceModel
-                        ].toLowerCase()}
-                        demo={member.device_state}
-                      />
-                    </div>
-                    <div className="flex flex-col p-4 justify-center items-center text-center">
-                      <h2 className="text-[32px]">
-                        {member.device_state.temperature
-                          ? Math.floor(
-                              member.device_state.temperature * 1.8 + 32
-                            )
-                          : "--"}
-                        °
-                      </h2>
-                      <span className="flex flex-row text-center self-center items-center">
-                        <h3 className="text-[25px] m-0">
-                          {readyMembers.includes(member.session_id) &&
-                          member.device_state.state !=
-                            PuffcoOperatingState.HEAT_CYCLE_ACTIVE
-                            ? "Ready"
-                            : PuffcoOperatingMap[member.device_state.state]}
-                        </h3>
-                        {readyMembers.includes(member.session_id) ? (
-                          <Checkmark className="ml-2 text-green-700 w-[20px] h-[20px]" />
-                        ) : (
-                          <></>
-                        )}
-                      </span>
-                    </div>
-                  </div>
+                  <GroupMember
+                    device={member.device_state}
+                    ready={readyMembers.includes(member.session_id)}
+                    member={member}
+                    key={member.session_id}
+                  />
                 ))}
             </>
           </div>
