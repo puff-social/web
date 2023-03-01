@@ -102,17 +102,14 @@ export default function Group({
         newGroup.state == GroupState.Chilling
       )
         setReadyMembers([]);
-      setGroup(newGroup);
 
-      if (newGroup.state == GroupState.Awaiting && deviceConnected) {
-        sendCommand(DeviceCommand.BONDING);
-        setLightMode(PuffLightMode.QueryReady);
-      } else if (
-        newGroup.state == GroupState.Chilling &&
-        deviceConnected &&
-        validState(myDevice as unknown as GatewayMemberDeviceState)
+      if (
+        [GroupState.Chilling, GroupState.Seshing].includes(newGroup.state) &&
+        group.state == GroupState.Awaiting
       )
         setLightMode(PuffLightMode.Default);
+
+      setGroup(newGroup);
     },
     [readyMembers, group, deviceConnected, myDevice]
   );
@@ -208,6 +205,9 @@ export default function Group({
         const initiator = groupMembers.find(
           (mem) => mem.session_id == data.session_id
         );
+
+        sendCommand(DeviceCommand.BONDING);
+        setLightMode(PuffLightMode.QueryReady);
 
         toast(
           `${

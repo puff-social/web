@@ -30,8 +30,8 @@ export const PuffcoOperatingMap = [
   "Heating",
   "Seshin",
   "Fade",
-  "Idle",
-  "Idle",
+  "Idle", // Battery
+  "Idle", // Version
 ];
 
 export interface PuffcoState {
