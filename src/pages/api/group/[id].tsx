@@ -22,11 +22,29 @@ export default async function handler(req: NextRequest) {
   const lightFontData = await fontLight;
   const boldFontData = await fontBold;
 
-  const group = await fetch(
-    `https://rosin.puff.social/v1/groups/${req.nextUrl.searchParams.get("id")}`
-  );
+  const group = await (async () => {
+    const name = req.nextUrl.searchParams.get("name");
+    const seshers = req.nextUrl.searchParams.get("seshers");
+    const watchers = req.nextUrl.searchParams.get("watchers");
 
-  if (group.status != 200)
+    if (!name || !seshers || !watchers) {
+      return (
+        await fetch(
+          `https://rosin.puff.social/v1/groups/${req.nextUrl.searchParams.get(
+            "id"
+          )}`
+        ).then((r) => r.json())
+      ).data as APIGroup;
+    } else {
+      return {
+        name,
+        sesher_count: Number(seshers),
+        watcher_count: Number(watchers),
+      } as APIGroup;
+    }
+  })();
+
+  if (!group)
     return new ImageResponse(
       (
         <div
@@ -75,7 +93,6 @@ export default async function handler(req: NextRequest) {
       }
     );
   else {
-    const data = (await group.json()).data as APIGroup;
     return new ImageResponse(
       (
         <div
@@ -110,18 +127,18 @@ export default async function handler(req: NextRequest) {
                 fontFamily: "RobotoMono",
               }}
             >
-              {data.name}
+              {group.name}
             </span>
             <span
               style={{
                 fontSize: 35,
               }}
             >
-              {data.sesher_count} sesher
-              {data.sesher_count > 1 || data.sesher_count == 0
+              {group.sesher_count} sesher
+              {group.sesher_count > 1 || group.sesher_count == 0
                 ? "s"
-                : ""} - {data.watcher_count} watcher
-              {data.watcher_count > 1 || data.watcher_count == 0 ? "s" : ""}
+                : ""} - {group.watcher_count} watcher
+              {group.watcher_count > 1 || group.watcher_count == 0 ? "s" : ""}
             </span>
           </div>
         </div>

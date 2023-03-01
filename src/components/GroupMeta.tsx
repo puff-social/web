@@ -30,13 +30,17 @@ export function GroupMeta({ group }: { group?: APIGroup }) {
       <meta
         name="twitter:image"
         content={`https://puff.social/api/group/${
-          group ? group.group_id : "not_found"
+          group
+            ? `${group.group_id}?name=${group.name}&seshers=${group.sesher_count}&watchers=${group.watcher_count}`
+            : "not_found"
         }`}
       />
       <meta
         property="og:image"
         content={`https://puff.social/api/group/${
-          group ? group.group_id : "not_found"
+          group
+            ? `${group.group_id}?name=${group.name}&seshers=${group.sesher_count}&watchers=${group.watcher_count}`
+            : "not_found"
         }`}
       />
     </Head>
