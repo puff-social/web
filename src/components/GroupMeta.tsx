@@ -29,11 +29,15 @@ export function GroupMeta({ group }: { group?: APIGroup }) {
       <meta content="summary_large_image" name="twitter:card" />
       <meta
         name="twitter:image"
-        content={`https://puff.social/api/group/not_found`}
+        content={`https://puff.social/api/group/${
+          group ? group.group_id : "not_found"
+        }`}
       />
       <meta
         property="og:image"
-        content={`https://puff.social/api/group/not_found`}
+        content={`https://puff.social/api/group/${
+          group ? group.group_id : "not_found"
+        }`}
       />
     </Head>
   );
