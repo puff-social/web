@@ -8,15 +8,19 @@ export const config = {
 };
 
 const font = fetch(
-  new URL("../../../../public/font/SpaceMono-Regular.ttf", import.meta.url)
+  new URL("../../../../public/font/RobotoMono-Regular.ttf", import.meta.url)
+).then((res) => res.arrayBuffer());
+const fontLight = fetch(
+  new URL("../../../../public/font/RobotoMono-Light.ttf", import.meta.url)
 ).then((res) => res.arrayBuffer());
 const fontBold = fetch(
-  new URL("../../../../public/font/SpaceMono-Bold.ttf", import.meta.url)
+  new URL("../../../../public/font/RobotoMono-Bold.ttf", import.meta.url)
 ).then((res) => res.arrayBuffer());
 
 export default async function handler(req: NextRequest) {
   const fontData = await font;
-  const fontBoldData = await fontBold;
+  const lightFontData = await fontLight;
+  const boldFontData = await fontBold;
 
   const group = await fetch(
     `https://rosin.puff.social/v1/groups/${req.nextUrl.searchParams.get("id")}`
@@ -45,7 +49,7 @@ export default async function handler(req: NextRequest) {
               marginTop: 30,
               lineHeight: 1.8,
               fontWeight: "bold",
-              fontFamily: "SpaceMono-Bold",
+              fontFamily: "RobotoMono Bold",
               color: "#ff2f2f",
             }}
           >
@@ -58,8 +62,13 @@ export default async function handler(req: NextRequest) {
         height: 630,
         fonts: [
           {
-            name: "SpaceMono-Bold",
-            data: fontBoldData,
+            name: "RobotoMono",
+            data: fontData,
+            style: "normal",
+          },
+          {
+            name: "RobotoMono Bold",
+            data: boldFontData,
             style: "normal",
           },
         ],
@@ -93,12 +102,12 @@ export default async function handler(req: NextRequest) {
               textAlign: "center",
               justifyContent: "center",
               alignItems: "center",
-              fontFamily: "SpaceMono",
+              fontFamily: "RobotoMono Light",
             }}
           >
             <span
               style={{
-                fontFamily: "SpaceMono-Bold",
+                fontFamily: "RobotoMono",
               }}
             >
               {data.name}
@@ -122,13 +131,13 @@ export default async function handler(req: NextRequest) {
         height: 630,
         fonts: [
           {
-            name: "SpaceMono",
+            name: "RobotoMono",
             data: fontData,
             style: "normal",
           },
           {
-            name: "SpaceMono-Bold",
-            data: fontBoldData,
+            name: "RobotoMono Light",
+            data: lightFontData,
             style: "normal",
           },
         ],
