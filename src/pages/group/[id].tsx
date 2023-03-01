@@ -260,12 +260,13 @@ export default function Group({
           ...curr.filter((item) => item != data.session_id),
         ]);
 
-        toast(
-          `${
-            data.session_id == gateway.session_id ? ourName : initiator.name
-          } is no longer ready`,
-          { icon: "🚫", duration: 5000, position: "bottom-right" }
-        );
+        if (initiator)
+          toast(
+            `${
+              data.session_id == gateway.session_id ? ourName : initiator.name
+            } is no longer ready`,
+            { icon: "🚫", duration: 5000, position: "bottom-right" }
+          );
         return groupMembers;
       });
     },
