@@ -22,7 +22,13 @@ export function GroupMeta({ group }: { group?: APIGroup }) {
       />
       <meta
         name="description"
-        content={group ? `Join ${group.name} on puff.social` : ""}
+        content={
+          group
+            ? `Join ${
+                group.sesher_count > 0 ? `${group.sesher_count} seshers in` : ""
+              } ${group.name} on puff.social`
+            : ""
+        }
       />
       <meta name="twitter:creator" content="@dustinrouillard" />
       <meta name="twitter:site" content="@dustinrouillard" />
@@ -31,7 +37,7 @@ export function GroupMeta({ group }: { group?: APIGroup }) {
         name="twitter:image"
         content={`https://puff.social/api/group/${
           group
-            ? `${group.group_id}?name=${group.name}&seshers=${group.sesher_count}&watchers=${group.watcher_count}`
+            ? `${group.group_id}?name=${group.name}&seshers=${group.sesher_count}&watchers=${group.watcher_count}&seshCount=${group.sesh_counter}`
             : "not_found"
         }`}
       />
@@ -39,7 +45,7 @@ export function GroupMeta({ group }: { group?: APIGroup }) {
         property="og:image"
         content={`https://puff.social/api/group/${
           group
-            ? `${group.group_id}?name=${group.name}&seshers=${group.sesher_count}&watchers=${group.watcher_count}`
+            ? `${group.group_id}?name=${group.name}&seshers=${group.sesher_count}&watchers=${group.watcher_count}&seshCount=${group.sesh_counter}`
             : "not_found"
         }`}
       />

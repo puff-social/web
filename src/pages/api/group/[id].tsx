@@ -26,6 +26,7 @@ export default async function handler(req: NextRequest) {
     const name = req.nextUrl.searchParams.get("name");
     const seshers = req.nextUrl.searchParams.get("seshers");
     const watchers = req.nextUrl.searchParams.get("watchers");
+    const seshCount = req.nextUrl.searchParams.get("seshCount");
 
     if (!name || !seshers || !watchers) {
       return (
@@ -40,6 +41,7 @@ export default async function handler(req: NextRequest) {
         name,
         sesher_count: Number(seshers),
         watcher_count: Number(watchers),
+        sesh_counter: Number(seshCount),
       } as APIGroup;
     }
   })();
@@ -134,11 +136,52 @@ export default async function handler(req: NextRequest) {
                 fontSize: 35,
               }}
             >
-              {group.sesher_count} sesher
+              <span
+                style={{
+                  fontFamily: "RobotoMono Bold",
+                  marginRight: "1.25rem",
+                }}
+              >
+                {group.sesher_count}
+              </span>{" "}
+              sesher
               {group.sesher_count > 1 || group.sesher_count == 0
                 ? "s"
-                : ""} - {group.watcher_count} watcher
+                : ""} -{" "}
+              <span
+                style={{
+                  fontFamily: "RobotoMono Bold",
+                  marginLeft: "1.25rem",
+                  marginRight: "1.25rem",
+                }}
+              >
+                {group.watcher_count}
+              </span>{" "}
+              watcher
               {group.watcher_count > 1 || group.watcher_count == 0 ? "s" : ""}
+            </span>
+            <span
+              style={{
+                fontSize: 30,
+                marginTop: 20,
+              }}
+            >
+              {group.sesh_counter > 0 ? (
+                <>
+                  <span
+                    style={{
+                      fontFamily: "RobotoMono Bold",
+                      marginLeft: "1.25rem",
+                      marginRight: "1.25rem",
+                    }}
+                  >
+                    {group.sesh_counter}
+                  </span>{" "}
+                  seshes in
+                </>
+              ) : (
+                "No seshes on record, join up for the first one"
+              )}
             </span>
           </div>
         </div>
