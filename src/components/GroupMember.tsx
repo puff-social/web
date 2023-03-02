@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import {
   GatewayGroupMember,
   GatewayMemberDeviceState,
@@ -14,11 +15,12 @@ import { Tippy } from "./Tippy";
 
 interface GroupMemberProps {
   name?: string;
-  device: GatewayMemberDeviceState;
+  device?: GatewayMemberDeviceState;
   member?: GatewayGroupMember;
   ready?: boolean;
   connected?: boolean;
   us?: boolean;
+  nobodyelse?: boolean;
   connectToDevice?: Function;
 }
 
@@ -103,8 +105,28 @@ export function GroupMember(props: GroupMemberProps) {
             </span>
           </span>
         </div>
+      ) : props.nobodyelse ? (
+        <span className="flex flex-col space-y-8 justify-between items-center">
+          <h3 className="text-center text-lg">There's only one sesher here!</h3>
+          <p className="text-center text-small break-normal">
+            You should invite some people to sync up your dab :)
+          </p>
+          <button
+            className="w-48 self-center rounded-md bg-indigo-700 hover:bg-indigo-800 text-white p-1"
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              toast("Copied group URL to clipboard", {
+                icon: "📋",
+                duration: 2500,
+                position: "bottom-right",
+              });
+            }}
+          >
+            Copy Group URL
+          </button>
+        </span>
       ) : (
-        <span className="flex flex-col space-y-8 justify-center items-center">
+        <span className="flex flex-col space-y-8 justify-between items-center">
           <div className="flex flex-row items-center justify-center space-x-6">
             <img width="70px" src="/peak.gif" />
             <p className="text-center text-lg break-normal w-48">

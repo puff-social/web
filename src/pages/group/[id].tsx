@@ -592,6 +592,7 @@ export default function Group({
                     key={member.session_id}
                   />
                 ))}
+              {seshers == 1 ? <GroupMember nobodyelse /> : <></>}
             </>
           </div>
 
