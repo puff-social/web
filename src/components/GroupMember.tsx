@@ -21,6 +21,7 @@ interface GroupMemberProps {
   connected?: boolean;
   us?: boolean;
   nobodyelse?: boolean;
+  nobody?: boolean;
   connectToDevice?: Function;
 }
 
@@ -37,7 +38,32 @@ export function GroupMember(props: GroupMemberProps) {
     setInterval(() => setTime(Date.now()), 800);
   }, []);
 
-  if (!bluetooth && props.us) return <></>;
+  if (!bluetooth && props.us && props.nobody)
+    return (
+      <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md m-4 w-96 h-80 justify-center items-center">
+        <span className="flex flex-col space-y-8 justify-between items-center">
+          <h3 className="text-center text-lg">Ain't no seshers here!</h3>
+          <p className="text-center text-small break-normal px-2">
+            Your browser doesn't support bluetooth devices, this will dismiss
+            once a sesher connects.
+          </p>
+          <button
+            className="w-48 self-center rounded-md bg-indigo-700 hover:bg-indigo-800 text-white p-1"
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              toast("Copied group URL to clipboard", {
+                icon: "📋",
+                duration: 2500,
+                position: "bottom-right",
+              });
+            }}
+          >
+            Copy Group URL
+          </button>
+        </span>
+      </div>
+    );
+  else if (!bluetooth && props.us) return <></>;
   if (props.us && !props.connected && connectDismissed) return <></>;
 
   return (

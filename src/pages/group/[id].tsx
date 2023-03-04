@@ -617,6 +617,7 @@ export default function Group({
                 name={ourName}
                 ready={readyMembers.includes(gateway.session_id)}
                 connectToDevice={connectToDevice}
+                nobody={seshers == 0}
                 us
               />
               {groupMembers
