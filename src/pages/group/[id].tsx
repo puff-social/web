@@ -40,6 +40,11 @@ import { FeedbackModal } from "../../components/modals/Feedback";
 import { Mail } from "../../components/icons/Mail";
 import { LeaderboardIcon } from "../../components/icons/LeaderboardIcon";
 import NoSSR from "../../components/NoSSR";
+import { Edit } from "../../components/icons/Edit";
+import { GroupSettingsModal } from "../../components/modals/GroupSettings";
+import { Smoke } from "../../components/icons/Smoke";
+import { Stop } from "../../components/icons/Stop";
+import { BluetoothDisabled } from "../../components/icons/Bluetooth";
 
 export default function Group({
   group: initGroup,
@@ -67,6 +72,7 @@ export default function Group({
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [userSettingsModalOpen, setUserSettingsModalOpen] = useState(false);
+  const [groupSettingsModalOpen, setGroupSettingsModalOpen] = useState(false);
   const [infoModalOpen, setInfoModalOpen] = useState(() =>
     typeof localStorage != "undefined"
       ? !(localStorage.getItem("puff-social-first-visit") == "false")
@@ -436,7 +442,7 @@ export default function Group({
 
     setSeshers(currentSeshers + (deviceConnected ? 1 : 0));
     setWatchers(currentWatchers + (!deviceConnected ? 1 : 0));
-  }, [groupMembers]);
+  }, [groupMembers, deviceConnected]);
 
   return !initGroup ? (
     <div className="flex flex-col justify-center text-black bg-white dark:text-white dark:bg-neutral-900 h-screen">
@@ -457,6 +463,15 @@ export default function Group({
     <div className="flex flex-col justify-between h-screen">
       <GroupMeta group={initGroup} />
 
+      {group ? (
+        <GroupSettingsModal
+          modalOpen={groupSettingsModalOpen}
+          setModalOpen={setGroupSettingsModalOpen}
+          group={group}
+        />
+      ) : (
+        <></>
+      )}
       <UserSettingsModal
         modalOpen={userSettingsModalOpen}
         setModalOpen={setUserSettingsModalOpen}
@@ -474,11 +489,16 @@ export default function Group({
 
       {groupConnected ? (
         <NoSSR>
-          <div className="flex flex-col sm:flex-row m-4">
+          <div className="flex flex-col m-4">
             <div className="flex flex-col">
               <div>
                 <h1 className="text-4xl text-black dark:text-white font-bold">
                   {group.name}
+                  <Tippy content="Private group" placement="right">
+                    <span className="pl-2 opacity-50 cursor-default">
+                      {group.visibility == "private" ? "🔒" : ""}
+                    </span>
+                  </Tippy>
                 </h1>
                 <h3 className="text-black dark:text-white font-bold capitalize">
                   State: {group.state}
@@ -489,55 +509,60 @@ export default function Group({
                 </p>
               </div>
               <p className="text-black dark:text-white font-bold">
-                {group.sesh_counter.toLocaleString()} seshes this group
+                {group.sesh_counter == 0
+                  ? "No seshes yet!"
+                  : `${group.sesh_counter.toLocaleString()} seshes this group`}
               </p>
             </div>
 
-            <div className="flex flex-row drop-shadow-xl rounded-md p-2 m-2 justify-center items-center flex-wrap">
-              <button
-                className={`flex justify-center items-center text-white w-fit m-2 p-2 ${
-                  group.state == "awaiting" ? "bg-green-700" : "bg-green-800"
-                } rounded-md`}
-                onClick={() =>
-                  group.state == "awaiting" ? startWithReady() : sendStartDab()
-                }
-              >
-                {group.state == "awaiting" ? "Start with ready" : "Start"}
-              </button>
-              {group.state == "awaiting" ? (
-                <button
-                  className={`flex justify-center items-center text-white w-fit m-2 p-2 bg-red-500 rounded-md`}
-                  onClick={() => stopSesh()}
-                >
-                  Stop
-                </button>
+            <div className="flex flex-row drop-shadow-xl rounded-md py-2 flex-wrap">
+              {group.state == "chilling" ? (
+                seshers > 0 ? (
+                  <Tippy content="Start Sesh" placement="bottom">
+                    <div
+                      className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+                      onClick={() => sendStartDab()}
+                    >
+                      <Smoke />
+                    </div>
+                  </Tippy>
+                ) : (
+                  <></>
+                )
+              ) : group.state == "awaiting" ? (
+                <>
+                  {readyMembers.length > 0 ? (
+                    <Tippy content="Start anyway" placement="bottom">
+                      <div
+                        className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+                        onClick={() => stopSesh()}
+                      >
+                        <Stop />
+                      </div>
+                    </Tippy>
+                  ) : (
+                    <></>
+                  )}
+                  <Tippy content="Stop" placement="bottom">
+                    <div
+                      className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+                      onClick={() => stopSesh()}
+                    >
+                      <Stop />
+                    </div>
+                  </Tippy>
+                </>
               ) : (
                 <></>
               )}
-              <button
-                className={`flex justify-center items-center text-white w-fit m-2 p-2 ${
-                  group.visibility == "public" ? "bg-blue-700" : "bg-indigo-800"
-                } rounded-md`}
-                onClick={() => toggleVisbility()}
-              >
-                Make {group.visibility == "public" ? "private" : "public"}
-              </button>
-              <button
-                className="flex justify-center items-center text-white w-fit m-2 p-2 bg-red-800 rounded-md"
-                onClick={() => leaveGroup()}
-              >
-                Leave
-              </button>
-              {deviceConnected ? (
-                <button
-                  className="flex justify-center items-center text-white w-fit m-2 p-2 bg-red-800 rounded-md"
-                  onClick={() => disconnect()}
+              <Tippy content="Edit Group" placement="bottom">
+                <div
+                  className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+                  onClick={() => setGroupSettingsModalOpen(true)}
                 >
-                  Disconnect
-                </button>
-              ) : (
-                <></>
-              )}
+                  <Edit />
+                </div>
+              </Tippy>
               <Tippy content="User Settings" placement="bottom">
                 <div
                   className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
@@ -546,6 +571,18 @@ export default function Group({
                   <Settings />
                 </div>
               </Tippy>
+              {deviceConnected ? (
+                <Tippy content="Disconnect Device" placement="bottom">
+                  <div
+                    className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+                    onClick={() => disconnect()}
+                  >
+                    <BluetoothDisabled />
+                  </div>
+                </Tippy>
+              ) : (
+                <></>
+              )}
               <Tippy content="Information" placement="bottom">
                 <div
                   className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"

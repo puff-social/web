@@ -4,33 +4,36 @@ import { useCallback, useState } from "react";
 
 import { gateway, Op } from "../../utils/gateway";
 import { Checkmark } from "../icons/Checkmark";
+import { GatewayGroup } from "../../types/gateway";
 
-export function UserSettingsModal({ modalOpen, setModalOpen }: any) {
+export interface ModalProps {
+  modalOpen: boolean;
+  setModalOpen: Function;
+  group: GatewayGroup;
+}
+
+export function GroupSettingsModal({
+  modalOpen,
+  setModalOpen,
+  group,
+}: ModalProps) {
   const closeModal = useCallback(() => {
     setModalOpen(false);
   }, []);
 
-  const [ourName, setOurName] = useState(() =>
-    typeof localStorage != "undefined"
-      ? localStorage.getItem("puff-social-name") || "Unnamed"
-      : "Unnamed"
-  );
-
-  const [defaultVisibility, setDefaultVisibility] = useState(() =>
-    typeof localStorage != "undefined"
-      ? localStorage.getItem("puff-default-visbility") || "private"
-      : "private"
+  const [groupName, setGroupName] = useState<string>(group.name);
+  const [groupVisibility, setGroupVisibility] = useState<string>(
+    group.visibility
   );
 
   const saveSettings = useCallback(() => {
-    gateway.send(Op.UpdateUser, { name: ourName });
-    localStorage.setItem("puff-social-name", ourName);
-    localStorage.setItem("puff-default-visbility", defaultVisibility);
-    toast("Updated user settings", {
-      position: "bottom-right",
+    gateway.send(Op.UpdateGroup, {
+      name: groupName,
+      visibility: groupVisibility,
     });
+    toast("Updated group", { position: "bottom-right", duration: 3000 });
     closeModal();
-  }, [ourName, defaultVisibility]);
+  }, [groupName, groupVisibility]);
 
   return (
     <Modal
@@ -55,28 +58,26 @@ export function UserSettingsModal({ modalOpen, setModalOpen }: any) {
       }}
     >
       <div className="flex flex-col m-2 p-4 rounded-md bg-white dark:bg-neutral-800 text-black dark:text-white">
-        <p className="font-bold m-1 text-center">Client Options</p>
+        <p className="font-bold m-1 text-center">Edit Group</p>
         <span>
           <p className="font-bold">Name</p>
           <input
-            value={ourName}
-            placeholder="Display name"
+            value={groupName}
+            placeholder="Group name"
             maxLength={32}
             className="w-full rounded-md p-2 mb-2 border-2 border-slate-300 text-black"
-            onChange={({ target: { value } }) => setOurName(value)}
+            onChange={({ target: { value } }) => setGroupName(value)}
           />
         </span>
-        <hr className="my-2" />
-        <p className="font-bold m-1 text-center">Group Defaults</p>
         <span>
-          <p className="font-bold">Visibility</p>
+          <p className="font-bold">Group Visibility</p>
           <span className="flex flex-row space-x-2 items-center">
             <span
               className="p-4 bg-white dark:bg-stone-800 drop-shadow-lg hover:bg-gray-300 dark:hover:bg-stone-900 rounded-md w-full flex flex-row justify-between items-center"
-              onClick={() => setDefaultVisibility("public")}
+              onClick={() => setGroupVisibility("public")}
             >
               <p>🌍 Public</p>
-              {defaultVisibility == "public" ? (
+              {groupVisibility == "public" ? (
                 <Checkmark className="h-5 text-green-600 dark:text-green-500" />
               ) : (
                 ""
@@ -84,10 +85,10 @@ export function UserSettingsModal({ modalOpen, setModalOpen }: any) {
             </span>
             <span
               className="p-4 bg-white dark:bg-stone-800 drop-shadow-lg hover:bg-gray-300 dark:hover:bg-stone-900 rounded-md w-full flex flex-row justify-between items-center"
-              onClick={() => setDefaultVisibility("private")}
+              onClick={() => setGroupVisibility("private")}
             >
               <p>🔒 Private</p>
-              {defaultVisibility == "private" ? (
+              {groupVisibility == "private" ? (
                 <Checkmark className="h-5 text-green-600 dark:text-green-500" />
               ) : (
                 ""
