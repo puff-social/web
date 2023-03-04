@@ -12,6 +12,7 @@ import { Checkmark } from "./icons/Checkmark";
 import { Counter } from "./icons/Counter";
 import { PuffcoContainer } from "./puffco";
 import { Tippy } from "./Tippy";
+import { Bluetooth } from "./icons/Bluetooth";
 
 interface GroupMemberProps {
   name?: string;
@@ -78,7 +79,7 @@ export function GroupMember(props: GroupMemberProps) {
             }
             className="-z-50 h-full w-[120px]"
             model={DeviceModelMap[props.device.deviceModel].toLowerCase()}
-            demo={props.device}
+            device={props.device}
           />
           <span className="flex flex-col p-4">
             <p style={{ visibility: "hidden", display: "none" }}>{time}</p>
@@ -134,7 +135,7 @@ export function GroupMember(props: GroupMemberProps) {
       ) : props.nobodyelse ? (
         <span className="flex flex-col space-y-8 justify-between items-center">
           <h3 className="text-center text-lg">There's only one sesher here!</h3>
-          <p className="text-center text-small break-normal">
+          <p className="text-center text-small break-normal px-2">
             You should invite some people to sync up your dab :)
           </p>
           <button
@@ -161,10 +162,10 @@ export function GroupMember(props: GroupMemberProps) {
           </div>
           <span className="flex space-x-4">
             <button
-              className="w-32 self-center rounded-md bg-indigo-700 hover:bg-indigo-800 text-white p-1"
+              className="flex justify-center items-center w-32 self-center rounded-md bg-indigo-700 hover:bg-indigo-800 text-white p-1"
               onClick={() => props.connectToDevice()}
             >
-              Connect
+              <Bluetooth className="h-5 mr-1" /> Connect
             </button>
             <button
               className="w-32 self-center rounded-md bg-gray-700 hover:bg-gray-800 text-white p-1"

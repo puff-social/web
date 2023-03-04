@@ -156,7 +156,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                             ].toLowerCase()}
                             id={index.toString()}
                             className="flex items-center justify-center self-center w-[90px]"
-                            demo={{
+                            device={{
                               activeColor:
                                 index == 0
                                   ? {

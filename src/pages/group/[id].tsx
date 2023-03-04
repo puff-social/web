@@ -44,7 +44,11 @@ import { Edit } from "../../components/icons/Edit";
 import { GroupSettingsModal } from "../../components/modals/GroupSettings";
 import { Smoke } from "../../components/icons/Smoke";
 import { Stop } from "../../components/icons/Stop";
-import { BluetoothDisabled } from "../../components/icons/Bluetooth";
+import {
+  Bluetooth,
+  BluetoothConnected,
+  BluetoothDisabled,
+} from "../../components/icons/Bluetooth";
 
 export default function Group({
   group: initGroup,
@@ -378,7 +382,7 @@ export default function Group({
     try {
       const device = await startConnection();
       toast(`Connected to ${device.name}`, {
-        icon: "✅",
+        icon: <BluetoothConnected />,
         position: "bottom-right",
       });
       const { poller, initState, deviceInfo } = await startPolling();
@@ -410,7 +414,7 @@ export default function Group({
         setDeviceConnected(false);
         gateway.send(Op.DisconnectDevice);
         toast(`Disconnected from ${device.name}`, {
-          icon: "🚫",
+          icon: <BluetoothDisabled />,
           position: "bottom-right",
         });
       };

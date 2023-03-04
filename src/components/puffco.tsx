@@ -4,7 +4,7 @@ import usePrefersColorScheme from "use-prefers-color-scheme";
 import { PuffcoOperatingState } from "../types/gateway";
 import { ChargeSource } from "../utils/puffco";
 
-export interface DemoProps {
+export interface DeviceProps {
   activeColor?: { r: number; g: number; b: number };
   brightness?: number;
   battery?: number;
@@ -15,12 +15,12 @@ export interface DemoProps {
 
 export function PuffcoContainer({
   id,
-  demo,
+  device,
   model = "peak",
   className,
 }: {
   id: string;
-  demo?: DemoProps;
+  device?: DeviceProps;
   model?: string;
 } & PropsWithoutRef<any>) {
   const [r, setRed] = useState(0);
@@ -29,7 +29,7 @@ export function PuffcoContainer({
 
   const prefersColorScheme = usePrefersColorScheme();
 
-  const [brightness, setBrightness] = useState(demo?.brightness || 100);
+  const [brightness, setBrightness] = useState(device?.brightness || 100);
 
   function setRgb(r: number, g: number, b: number) {
     setRed(r);
@@ -50,7 +50,7 @@ export function PuffcoContainer({
 
   useEffect(() => {
     let interval: NodeJS.Timer;
-    switch (demo?.chargeSource) {
+    switch (device?.chargeSource) {
       case ChargeSource.Wireless:
       case ChargeSource.USB: {
         setBrightness(100);
@@ -69,16 +69,16 @@ export function PuffcoContainer({
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [demo?.chargeSource]);
+  }, [device?.chargeSource]);
 
   useEffect(() => {
     setBrightness(100);
-    setRgb(demo.activeColor.r, demo.activeColor.g, demo.activeColor.b);
-  }, [demo.activeColor]);
+    setRgb(device.activeColor.r, device.activeColor.g, device.activeColor.b);
+  }, [device.activeColor]);
 
   useEffect(() => {
     let interval: NodeJS.Timer;
-    switch (demo?.state) {
+    switch (device?.state) {
       case PuffcoOperatingState.IDLE:
       case PuffcoOperatingState.SLEEP: {
         break;
@@ -105,7 +105,7 @@ export function PuffcoContainer({
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [demo?.state]);
+  }, [device?.state]);
 
   return (
     <div
