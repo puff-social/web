@@ -87,6 +87,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          zIndex: 200,
         },
         content: {
           inset: "unset",
@@ -95,6 +96,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          zIndex: 201,
         },
       }}
     >

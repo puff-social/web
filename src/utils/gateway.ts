@@ -1,7 +1,7 @@
 import { EventEmitter } from "events";
 import { inflate, deflate } from "pako";
 import { APIGroup } from "../types/api";
-import { GatewayError, GatewayGroup, GatewayGroupCreate, GroupActionInitiator, GroupUserDeviceDisconnect, GroupUserDeviceUpdate, GroupUserJoin, GroupUserLeft, GroupUserUpdate } from "../types/gateway";
+import { GatewayError, GatewayGroup, GatewayGroupCreate, GroupActionInitiator, GroupReaction, GroupUserDeviceDisconnect, GroupUserDeviceUpdate, GroupUserJoin, GroupUserLeft, GroupUserUpdate } from "../types/gateway";
 
 export enum Op {
   Hello,
@@ -18,6 +18,7 @@ export enum Op {
   SendMessage,
   StopAwaiting,
   ResumeSession,
+  SendReaction,
   Heartbeat = 420
 }
 
@@ -41,6 +42,8 @@ enum Event {
   GroupCreateError = "GROUP_CREATE_ERROR",
   UserUpdateError = "USER_UPDATE_ERROR",
   GroupUserDeviceDisconnect = "GROUP_USER_DEVICE_DISCONNECT",
+  GroupReaction = "GROUP_REACTION",
+  GroupMessage = "GROUP_MESSAGE",
   SessionResumed = "SESSION_RESUMED"
 }
 
@@ -89,6 +92,8 @@ export interface Gateway {
   on(event: "group_user_unready", listener: (action: GroupActionInitiator) => void): this;
   on(event: "public_groups_update", listener: (groups: APIGroup[]) => void): this;
   on(event: "group_create_error", listener: (error: GatewayError) => void): this;
+  on(event: "group_message", listener: (message: any) => void): this;
+  on(event: "group_reaction", listener: (reaction: GroupReaction) => void): this;
   on(event: "user_update_error", listener: (error: GatewayError) => void): this;
 }
 export class Gateway extends EventEmitter {
@@ -259,6 +264,14 @@ export class Gateway extends EventEmitter {
           }
           case Event.GroupUserUnready: {
             this.emit('group_user_unready', data.d);
+            break;
+          }
+          case Event.GroupMessage: {
+            this.emit('group_message', data.d);
+            break;
+          }
+          case Event.GroupReaction: {
+            this.emit('group_reaction', data.d);
             break;
           }
           case Event.SessionResumed: {

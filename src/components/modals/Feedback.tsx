@@ -34,6 +34,7 @@ export function FeedbackModal({ modalOpen, setModalOpen }: any) {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          zIndex: 200,
         },
         content: {
           inset: "unset",
@@ -42,6 +43,7 @@ export function FeedbackModal({ modalOpen, setModalOpen }: any) {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          zIndex: 201,
         },
       }}
     >

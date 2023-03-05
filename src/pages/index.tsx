@@ -86,7 +86,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="flex flex-row items-center m-4">
+      <div className="flex flex-col m-4 z-10">
         <div>
           <h1 className="text-4xl font-bold">puff.social</h1>
           <h3 className="text font-bold">
@@ -97,38 +97,40 @@ export default function Home() {
             (idea by Roberto)
           </h3>
         </div>
-        <Tippy content="User Settings" placement="bottom">
-          <div
-            className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-            onClick={() => setSettingsModalOpen(true)}
-          >
-            <Settings />
-          </div>
-        </Tippy>
-        <Tippy content="Information" placement="bottom">
-          <div
-            className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-            onClick={() => setInfoModalOpen(true)}
-          >
-            <Info />
-          </div>
-        </Tippy>
-        <Tippy content="Send Feedback" placement="bottom">
-          <div
-            className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-            onClick={() => setFeedbackModalOpen(true)}
-          >
-            <Mail />
-          </div>
-        </Tippy>
-        <Tippy content="Dab Leaderboard" placement="bottom">
-          <div
-            className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-            onClick={() => setLeaderboardOpen(true)}
-          >
-            <LeaderboardIcon />
-          </div>
-        </Tippy>
+        <div className="flex flex-row drop-shadow-xl rounded-md py-2 flex-wrap">
+          <Tippy content="User Settings" placement="bottom">
+            <div
+              className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+              onClick={() => setSettingsModalOpen(true)}
+            >
+              <Settings />
+            </div>
+          </Tippy>
+          <Tippy content="Information" placement="bottom">
+            <div
+              className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+              onClick={() => setInfoModalOpen(true)}
+            >
+              <Info />
+            </div>
+          </Tippy>
+          <Tippy content="Send Feedback" placement="bottom">
+            <div
+              className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+              onClick={() => setFeedbackModalOpen(true)}
+            >
+              <Mail />
+            </div>
+          </Tippy>
+          <Tippy content="Dab Leaderboard" placement="bottom">
+            <div
+              className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+              onClick={() => setLeaderboardOpen(true)}
+            >
+              <LeaderboardIcon />
+            </div>
+          </Tippy>
+        </div>
       </div>
 
       <UserSettingsModal

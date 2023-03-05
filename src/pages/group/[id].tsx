@@ -9,6 +9,7 @@ import {
   GatewayGroupMember,
   GatewayMemberDeviceState,
   GroupActionInitiator,
+  GroupReaction,
   GroupState,
   GroupUserDeviceUpdate,
   GroupUserJoin,
@@ -27,8 +28,6 @@ import {
 import { gateway, Op } from "../../utils/gateway";
 import { UserSettingsModal } from "../../components/modals/UserSettings";
 import { InfoModal } from "../../components/modals/Info";
-import { Settings } from "../../components/icons/Settings";
-import { Info } from "../../components/icons/Info";
 import { trackDevice } from "../../utils/analytics";
 import { GroupMeta } from "../../components/GroupMeta";
 import { NextPageContext } from "next";
@@ -37,25 +36,15 @@ import { APIGroup } from "../../types/api";
 import { GroupMember } from "../../components/GroupMember";
 import { LeaderboardModal } from "../../components/modals/Leaderboard";
 import { FeedbackModal } from "../../components/modals/Feedback";
-import { Mail } from "../../components/icons/Mail";
-import { LeaderboardIcon } from "../../components/icons/LeaderboardIcon";
 import NoSSR from "../../components/NoSSR";
-import { Edit } from "../../components/icons/Edit";
 import { GroupSettingsModal } from "../../components/modals/GroupSettings";
-import { Smoke } from "../../components/icons/Smoke";
-import { Stop } from "../../components/icons/Stop";
 import {
-  Bluetooth,
   BluetoothConnected,
   BluetoothDisabled,
 } from "../../components/icons/Bluetooth";
+import { GroupActions } from "../../components/GroupActions";
 
-export default function Group({
-  group: initGroup,
-  group: { group_id: id },
-}: {
-  group: APIGroup;
-}) {
+export default function Group({ group: initGroup }: { group: APIGroup }) {
   const router = useRouter();
   const [deviceConnected, setDeviceConnected] = useState(false);
   const [groupConnected, setGroupConnected] = useState(false);
@@ -185,6 +174,26 @@ export default function Group({
     });
   }
 
+  const groupReaction = useCallback(
+    async ({ emoji, author_session_id }: GroupReaction) => {
+      setGroupMembers((curr) => {
+        const member = curr.find((mem) => mem.session_id == author_session_id);
+
+        toast(
+          `${
+            author_session_id == gateway.session_id ? ourName : member.name
+          }: ${emoji}`,
+          {
+            position: "bottom-right",
+            duration: 2000,
+          }
+        );
+        return curr;
+      });
+    },
+    [groupMembers]
+  );
+
   async function startDab() {
     toast("3...", { duration: 1000, position: "bottom-right" });
     setTimeout(() => {
@@ -195,18 +204,6 @@ export default function Group({
         sendCommand(DeviceCommand.HEAT_CYCLE_BEGIN);
       }, 1000);
     }, 1000);
-  }
-
-  async function startWithReady() {
-    gateway.send(Op.StartWithReady);
-  }
-
-  async function sendStartDab() {
-    gateway.send(Op.InquireHeating);
-  }
-
-  async function stopSesh() {
-    gateway.send(Op.StopAwaiting);
   }
 
   const inquireDab = useCallback(
@@ -338,13 +335,16 @@ export default function Group({
       gateway.on("group_user_unready", groupMemberUnready);
       gateway.on("group_user_join", groupMemberJoin);
       gateway.on("group_user_left", groupMemberLeft);
+      gateway.on("group_reaction", groupReaction);
       if (gateway.ws.readyState == gateway.ws.OPEN)
-        gateway.send(Op.Join, { group_id: id });
-      else gateway.once("init", () => gateway.send(Op.Join, { group_id: id }));
+        gateway.send(Op.Join, { group_id: initGroup.group_id });
+      else
+        gateway.once("init", () =>
+          gateway.send(Op.Join, { group_id: initGroup.group_id })
+        );
       return () => {
         gateway.send(Op.LeaveGroup);
-        disconnectBluetooth();
-        setDeviceConnected(false);
+        disconnect();
         gateway.removeListener("joined_group", joinedGroup);
         gateway.removeListener("group_join_error", groupJoinError);
 
@@ -367,6 +367,7 @@ export default function Group({
         gateway.removeListener("group_user_unready", groupMemberUnready);
         gateway.removeListener("group_user_join", groupMemberJoin);
         gateway.removeListener("group_user_left", groupMemberLeft);
+        gateway.removeListener("group_reaction", groupReaction);
       };
     }
   }, [initGroup]);
@@ -422,16 +423,6 @@ export default function Group({
       console.error(error);
     }
   }, [ourName, group]);
-
-  async function toggleVisbility() {
-    gateway.send(Op.UpdateGroup, {
-      visibility: group.visibility == "public" ? "private" : "public",
-    });
-  }
-
-  async function leaveGroup() {
-    router.push("/");
-  }
 
   const [seshers, setSeshers] = useState(0);
   const [watchers, setWatchers] = useState(0);
@@ -493,7 +484,7 @@ export default function Group({
 
       {groupConnected ? (
         <NoSSR>
-          <div className="flex flex-col m-4">
+          <div className="flex flex-col m-4 z-10">
             <div className="flex flex-col">
               <div>
                 <h1 className="text-4xl text-black dark:text-white font-bold">
@@ -519,99 +510,22 @@ export default function Group({
               </p>
             </div>
 
-            <div className="flex flex-row drop-shadow-xl rounded-md py-2 flex-wrap">
-              {group.state == "chilling" ? (
-                seshers > 0 ? (
-                  <Tippy content="Start Sesh" placement="bottom">
-                    <div
-                      className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-                      onClick={() => sendStartDab()}
-                    >
-                      <Smoke />
-                    </div>
-                  </Tippy>
-                ) : (
-                  <></>
-                )
-              ) : group.state == "awaiting" ? (
-                <>
-                  {readyMembers.length > 0 ? (
-                    <Tippy content="Start anyway" placement="bottom">
-                      <div
-                        className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-                        onClick={() => stopSesh()}
-                      >
-                        <Stop />
-                      </div>
-                    </Tippy>
-                  ) : (
-                    <></>
-                  )}
-                  <Tippy content="Stop" placement="bottom">
-                    <div
-                      className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-                      onClick={() => stopSesh()}
-                    >
-                      <Stop />
-                    </div>
-                  </Tippy>
-                </>
-              ) : (
-                <></>
-              )}
-              <Tippy content="Edit Group" placement="bottom">
-                <div
-                  className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-                  onClick={() => setGroupSettingsModalOpen(true)}
-                >
-                  <Edit />
-                </div>
-              </Tippy>
-              <Tippy content="User Settings" placement="bottom">
-                <div
-                  className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-                  onClick={() => setUserSettingsModalOpen(true)}
-                >
-                  <Settings />
-                </div>
-              </Tippy>
-              {deviceConnected ? (
-                <Tippy content="Disconnect Device" placement="bottom">
-                  <div
-                    className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-                    onClick={() => disconnect()}
-                  >
-                    <BluetoothDisabled />
-                  </div>
-                </Tippy>
-              ) : (
-                <></>
-              )}
-              <Tippy content="Information" placement="bottom">
-                <div
-                  className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-                  onClick={() => setInfoModalOpen(true)}
-                >
-                  <Info />
-                </div>
-              </Tippy>
-              <Tippy content="Send Feedback" placement="bottom">
-                <div
-                  className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-                  onClick={() => setFeedbackModalOpen(true)}
-                >
-                  <Mail />
-                </div>
-              </Tippy>
-              <Tippy content="Dab Leaderboard" placement="bottom">
-                <div
-                  className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-                  onClick={() => setLeaderboardOpen(true)}
-                >
-                  <LeaderboardIcon />
-                </div>
-              </Tippy>
-            </div>
+            {group ? (
+              <GroupActions
+                group={group}
+                seshers={seshers}
+                readyMembers={readyMembers}
+                deviceConnected={deviceConnected}
+                disconnect={disconnect}
+                setGroupSettingsModalOpen={setGroupSettingsModalOpen}
+                setUserSettingsModalOpen={setUserSettingsModalOpen}
+                setInfoModalOpen={setInfoModalOpen}
+                setFeedbackModalOpen={setFeedbackModalOpen}
+                setLeaderboardOpen={setLeaderboardOpen}
+              />
+            ) : (
+              <></>
+            )}
           </div>
 
           <div className="flex flex-row flex-wrap">
@@ -667,6 +581,7 @@ export default function Group({
 export async function getServerSideProps(context: NextPageContext) {
   try {
     const group = await getGroupById(context.query.id as string);
+
     return {
       props: { group },
     };

@@ -120,6 +120,11 @@ export interface GroupUserDeviceDisconnect {
   session_id: string;
 }
 
+export interface GroupReaction {
+  author_session_id: string;
+  emoji: string;
+}
+
 export interface GroupActionInitiator {
   session_id: string;
 }

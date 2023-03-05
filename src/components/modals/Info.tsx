@@ -18,6 +18,7 @@ export function InfoModal({ modalOpen, setModalOpen }: any) {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          zIndex: 200,
         },
         content: {
           inset: "unset",
@@ -26,6 +27,7 @@ export function InfoModal({ modalOpen, setModalOpen }: any) {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          zIndex: 201,
         },
       }}
     >

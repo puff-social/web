@@ -9,7 +9,9 @@ export async function getGroups() {
 }
 
 export async function getGroupById(id: string) {
-  const req: APIResponse<APIGroup> = await fetch(`${API_URL}/v1/groups/${id}`).then(r => r.json());
+  const req = await fetch(`${API_URL}/v1/groups/${id}`);;
+  const body: APIResponse<APIGroup> = await req.json();
+  if (req.status != 200) throw { code: 'not_found' };
   if ('error' in req) throw req.error;
-  return req.data;
+  return body.data;
 }

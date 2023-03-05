@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import { Transition } from "@headlessui/react";
+import { Toaster, ToastIcon, toast, resolveValue } from "react-hot-toast";
 
 import "../assets/app.css";
 import { gateway } from "../utils/gateway";
@@ -70,7 +71,24 @@ export default function App({ Component, pageProps }) {
         rel="stylesheet"
       />
 
-      <Toaster />
+      <Toaster>
+        {(t) => (
+          <Transition
+            appear
+            show={t.visible}
+            className="transform rounded-md p-2 bg-white text-black dark:bg-neutral-800 dark:text-white drop-shadow-xl"
+            enter="transition-all duration-150"
+            enterFrom="opacity-0 scale-50"
+            enterTo="opacity-100 scale-100"
+            leave="transition-all duration-150"
+            leaveFrom="opacity-100 scale-100"
+            leaveTo="opacity-0 scale-75"
+          >
+            <ToastIcon toast={t} />
+            <p className="px-2">{resolveValue(t.message, t)}</p>
+          </Transition>
+        )}
+      </Toaster>
       <Component {...pageProps} />
     </>
   );

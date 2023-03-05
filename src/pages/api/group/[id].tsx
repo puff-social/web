@@ -2,9 +2,10 @@ import { ImageResponse } from "@vercel/og";
 import { NextRequest } from "next/server";
 
 import { APIGroup } from "../../../types/api";
+import { API_URL } from "../../../utils/api";
 
 export const config = {
-  runtime: "experimental-edge",
+  runtime: "edge",
 };
 
 const font = fetch(
@@ -31,9 +32,7 @@ export default async function handler(req: NextRequest) {
     if (!name || !seshers || !watchers) {
       return (
         await fetch(
-          `https://rosin.puff.social/v1/groups/${req.nextUrl.searchParams.get(
-            "id"
-          )}`
+          `${API_URL}/v1/groups/${req.nextUrl.searchParams.get("id")}`
         ).then((r) => r.json())
       ).data as APIGroup;
     } else {

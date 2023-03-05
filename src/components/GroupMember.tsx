@@ -27,17 +27,12 @@ interface GroupMemberProps {
 }
 
 export function GroupMember(props: GroupMemberProps) {
-  const [time, setTime] = useState(Date.now());
   const [connectDismissed, setConnectDismissed] = useState(false);
 
   const [bluetooth] = useState<boolean>(() => {
     if (typeof window == "undefined") false;
     return typeof window.navigator.bluetooth !== "undefined";
   });
-
-  useEffect(() => {
-    setInterval(() => setTime(Date.now()), 800);
-  }, []);
 
   if (!bluetooth && props.us && props.nobody)
     return (
@@ -82,7 +77,11 @@ export function GroupMember(props: GroupMemberProps) {
             device={props.device}
           />
           <span className="flex flex-col p-4">
-            <p style={{ visibility: "hidden", display: "none" }}>{time}</p>
+            <p style={{ visibility: "hidden", display: "none" }}>
+              {props.device.activeColor.r +
+                props.device.activeColor.g +
+                props.device.activeColor.b}
+            </p>
             <h1 className="m-0 text-xl font-bold truncate">
               {props.us ? props.name : props.member.name}
             </h1>

@@ -46,6 +46,7 @@ export function GroupSettingsModal({
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          zIndex: 200,
         },
         content: {
           inset: "unset",
@@ -54,6 +55,7 @@ export function GroupSettingsModal({
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          zIndex: 201,
         },
       }}
     >
