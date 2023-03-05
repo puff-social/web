@@ -12,6 +12,7 @@ specifiers:
   autoprefixer: ^10.4.13
   byte-data: ^19.0.1
   csstype: ^3.1.1
+  emojisplosion: ^2.6.1
   next: ^13.2.0
   pako: ^2.1.0
   postcss: ^8.4.21
@@ -32,6 +33,7 @@ dependencies:
   autoprefixer: 10.4.13_postcss@8.4.21
   byte-data: 19.0.1
   csstype: 3.1.1
+  emojisplosion: 2.6.1
   next: 13.2.0_biqbaboplfbrettd7655fr4n2y
   pako: 2.1.0
   postcss: 8.4.21
@@ -459,6 +461,10 @@ packages:
 
   /emoji-regex/10.2.1:
     resolution: {integrity: sha512-97g6QgOk8zlDRdgq1WxwgTMgEWGVAQvB5Fdpgc1MkNy56la5SKP9GsMXKDOdqwn90/41a8yPwIGk1Y6WVbeMQA==}
+    dev: false
+
+  /emojisplosion/2.6.1:
+    resolution: {integrity: sha512-a+yvHzHHP9R8qvt7ZeZS8yReuHjwXvbBbSxJHVMMWs4+sf0eOE/v/+Iz6fQq0CdF8G04jsJMF1MNDlrIBCC1pw==}
     dev: false
 
   /escalade/3.1.1:

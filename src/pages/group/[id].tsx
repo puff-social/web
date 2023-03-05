@@ -1,3 +1,4 @@
+import { emojisplosion } from "emojisplosion";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import { useCallback, useEffect, useState } from "react";
@@ -178,6 +179,34 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     async ({ emoji, author_session_id }: GroupReaction) => {
       setGroupMembers((curr) => {
         const member = curr.find((mem) => mem.session_id == author_session_id);
+
+        emojisplosion({
+          emojis: [emoji],
+          emojiCount: 3,
+          physics: {
+            gravity: -0.45,
+            framerate: 40,
+            opacityDecay: 15,
+            initialVelocities: {
+              y: {
+                max: 1,
+                min: -30,
+              },
+              x: {
+                max: 1,
+                min: -20,
+              },
+              rotation: {
+                max: 0,
+                min: 0,
+              },
+            },
+          },
+          position: {
+            x: window.innerWidth - 20,
+            y: window.innerHeight - 10,
+          },
+        });
 
         toast(
           `${

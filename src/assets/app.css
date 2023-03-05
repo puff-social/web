@@ -14,3 +14,7 @@ body {
     @apply text-black bg-white dark:text-white dark:bg-neutral-900;
   }
 }
+
+.emoji-styles {
+  z-index: 20 !important;
+}

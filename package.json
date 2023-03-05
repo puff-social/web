@@ -14,6 +14,7 @@
     "autoprefixer": "^10.4.13",
     "byte-data": "^19.0.1",
     "csstype": "^3.1.1",
+    "emojisplosion": "^2.6.1",
     "next": "^13.2.0",
     "pako": "^2.1.0",
     "postcss": "^8.4.21",
