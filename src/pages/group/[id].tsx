@@ -82,9 +82,8 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       "state",
       "deviceModel",
     ];
-    for (const key of required) {
+    for (const key of required)
       if (typeof state[key] == "undefined") return false;
-    }
     return true;
   }
 
@@ -182,11 +181,11 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
 
         emojisplosion({
           emojis: [emoji],
-          emojiCount: 3,
+          emojiCount: 20,
           physics: {
             gravity: -0.45,
             framerate: 40,
-            opacityDecay: 15,
+            opacityDecay: 22,
             initialVelocities: {
               y: {
                 max: 1,
