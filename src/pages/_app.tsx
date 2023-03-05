@@ -76,7 +76,7 @@ export default function App({ Component, pageProps }) {
           <Transition
             appear
             show={t.visible}
-            className="transform rounded-md p-2 bg-white text-black dark:bg-neutral-800 dark:text-white drop-shadow-xl"
+            className="transform flex rounded-md p-2 bg-white text-black dark:bg-neutral-800 dark:text-white drop-shadow-xl"
             enter="transition-all duration-150"
             enterFrom="opacity-0 scale-50"
             enterTo="opacity-100 scale-100"
