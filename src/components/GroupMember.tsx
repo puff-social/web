@@ -13,6 +13,7 @@ import { Counter } from "./icons/Counter";
 import { PuffcoContainer } from "./puffco";
 import { Tippy } from "./Tippy";
 import { Bluetooth } from "./icons/Bluetooth";
+import { Crown } from "./icons/Crown";
 
 interface GroupMemberProps {
   name?: string;
@@ -20,6 +21,7 @@ interface GroupMemberProps {
   member?: GatewayGroupMember;
   ready?: boolean;
   connected?: boolean;
+  owner?: boolean;
   us?: boolean;
   nobodyelse?: boolean;
   nobody?: boolean;
@@ -82,17 +84,25 @@ export function GroupMember(props: GroupMemberProps) {
                 props.device.activeColor.g +
                 props.device.activeColor.b}
             </p>
+            <Tippy content="Group owner" placement="top-start">
+              <div>
+                <Crown className="text-green-700" />
+              </div>
+            </Tippy>
             <h1 className="m-0 text-xl font-bold truncate">
+              {props.owner ? <span></span> : ""}{" "}
               {props.us ? props.name : props.member.name}
             </h1>
             {props.device && (
               <div className="flex space-x-3 justify-center">
                 <span className="flex flex-row justify-center items-center">
-                  <Counter className="m-1 ml-0" />
                   <Tippy content="Total Dabs" placement="bottom">
-                    <p className="m-0 p-1 text-lg">
-                      {props.device.totalDabs.toLocaleString()}
-                    </p>
+                    <div className="flex justify-center">
+                      <Counter className="m-1 ml-0" />
+                      <p className="m-0 p-1 text-lg">
+                        {props.device.totalDabs.toLocaleString()}
+                      </p>
+                    </div>
                   </Tippy>
                 </span>
                 <Tippy content="Battery" placement="bottom">

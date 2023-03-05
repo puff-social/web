@@ -97,16 +97,12 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   const updatedGroup = useCallback(
     (newGroup: GatewayGroup) => {
       if (
-        group.state == GroupState.Seshing &&
-        newGroup.state == GroupState.Chilling
-      )
-        setReadyMembers([]);
-
-      if (
         [GroupState.Chilling, GroupState.Seshing].includes(newGroup.state) &&
         group.state == GroupState.Awaiting
-      )
+      ) {
+        setReadyMembers([]);
         setLightMode(PuffLightMode.Default);
+      }
 
       setGroup(newGroup);
     },
@@ -564,6 +560,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                 ready={readyMembers.includes(gateway.session_id)}
                 connectToDevice={connectToDevice}
                 nobody={seshers == 0}
+                owner={group.owner_session_id == gateway.session_id}
                 us
               />
               {groupMembers
@@ -573,6 +570,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                     device={member.device_state}
                     ready={readyMembers.includes(member.session_id)}
                     member={member}
+                    owner={group.owner_session_id == member.session_id}
                     key={member.session_id}
                   />
                 ))}

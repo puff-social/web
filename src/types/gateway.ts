@@ -82,6 +82,7 @@ export interface GatewayGroup {
   name: string;
   state: GroupState;
   visibility: string;
+  owner_session_id: string;
   sesh_counter: number;
 }
 

@@ -13,6 +13,7 @@ import { Reaction } from "./icons/Reaction";
 import { Tippy } from "./Tippy";
 import { Leave } from "./icons/Leave";
 import { Skip } from "./icons/Skip";
+import { useRouter } from "next/router";
 
 interface ActionsProps {
   group: GatewayGroup;
@@ -39,7 +40,7 @@ export function GroupActions({
   setFeedbackModalOpen,
   setLeaderboardOpen,
 }: ActionsProps) {
-  const [reactionDropdownOpen, setReactionDropdownOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <div className="flex flex-row drop-shadow-xl rounded-md py-2 flex-wrap">
@@ -83,6 +84,18 @@ export function GroupActions({
         ) : (
           <></>
         )}
+        {gateway.session_id == group.owner_session_id ? (
+          <Tippy content="Edit Group" placement="bottom">
+            <div
+              className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+              onClick={() => setGroupSettingsModalOpen(true)}
+            >
+              <Edit />
+            </div>
+          </Tippy>
+        ) : (
+          <></>
+        )}
         {deviceConnected ? (
           <Tippy content="Disconnect Device" placement="bottom">
             <div
@@ -95,12 +108,12 @@ export function GroupActions({
         ) : (
           <></>
         )}
-        <Tippy content="Edit Group" placement="bottom">
+        <Tippy content="Leave Group" placement="bottom">
           <div
-            className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-            onClick={() => setGroupSettingsModalOpen(true)}
+            className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl text-red-400"
+            onClick={() => router.push("/")}
           >
-            <Edit />
+            <Leave />
           </div>
         </Tippy>
         <Tippy
@@ -139,19 +152,8 @@ export function GroupActions({
           placement="bottom-start"
           trigger="click"
         >
-          <div
-            className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-            onClick={() => setReactionDropdownOpen((curr) => !curr)}
-          >
+          <div className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl">
             <Reaction />
-          </div>
-        </Tippy>
-        <Tippy content="Leave Group" placement="bottom">
-          <div
-            className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl text-red-400"
-            onClick={() => setGroupSettingsModalOpen(true)}
-          >
-            <Leave />
           </div>
         </Tippy>
       </span>
