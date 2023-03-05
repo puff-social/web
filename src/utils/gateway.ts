@@ -179,7 +179,7 @@ export class Gateway extends EventEmitter {
         );
 
         if (typeof localStorage != 'undefined')
-          this.send(Op.UpdateUser, { name: localStorage.getItem('puff-social-name') || 'Unnamed', device_type: localStorage.getItem('puff-social-device-type') || 'peak' });
+          this.send(Op.UpdateUser, { name: localStorage.getItem('puff-social-name') || 'Unnamed' });
 
         if (this.session_token && this.session_id)
           this.send(Op.ResumeSession, { session_id: this.session_id, session_token: this.session_token });
