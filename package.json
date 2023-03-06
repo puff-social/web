@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^1.7.13",
+    "@sentry/nextjs": "^7.40.0",
     "@tippyjs/react": "^4.2.6",
     "@vercel/og": "^0.1.0",
     "autoprefixer": "^10.4.13",
