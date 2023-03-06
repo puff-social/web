@@ -12,7 +12,6 @@ const sentryWebpackPluginOptions = {
 };
 
 module.exports = withPlausibleProxy({
-  subdirectory: "",
   scriptName: "app",
-  customDomain: "https://analytics.dstn.to",
+  customDomain: "https://trck.dstn.to",
 })(withSentryConfig(moduleExports, sentryWebpackPluginOptions));
