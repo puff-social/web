@@ -65,7 +65,7 @@ export default function App({ Component, pageProps }) {
         <script
           defer
           data-domain="puff.social"
-          src="https://analytics.dstn.to/app.js"
+          src="https://trck.dstn.to/app.js"
         ></script>
       ) : (
         <></>
