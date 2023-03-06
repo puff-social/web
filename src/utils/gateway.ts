@@ -1,7 +1,7 @@
 import { EventEmitter } from "events";
 import { inflate, deflate } from "pako";
 import { APIGroup } from "../types/api";
-import { GatewayError, GatewayGroup, GatewayGroupCreate, GroupActionInitiator, GroupReaction, GroupUserDeviceDisconnect, GroupUserDeviceUpdate, GroupUserJoin, GroupUserLeft, GroupUserUpdate } from "../types/gateway";
+import { GatewayError, GatewayGroup, GatewayGroupCreate, GatewayGroupDelete, GroupActionInitiator, GroupReaction, GroupUserDeviceDisconnect, GroupUserDeviceUpdate, GroupUserJoin, GroupUserLeft, GroupUserUpdate } from "../types/gateway";
 
 export enum Op {
   Hello,
@@ -19,6 +19,7 @@ export enum Op {
   StopAwaiting,
   ResumeSession,
   SendReaction,
+  DeleteGroup,
   Heartbeat = 420
 }
 
@@ -82,6 +83,7 @@ export interface Gateway {
   on(event: "group_user_left", listener: (group: GroupUserLeft) => void): this;
   on(event: "group_create", listener: (group: GatewayGroupCreate) => void): this;
   on(event: "group_update", listener: (group: GatewayGroup) => void): this;
+  on(event: "group_delete", listener: (group: GatewayGroupDelete) => void): this;
   on(event: "group_user_update", listener: (group: GroupUserUpdate) => void): this;
   on(event: "group_user_device_update", listener: (group: GroupUserDeviceUpdate) => void): this;
   on(event: "group_user_device_disconnect", listener: (group: GroupUserDeviceDisconnect) => void): this;
@@ -200,6 +202,10 @@ export class Gateway extends EventEmitter {
           }
           case Event.GroupCreate: {
             this.emit('group_create', data.d);
+            break;
+          }
+          case Event.GroupDelete: {
+            this.emit('group_delete', data.d);
             break;
           }
           case Event.GroupUpdate: {

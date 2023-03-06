@@ -16,6 +16,8 @@ const formatter = new Intl.RelativeTimeFormat("en", {
 });
 
 function LeaderboardItem({ index, lb, last_active }) {
+  const dob = automaticRelativeDifference(new Date(lb.device_dob));
+
   return (
     <span className="flex flex-row justify-between p-2 bg-white dark:bg-neutral-900 rounded-md drop-shadow-xl">
       <span className="flex flex-row">
@@ -37,7 +39,10 @@ function LeaderboardItem({ index, lb, last_active }) {
             </span>
           </Tippy>
           <p className="opacity-60 italic">{lb.owner_name}</p>
-          <Tippy content="Device Birthday" placement="left">
+          <Tippy
+            content={`Device DOB: ${formatter.format(dob.duration, dob.unit)}`}
+            placement="bottom-start"
+          >
             <p className="opacity-60">
               🎂 {new Date(lb.device_dob).toLocaleDateString()}
             </p>
@@ -114,78 +119,89 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
           {leaderboard ? (
             <>
               <div className="flex space-x-2">
-                {leaderboard.slice(0, 3).map((lb, index) => (
-                  <span className="flex flex-col bg-white dark:bg-neutral-900 rounded-md drop-shadow-xl rounded-md w-96 p-3">
-                    <span className="flex flex-col justify-center align-center">
-                      <div className="flex flex-row drop-shadow justify-between">
-                        <span className="flex flex-col justify-between">
-                          <p className="text-lg">#{index + 1}</p>
-                          <span className="flex flex-col space-y-1 justify-end">
-                            <Tippy content="Total Dabs" placement="bottom">
-                              <p className="font-bold text-lg">
-                                {lb.total_dabs.toLocaleString()}
+                {leaderboard.slice(0, 3).map((lb, index) => {
+                  const dob = automaticRelativeDifference(
+                    new Date(lb.device_dob)
+                  );
+                  return (
+                    <span className="flex flex-col bg-white dark:bg-neutral-900 rounded-md drop-shadow-xl rounded-md w-96 p-3">
+                      <span className="flex flex-col justify-center align-center">
+                        <div className="flex flex-row drop-shadow justify-between">
+                          <span className="flex flex-col justify-between">
+                            <p className="text-lg">#{index + 1}</p>
+                            <span className="flex flex-col space-y-1 justify-end">
+                              <Tippy content="Total Dabs" placement="bottom">
+                                <p className="font-bold text-lg">
+                                  {lb.total_dabs.toLocaleString()}
+                                </p>
+                              </Tippy>
+                              <p className="text truncate">{lb.device_name}</p>
+                              <p className="opacity-60 italic truncate">
+                                {lb.owner_name}
                               </p>
-                            </Tippy>
-                            <p className="text truncate">{lb.device_name}</p>
-                            <p className="opacity-60 italic truncate">
-                              {lb.owner_name}
-                            </p>
-                            <Tippy content="Device Birthday" placement="bottom">
-                              <p className="opacity-60">
-                                🎂{" "}
-                                {new Date(lb.device_dob).toLocaleDateString()}
-                              </p>
-                            </Tippy>
-                            <Tippy content="Last Active" placement="bottom">
-                              <p className="opacity-60">
-                                🕐{" "}
-                                {formatter.format(
-                                  automaticRelativeDifference(
-                                    new Date(lb.last_active)
-                                  ).duration,
-                                  automaticRelativeDifference(
-                                    new Date(lb.last_active)
-                                  ).unit
-                                )}
-                              </p>
-                            </Tippy>
+                              <Tippy
+                                content={`Device DOB: ${formatter.format(
+                                  dob.duration,
+                                  dob.unit
+                                )}`}
+                                placement="bottom"
+                              >
+                                <p className="opacity-60">
+                                  🎂{" "}
+                                  {new Date(lb.device_dob).toLocaleDateString()}
+                                </p>
+                              </Tippy>
+                              <Tippy content="Last Active" placement="bottom">
+                                <p className="opacity-60">
+                                  🕐{" "}
+                                  {formatter.format(
+                                    automaticRelativeDifference(
+                                      new Date(lb.last_active)
+                                    ).duration,
+                                    automaticRelativeDifference(
+                                      new Date(lb.last_active)
+                                    ).unit
+                                  )}
+                                </p>
+                              </Tippy>
+                            </span>
                           </span>
-                        </span>
-                        <span className="flex flex-row drop-shadow">
-                          <PuffcoContainer
-                            model={DeviceModelMap[
-                              lb.device_model
-                            ].toLowerCase()}
-                            id={index.toString()}
-                            className="flex items-center justify-center self-center w-[90px]"
-                            device={{
-                              activeColor:
-                                index == 0
-                                  ? {
-                                      r: 255,
-                                      g: 215,
-                                      b: 0,
-                                    }
-                                  : index == 1
-                                  ? {
-                                      r: 192,
-                                      g: 192,
-                                      b: 192,
-                                    }
-                                  : {
-                                      r: 205,
-                                      g: 127,
-                                      b: 50,
-                                    },
-                              state: PuffcoOperatingState.IDLE,
-                              chargeSource: ChargeSource.None,
-                            }}
-                          />
-                        </span>
-                      </div>
+                          <span className="flex flex-row drop-shadow">
+                            <PuffcoContainer
+                              model={DeviceModelMap[
+                                lb.device_model
+                              ].toLowerCase()}
+                              id={index.toString()}
+                              className="flex items-center justify-center self-center w-[90px]"
+                              device={{
+                                activeColor:
+                                  index == 0
+                                    ? {
+                                        r: 255,
+                                        g: 215,
+                                        b: 0,
+                                      }
+                                    : index == 1
+                                    ? {
+                                        r: 192,
+                                        g: 192,
+                                        b: 192,
+                                      }
+                                    : {
+                                        r: 205,
+                                        g: 127,
+                                        b: 50,
+                                      },
+                                state: PuffcoOperatingState.IDLE,
+                                chargeSource: ChargeSource.None,
+                              }}
+                            />
+                          </span>
+                        </div>
+                      </span>
                     </span>
-                  </span>
-                ))}
+                  );
+                })}
               </div>
               {leaderboard.slice(3).map((lb, index) => {
                 return (

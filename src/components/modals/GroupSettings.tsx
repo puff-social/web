@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import { gateway, Op } from "../../utils/gateway";
 import { Checkmark } from "../icons/Checkmark";
 import { GatewayGroup } from "../../types/gateway";
+import { useRouter } from "next/router";
 
 export interface ModalProps {
   modalOpen: boolean;
@@ -20,6 +21,7 @@ export function GroupSettingsModal({
   const closeModal = useCallback(() => {
     setModalOpen(false);
   }, []);
+  const router = useRouter();
 
   const [groupName, setGroupName] = useState<string>(group.name);
   const [groupVisibility, setGroupVisibility] = useState<string>(
@@ -34,6 +36,15 @@ export function GroupSettingsModal({
     toast("Updated group", { position: "bottom-right", duration: 3000 });
     closeModal();
   }, [groupName, groupVisibility]);
+
+  const deleteGroup = useCallback(() => {
+    gateway.send(Op.DeleteGroup);
+    toast("Group deleted", {
+      position: "bottom-right",
+      duration: 3000,
+      icon: "🗑",
+    });
+  }, [group]);
 
   return (
     <Modal
@@ -104,6 +115,13 @@ export function GroupSettingsModal({
           onClick={() => saveSettings()}
         >
           Save
+        </button>
+        <hr className="mt-3 border-neutral-500/30 rounded-md" />
+        <button
+          className="w-96 self-center rounded-md bg-red-500 hover:bg-red-600 p-1 mt-3 text-white"
+          onClick={() => deleteGroup()}
+        >
+          Delete Group
         </button>
       </div>
     </Modal>

@@ -94,6 +94,16 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     setGroupMembers(group.members);
   }
 
+  const deletedGroup = useCallback(() => {
+    if (group.owner_session_id != gateway.session_id)
+      toast("The group you were in was deleted", {
+        position: "bottom-right",
+        duration: 5000,
+        icon: "🗑",
+      });
+    router.push("/");
+  }, [group]);
+
   const updatedGroup = useCallback(
     (newGroup: GatewayGroup) => {
       if (
@@ -402,6 +412,13 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       gateway.removeListener("group_update", updatedGroup);
     };
   }, [updatedGroup]);
+
+  useEffect(() => {
+    gateway.on("group_delete", deletedGroup);
+    return () => {
+      gateway.removeListener("group_delete", deletedGroup);
+    };
+  }, [deletedGroup]);
 
   const connectToDevice = useCallback(async () => {
     try {
