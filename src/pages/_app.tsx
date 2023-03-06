@@ -62,7 +62,7 @@ export default function App({ Component, pageProps }) {
   return (
     <PlausibleProvider
       domain="puff.social"
-      customDomain="analytics.dstn.to"
+      customDomain="https://analytics.dstn.to"
       enabled={
         typeof window != "undefined" &&
         window.location.hostname == "puff.social"
