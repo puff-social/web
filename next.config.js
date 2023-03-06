@@ -1,4 +1,5 @@
 const { withSentryConfig } = require("@sentry/nextjs");
+const { withPlausibleProxy } = require("next-plausible");
 
 const moduleExports = {
   sentry: {
@@ -10,4 +11,8 @@ const sentryWebpackPluginOptions = {
   silent: true,
 };
 
-module.exports = withSentryConfig(moduleExports, sentryWebpackPluginOptions);
+module.exports = withPlausibleProxy({
+  subdirectory: "",
+  scriptName: "app",
+  customDomain: "https://analytics.dstn.to",
+})(withSentryConfig(moduleExports, sentryWebpackPluginOptions));

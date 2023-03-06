@@ -8,6 +8,7 @@ import { gateway } from "../utils/gateway";
 
 import { APIGroup } from "../types/api";
 import { GatewayError, GatewayGroupCreate } from "../types/gateway";
+import PlausibleProvider from "next-plausible";
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
@@ -59,18 +60,14 @@ export default function App({ Component, pageProps }) {
   }
 
   return (
-    <>
-      {typeof window != "undefined" &&
-      window.location.hostname == "puff.social" ? (
-        <script
-          defer
-          data-domain="puff.social"
-          src="https://trck.dstn.to/app.js"
-        ></script>
-      ) : (
-        <></>
-      )}
-
+    <PlausibleProvider
+      domain="puff.social"
+      enabled={
+        typeof window != "undefined" &&
+        window.location.hostname == "puff.social"
+      }
+      selfHosted
+    >
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link
         rel="preconnect"
@@ -101,6 +98,6 @@ export default function App({ Component, pageProps }) {
         )}
       </Toaster>
       <Component {...pageProps} />
-    </>
+    </PlausibleProvider>
   );
 }
