@@ -60,7 +60,9 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   );
 
   const [readyMembers, setReadyMembers] = useState<string[]>([]);
-
+  const [deviceProfiles, setDeviceProfiles] = useState<Record<number, string>>(
+    {}
+  );
   const [myDevice, setMyDevice] = useState<GatewayMemberDeviceState>();
 
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
@@ -422,11 +424,12 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
 
   const connectToDevice = useCallback(async () => {
     try {
-      const device = await startConnection();
+      const { device, profiles } = await startConnection();
       toast(`Connected to ${device.name}`, {
         icon: <BluetoothConnected />,
         position: "bottom-right",
       });
+      setDeviceProfiles(profiles);
       const { poller, initState, deviceInfo } = await startPolling();
       await trackDevice(deviceInfo, ourName);
       gateway.send(Op.SendDeviceState, initState);
@@ -557,6 +560,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                 seshers={seshers}
                 readyMembers={readyMembers}
                 deviceConnected={deviceConnected}
+                deviceProfiles={deviceProfiles}
                 disconnect={disconnect}
                 setGroupSettingsModalOpen={setGroupSettingsModalOpen}
                 setUserSettingsModalOpen={setUserSettingsModalOpen}

@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 import { BluetoothDisabled } from "./icons/Bluetooth";
 import { Edit } from "./icons/Edit";
 import { Info } from "./icons/Info";
@@ -7,19 +7,22 @@ import { Mail } from "./icons/Mail";
 import { Settings } from "./icons/Settings";
 import { Smoke } from "./icons/Smoke";
 import { Stop } from "./icons/Stop";
-import { GatewayGroup } from "../types/gateway";
+import { GatewayGroup, GroupState } from "../types/gateway";
 import { Op, gateway } from "../utils/gateway";
 import { Reaction } from "./icons/Reaction";
 import { Tippy } from "./Tippy";
 import { Leave } from "./icons/Leave";
 import { Skip } from "./icons/Skip";
 import { useRouter } from "next/router";
+import { ArrowSwitch } from "./icons/ArrowSwitch";
+import { switchProfile } from "../utils/puffco";
 
 interface ActionsProps {
   group: GatewayGroup;
   seshers: number;
   readyMembers: string[];
   deviceConnected: boolean;
+  deviceProfiles: Record<number, string>;
   disconnect: Function;
   setGroupSettingsModalOpen: Dispatch<SetStateAction<boolean>>;
   setUserSettingsModalOpen: Dispatch<SetStateAction<boolean>>;
@@ -35,6 +38,7 @@ export function GroupActions({
   setGroupSettingsModalOpen,
   setUserSettingsModalOpen,
   deviceConnected,
+  deviceProfiles,
   disconnect,
   setInfoModalOpen,
   setFeedbackModalOpen,
@@ -45,7 +49,7 @@ export function GroupActions({
   return (
     <div className="flex flex-row drop-shadow-xl rounded-md py-2 flex-wrap">
       <span className="pr-3 flex flex-row">
-        {group.state == "chilling" ? (
+        {group.state == GroupState.Chilling ? (
           seshers > 0 ? (
             <Tippy content="Start Sesh" placement="bottom">
               <div
@@ -58,7 +62,7 @@ export function GroupActions({
           ) : (
             <></>
           )
-        ) : group.state == "awaiting" ? (
+        ) : group.state == GroupState.Awaiting ? (
           <>
             {readyMembers.length > 0 ? (
               <Tippy content="Start anyway" placement="bottom">
@@ -81,6 +85,38 @@ export function GroupActions({
               </div>
             </Tippy>
           </>
+        ) : (
+          <></>
+        )}
+        {[GroupState.Awaiting, GroupState.Chilling].includes(group.state) &&
+        deviceConnected ? (
+          <Tippy
+            content={
+              <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-72">
+                <p className="text-lg font-bold">Profiles</p>
+                <span className="flex flex-col flex-wrap">
+                  {Object.keys(deviceProfiles).map((key) => (
+                    <span
+                      className="select-none text-lg flex justify-center items-center rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 m-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
+                      onClick={() => {
+                        switchProfile(Number(key));
+                      }}
+                    >
+                      {deviceProfiles[key]}
+                    </span>
+                  ))}
+                </span>
+              </div>
+            }
+            interactive
+            zIndex={50000}
+            placement="bottom-start"
+            trigger="click"
+          >
+            <div className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl">
+              <ArrowSwitch />
+            </div>
+          </Tippy>
         ) : (
           <></>
         )}

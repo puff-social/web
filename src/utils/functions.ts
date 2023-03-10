@@ -49,24 +49,31 @@ export async function getValue(service: BluetoothRemoteGATTService, characterist
     const char = await service.getCharacteristic(characteristic);
     const value = await char.readValue();
 
+    if (bytes == 0) return [null, value]
+
     let str = '';
     for (let i = 0; i < bytes; i++) str += decimalToHexString(value.getUint8(i)).toString();
     const hex = flipHexString('0x' + str, 8)
     return [hex, value];
 }
 
-export async function gattPoller(service: BluetoothRemoteGATTService, characteristic: string, time?: number): Promise<EventEmitter> {
+export async function gattPoller(service: BluetoothRemoteGATTService, characteristic: string, bytes = 4, time?: number): Promise<EventEmitter> {
     if (!time) time = 10000; // 10s
     const listener = new EventEmitter();
     const char = await service.getCharacteristic(characteristic);
 
     const func = async () => {
         const value = await char.readValue();
-        const str = decimalToHexString(value.getUint8(0)).toString() + decimalToHexString(value.getUint8(1)).toString() + decimalToHexString(value.getUint8(2)).toString() + decimalToHexString(value.getUint8(3)).toString();
-        const hex = flipHexString('0x' + str, 8)
-        listener.emit('data', hex, value);
-        if (hex != lastValue) listener.emit('change', hex, value);
-        lastValue = hex;
+        if (bytes == 0) {
+            listener.emit('data', null, value);
+            listener.emit('change', null, value);
+        } else {
+            const str = decimalToHexString(value.getUint8(0)).toString() + decimalToHexString(value.getUint8(1)).toString() + decimalToHexString(value.getUint8(2)).toString() + decimalToHexString(value.getUint8(3)).toString();
+            const hex = flipHexString('0x' + str, 8)
+            listener.emit('data', hex, value);
+            if (hex != lastValue) listener.emit('change', hex, value);
+            lastValue = hex;
+        }
     }
 
     let lastValue: string;

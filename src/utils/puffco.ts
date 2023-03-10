@@ -19,6 +19,7 @@ export let service: BluetoothRemoteGATTService;
 export let device: BluetoothDevice;
 export let server: BluetoothRemoteGATTServer;
 export let poller: EventEmitter;
+export let profiles: Record<number, string>;
 
 export const decoder = new TextDecoder('utf-8');
 
@@ -56,13 +57,16 @@ export const Characteristic = {
   RAW_HEATER_TEMP_COMMAND: `${BASE_CHARACTERISTIC}3d`,
   BATTERY_CHARGE_SOURCE: `${BASE_CHARACTERISTIC}3e`,
   CHAMBER_TYPE: `${BASE_CHARACTERISTIC}3f`,
-  MODE_COMMAND: `${BASE_CHARACTERISTIC}40`,
+  PROFILE_CURRENT: `${BASE_CHARACTERISTIC}41`,
   STEALTH_MODE: `${BASE_CHARACTERISTIC}42`,
   TEMPERATURE_OVERRIDE: `${BASE_CHARACTERISTIC}45`,
   TIME_OVERRIDE: `${BASE_CHARACTERISTIC}46`,
   LANTERN_START: `${BASE_CHARACTERISTIC}4a`,
   LANTERN_COLOR: `${BASE_CHARACTERISTIC}48`,
+  PROFILE: `${BASE_CHARACTERISTIC}61`,
   PROFILE_NAME: `${BASE_CHARACTERISTIC}62`,
+  PROFILE_PREHEAT_TEMP: `${BASE_CHARACTERISTIC}63`,
+  PROFILE_PREHEAT_TIME: `${BASE_CHARACTERISTIC}64`,
   PROFILE_COLOR: `${BASE_CHARACTERISTIC}65`,
   LED_BRIGHTNESS: `${BASE_CHARACTERISTIC}4b`,
   DEVICE_NAME: `${BASE_CHARACTERISTIC}4d`,
@@ -80,6 +84,20 @@ export const DeviceCommand = {
   HEAT_CYCLE_BEGIN: new Uint8Array([0, 0, 224, 64]),
   BONDING: new Uint8Array([0, 0, 0x30, 0x41]),
 };
+
+export const DeviceProfile = {
+  1: new Uint8Array([0, 0, 0, 0]),
+  2: new Uint8Array([0, 0, 128, 63]),
+  3: new Uint8Array([0, 0, 0, 64]),
+  4: new Uint8Array([0, 0, 64, 64]),
+};
+
+export const DeviceProfileReverse = [
+  new Uint8Array([0, 0, 0, 0]),
+  new Uint8Array([0, 0, 128, 63]),
+  new Uint8Array([0, 0, 0, 64]),
+  new Uint8Array([0, 0, 64, 64]),
+];
 
 export enum ChamberType {
   None,
@@ -108,21 +126,21 @@ export const DeviceModelMap = {
 }
 
 export enum ColorMode {
-  Preserve = 0x00,
-  Static = 0x01,
-  Breathing = 0x05,
-  Rising = 0x06,
-  Circling = 0x07,
-  BrightBaseTwinkle = 0x08,
-  Logo = 0x12,
-  LogoBaseCircleFast = 0x13,
-  LogoBaseCircleSlow = 0x14,
-  FullCirclingSlow = 0x15
+  Preserve = 0,
+  Static = 1,
+  Breathing = 5,
+  Rising = 6,
+  Circling = 7,
+  BrightBaseTwinkle = 8,
+  Logo = 18,
+  LogoBaseCircleFast = 19,
+  LogoBaseCircleSlow = 20,
+  FullCirclingSlow = 21
 }
 
 export const LightCommands = {
-  LANTERN_ON: new Uint8Array([0x01, 0x00, 0x00, 0x00]),
-  LANTERN_OFF: new Uint8Array([0x00, 0x00, 0x00, 0x00]),
+  LANTERN_ON: new Uint8Array([1, 0, 0, 0]),
+  LANTERN_OFF: new Uint8Array([0, 0, 0, 0]),
   LIGHT_NEUTRAL: new Uint8Array([255, 50, 0, ColorMode.Static]),
   LIGHT_QUERY_READY: new Uint8Array([0, 255, 50, 0, ColorMode.LogoBaseCircleFast]),
   LIGHT_MARKED_READY: new Uint8Array([255, 50, ColorMode.Logo, 1]),
@@ -132,6 +150,31 @@ export enum PuffLightMode {
   QueryReady,
   MarkedReady,
   Default
+}
+
+export async function switchProfile(profile: number) {
+  await writeValue(Characteristic.PROFILE, new Uint8Array([profile - 1, 0, 0, 0]));
+  await writeValue(Characteristic.PROFILE_CURRENT, DeviceProfile[profile]);
+}
+
+export async function loopProfiles() {
+  const [, profileCurrentRaw] = await getValue(service, Characteristic.PROFILE_CURRENT);
+  const profileCurrent = new Uint8Array(profileCurrentRaw.buffer);
+
+  let profiles: Record<number, string> = {};
+  const startingIndex = DeviceProfileReverse.findIndex(profile => profile.at(2) == profileCurrent.at(2) && profile.at(3) == profileCurrent.at(3)) + 1;
+  for await (const idx of [0, 1, 2, 3]) {
+    const index = Number(idx);
+    const key = (index + startingIndex) % DeviceProfileReverse.length;
+    console.log(`switching to ${key}`);
+    await writeValue(Characteristic.PROFILE, new Uint8Array([key, 0, 0, 0]));
+    const [, profileName] = await getValue(service, Characteristic.PROFILE_NAME, 0);
+    const name = decoder.decode(profileName);
+    console.log(`Profile #${key + 1} - ${name}`);
+    profiles[key + 1] = name;
+  }
+
+  return profiles;
 }
 
 export async function setLightMode(mode: PuffLightMode) {
@@ -204,7 +247,6 @@ export async function startConnection() {
     };
 
     deviceModel = diagData.device_model;
-
     trackDiags(diagData);
 
     const accessSeedKey = await service.getCharacteristic(Characteristic.ACCESS_KEY);
@@ -226,7 +268,10 @@ export async function startConnection() {
     const newKey = convertHexStringToNumArray(createHash('sha256').update(newSeed).digest('hex')).slice(0, 16);
     await accessSeedKey.writeValue(Buffer.from(newKey));
 
-    return device;
+    // Don't do this unless we're in idle or temp select
+    profiles = await loopProfiles();
+
+    return { device, profiles };
   } catch (error) {
     throw error;
   }
@@ -287,7 +332,7 @@ export async function startPolling() {
   initState.deviceName = decoder.decode(initDeviceName);
   deviceInfo.name = initState.deviceName;
 
-  const [, initProfileName] = await getValue(service, Characteristic.PROFILE_NAME);
+  const [, initProfileName] = await getValue(service, Characteristic.PROFILE_NAME, 0);
   initState.profileName = decoder.decode(initProfileName);
 
   const [, initDeviceBirthday] = await getValue(service, Characteristic.DEVICE_BIRTHDAY);
@@ -299,7 +344,7 @@ export async function startPolling() {
   const [, initChamberType] = await getValue(service, Characteristic.CHAMBER_TYPE, 1);
   initState.chamberType = (unpack(new Uint8Array(initChamberType.buffer), { bits: 8 }));
 
-  const chargingPoll = await gattPoller(service, Characteristic.BATTERY_CHARGE_SOURCE, 5000);
+  const chargingPoll = await gattPoller(service, Characteristic.BATTERY_CHARGE_SOURCE, 4, 5000);
   chargingPoll.on('change', (data, raw) => {
     poller.emit('data', { chargeSource: Number(hexToFloat(data).toFixed(0)) });
   });
@@ -309,12 +354,12 @@ export async function startPolling() {
     poller.emit('data', { battery: Number(hexToFloat(data).toFixed(0)) });
   });
 
-  const operatingState = await gattPoller(service, Characteristic.OPERATING_STATE, 1000);
+  const operatingState = await gattPoller(service, Characteristic.OPERATING_STATE, 4, 1000);
   operatingState.on('change', (data) => {
     poller.emit('data', { state: hexToFloat(data) });
   });
 
-  const aciveLEDPoll = await gattPoller(service, Characteristic.ACTIVE_LED_COLOR, 1000);
+  const aciveLEDPoll = await gattPoller(service, Characteristic.ACTIVE_LED_COLOR, 4, 1000);
   let currentLedColor: { r: number; g: number; b: number };
   aciveLEDPoll.on('data', (data, raw: Buffer) => {
     const r = (raw as any).getUint8(0);
@@ -332,14 +377,14 @@ export async function startPolling() {
   });
 
   let lastTemp: number;
-  const tempPoll = await gattPoller(service, Characteristic.HEATER_TEMP, 1000);
+  const tempPoll = await gattPoller(service, Characteristic.HEATER_TEMP, 4, 1000);
   tempPoll.on('data', async (data) => {
     const conv = Number(hexToFloat(data).toFixed(0));
     if (lastTemp != conv && conv < 1000 && conv > 1) poller.emit('data', { temperature: conv });
     lastTemp = conv;
   });
 
-  const profileNamePoll = await gattPoller(service, Characteristic.PROFILE_NAME);
+  const profileNamePoll = await gattPoller(service, Characteristic.PROFILE_NAME, 0);
   profileNamePoll.on('change', (data, raw) => {
     const name = decoder.decode(raw);
     poller.emit('data', { profileName: name });
