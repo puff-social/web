@@ -110,8 +110,10 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   const updatedGroup = useCallback(
     (newGroup: GatewayGroup) => {
       if (
-        [GroupState.Chilling, GroupState.Seshing].includes(newGroup.state) &&
-        group.state == GroupState.Awaiting
+        ([GroupState.Chilling, GroupState.Seshing].includes(newGroup.state) &&
+          group.state == GroupState.Awaiting) ||
+        ([GroupState.Awaiting, GroupState.Seshing].includes(group.state) &&
+          newGroup.state == GroupState.Chilling)
       ) {
         setReadyMembers([]);
         setLightMode(PuffLightMode.Default);

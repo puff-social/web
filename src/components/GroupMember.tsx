@@ -114,13 +114,16 @@ export function GroupMember(props: GroupMemberProps) {
                 props.device.activeColor.g +
                 props.device.activeColor.b}
             </p>
-            <Tippy content="Group owner" placement="top-start">
-              <div>
-                <Crown className="text-green-700" />
-              </div>
-            </Tippy>
+            {props.owner ? (
+              <Tippy content="Group owner" placement="top-start">
+                <div>
+                  <Crown className="text-green-700" />
+                </div>
+              </Tippy>
+            ) : (
+              <></>
+            )}
             <h1 className="m-0 text-xl font-bold truncate">
-              {props.owner ? <span></span> : ""}{" "}
               {props.us ? props.name : props.member.name}
             </h1>
             {props.device && (
