@@ -16,6 +16,7 @@ import { LeaderboardModal } from "../components/modals/Leaderboard";
 import { Tippy } from "../components/Tippy";
 import { Checkmark } from "../components/icons/Checkmark";
 import NoSSR from "../components/NoSSR";
+import { GroupActions } from "../components/GroupActions";
 
 export default function Home() {
   const router = useRouter();
@@ -97,40 +98,11 @@ export default function Home() {
             (idea by Roberto)
           </h3>
         </div>
-        <div className="flex flex-row drop-shadow-xl rounded-md py-2 flex-wrap">
-          <Tippy content="User Settings" placement="bottom">
-            <div
-              className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-              onClick={() => setSettingsModalOpen(true)}
-            >
-              <Settings />
-            </div>
-          </Tippy>
-          <Tippy content="Information" placement="bottom">
-            <div
-              className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-              onClick={() => setInfoModalOpen(true)}
-            >
-              <Info />
-            </div>
-          </Tippy>
-          <Tippy content="Send Feedback" placement="bottom">
-            <div
-              className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-              onClick={() => setFeedbackModalOpen(true)}
-            >
-              <Mail />
-            </div>
-          </Tippy>
-          <Tippy content="Dab Leaderboard" placement="bottom">
-            <div
-              className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-              onClick={() => setLeaderboardOpen(true)}
-            >
-              <LeaderboardIcon />
-            </div>
-          </Tippy>
-        </div>
+        <GroupActions
+          setInfoModalOpen={setInfoModalOpen}
+          setFeedbackModalOpen={setFeedbackModalOpen}
+          setLeaderboardOpen={setLeaderboardOpen}
+        />
       </div>
 
       <UserSettingsModal
