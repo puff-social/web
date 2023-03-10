@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import {
   GatewayGroupMember,
@@ -14,6 +14,7 @@ import { PuffcoContainer } from "./puffco";
 import { Tippy } from "./Tippy";
 import { Bluetooth } from "./icons/Bluetooth";
 import { Crown } from "./icons/Crown";
+import { secondsToMinutesSeconds } from "../utils/functions";
 
 interface GroupMemberProps {
   name?: string;
@@ -30,11 +31,40 @@ interface GroupMemberProps {
 
 export function GroupMember(props: GroupMemberProps) {
   const [connectDismissed, setConnectDismissed] = useState(false);
+  const [currentState, setCurrentState] = useState<number>(props.device?.state);
+  const [stateTimer, setStateTimer] = useState<number>(0);
+  const [stateInt, setStateInt] = useState<NodeJS.Timer>();
 
   const [bluetooth] = useState<boolean>(() => {
     if (typeof window == "undefined") false;
     return typeof window.navigator.bluetooth !== "undefined";
   });
+
+  const updatedState = useCallback(
+    (device: GatewayMemberDeviceState) => {
+      if ("state" in device && device.state != currentState) {
+        if (stateInt) {
+          clearInterval(stateInt);
+          setStateTimer(0);
+        }
+
+        if ([7, 8].includes(device.state)) {
+          setStateInt(
+            setInterval(() => {
+              setStateTimer((curr) => curr + 1);
+            }, 1000)
+          );
+        }
+      }
+
+      setCurrentState(device.state);
+    },
+    [currentState, stateInt]
+  );
+
+  useEffect(() => {
+    if (props.device) updatedState(props.device);
+  }, [props.device]);
 
   if (!bluetooth && props.us && props.nobody)
     return (
@@ -119,7 +149,7 @@ export function GroupMember(props: GroupMemberProps) {
             )}
 
             <span className="mt-4">
-              <h2 className="text-2xl m-0">
+              <h2 className="text-2xl">
                 {props.device.temperature
                   ? Math.floor(props.device.temperature * 1.8 + 32)
                   : "--"}
@@ -131,6 +161,9 @@ export function GroupMember(props: GroupMemberProps) {
                   props.device.state != PuffcoOperatingState.HEAT_CYCLE_ACTIVE
                     ? "Ready"
                     : PuffcoOperatingMap[props.device.state]}
+                  {[7, 8].includes(props.device.state)
+                    ? ` - ${secondsToMinutesSeconds(stateTimer)}`
+                    : ""}
                 </h3>
                 {props.ready ? (
                   <Checkmark className="ml-2 text-green-700 w-[20px] h-[20px]" />
@@ -138,6 +171,16 @@ export function GroupMember(props: GroupMemberProps) {
                   <></>
                 )}
               </span>
+              <Tippy content="Current device profile" placement="bottom">
+                <span className="flex space-x-2">
+                  <p className="text-sm">{props.device.profile.name}</p>
+                  <span className="flex space-x-2 text-sm">
+                    <p>({secondsToMinutesSeconds(props.device.profile.time)}</p>
+                    <p className="opacity-40">@</p>
+                    <p>{Math.round(props.device.profile.temp * 1.8 + 32)}°)</p>
+                  </span>
+                </span>
+              </Tippy>
             </span>
           </span>
         </div>

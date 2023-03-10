@@ -16,13 +16,15 @@ import { Skip } from "./icons/Skip";
 import { useRouter } from "next/router";
 import { ArrowSwitch } from "./icons/ArrowSwitch";
 import { switchProfile } from "../utils/puffco";
+import { PuffcoProfile } from "../types/puffco";
+import toast from "react-hot-toast";
 
 interface ActionsProps {
   group: GatewayGroup;
   seshers: number;
   readyMembers: string[];
   deviceConnected: boolean;
-  deviceProfiles: Record<number, string>;
+  deviceProfiles: Record<number, PuffcoProfile>;
   disconnect: Function;
   setGroupSettingsModalOpen: Dispatch<SetStateAction<boolean>>;
   setUserSettingsModalOpen: Dispatch<SetStateAction<boolean>>;
@@ -97,12 +99,22 @@ export function GroupActions({
                 <span className="flex flex-col flex-wrap">
                   {Object.keys(deviceProfiles).map((key) => (
                     <span
-                      className="select-none text-lg flex justify-center items-center rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 m-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
+                      className="select-none text-lg flex justify-between items-center rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 m-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
                       onClick={() => {
                         switchProfile(Number(key));
+                        toast(
+                          `Switched device profile to ${deviceProfiles[key].name}`
+                        );
                       }}
                     >
-                      {deviceProfiles[key]}
+                      <p className="">{deviceProfiles[key].name}</p>
+                      <span className="flex items-center space-x-2">
+                        <p className="text-sm">{deviceProfiles[key].time}</p>
+                        <p className="opacity-40 text-sm">@</p>
+                        <p>
+                          {Math.round(deviceProfiles[key].temp * 1.8 + 32)}°
+                        </p>
+                      </span>
                     </span>
                   ))}
                 </span>

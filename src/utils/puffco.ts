@@ -2,9 +2,10 @@ import { createHash } from "crypto";
 import { EventEmitter } from "events";
 import { unpack } from 'byte-data';
 import { GatewayMemberDeviceState } from "../types/gateway";
-import { convertFromHex, convertHexStringToNumArray, decimalToHexString, flipHexString, gattPoller, getValue, hexToFloat } from "./functions";
+import { convertFromHex, convertHexStringToNumArray, secondsToMinutesSeconds, decimalToHexString, flipHexString, gattPoller, getValue, hexToFloat } from "./functions";
 import { DeviceInformation, DiagData } from "../types/api";
 import { trackDiags } from "./analytics";
+import { PuffcoProfile } from "../types/puffco";
 
 export const SERVICE = '06caf9c0-74d3-454f-9be9-e30cd999c17a';
 export const MODEL_SERVICE = '0000180a-0000-1000-8000-00805f9b34fb';
@@ -19,7 +20,7 @@ export let service: BluetoothRemoteGATTService;
 export let device: BluetoothDevice;
 export let server: BluetoothRemoteGATTServer;
 export let poller: EventEmitter;
-export let profiles: Record<number, string>;
+export let profiles: Record<number, PuffcoProfile>;
 
 export const decoder = new TextDecoder('utf-8');
 
@@ -82,7 +83,7 @@ export const DeviceCommand = {
   TEMP_SELECT_BEGIN: new Uint8Array([0, 0, 64, 64]),
   TEMP_SELECT_STOP: new Uint8Array([0, 0, 296, 64]),
   HEAT_CYCLE_BEGIN: new Uint8Array([0, 0, 224, 64]),
-  BONDING: new Uint8Array([0, 0, 0x30, 0x41]),
+  BONDING: new Uint8Array([0, 0, 48, 65]),
 };
 
 export const DeviceProfile = {
@@ -112,17 +113,17 @@ export enum ChargeSource {
 }
 
 export enum DeviceModel {
-  Peak = 0x30,
-  Opal = 0x31,
-  Indiglow = 0x32,
-  Guardian = 0x33
+  Peak = 48,
+  Opal = 49,
+  Indiglow = 50,
+  Guardian = 51
 }
 
 export const DeviceModelMap = {
-  0x30: "Peak",
-  0x31: "Opal",
-  0x32: "Indiglow",
-  0x33: "Guardian",
+  48: "Peak",
+  49: "Opal",
+  50: "Indiglow",
+  51: "Guardian",
 }
 
 export enum ColorMode {
@@ -161,17 +162,22 @@ export async function loopProfiles() {
   const [, profileCurrentRaw] = await getValue(service, Characteristic.PROFILE_CURRENT);
   const profileCurrent = new Uint8Array(profileCurrentRaw.buffer);
 
-  let profiles: Record<number, string> = {};
+  let profiles: Record<number, PuffcoProfile> = {};
   const startingIndex = DeviceProfileReverse.findIndex(profile => profile.at(2) == profileCurrent.at(2) && profile.at(3) == profileCurrent.at(3)) + 1;
   for await (const idx of [0, 1, 2, 3]) {
     const index = Number(idx);
     const key = (index + startingIndex) % DeviceProfileReverse.length;
-    console.log(`switching to ${key}`);
     await writeValue(Characteristic.PROFILE, new Uint8Array([key, 0, 0, 0]));
     const [, profileName] = await getValue(service, Characteristic.PROFILE_NAME, 0);
     const name = decoder.decode(profileName);
-    console.log(`Profile #${key + 1} - ${name}`);
-    profiles[key + 1] = name;
+
+    const [temperatureCall] = await getValue(service, Characteristic.PROFILE_PREHEAT_TEMP);
+    const [timeCall] = await getValue(service, Characteristic.PROFILE_PREHEAT_TIME);
+    const temp = Number(hexToFloat(temperatureCall).toFixed(0));
+    const time = Number(hexToFloat(timeCall).toFixed(0));
+
+    console.log(`Profile #${key + 1} - ${name} - ${temp} - ${time}`);
+    profiles[key + 1] = { name, temp, time: secondsToMinutesSeconds(time) };
   }
 
   return profiles;
@@ -268,7 +274,6 @@ export async function startConnection() {
     const newKey = convertHexStringToNumArray(createHash('sha256').update(newSeed).digest('hex')).slice(0, 16);
     await accessSeedKey.writeValue(Buffer.from(newKey));
 
-    // Don't do this unless we're in idle or temp select
     profiles = await loopProfiles();
 
     return { device, profiles };
@@ -333,7 +338,15 @@ export async function startPolling() {
   deviceInfo.name = initState.deviceName;
 
   const [, initProfileName] = await getValue(service, Characteristic.PROFILE_NAME, 0);
-  initState.profileName = decoder.decode(initProfileName);
+  const [temperatureCall] = await getValue(service, Characteristic.PROFILE_PREHEAT_TEMP);
+  const [timeCall] = await getValue(service, Characteristic.PROFILE_PREHEAT_TIME);
+  const temp = Number(hexToFloat(temperatureCall).toFixed(0));
+  const time = Number(hexToFloat(timeCall).toFixed(0));
+  initState.profile = {
+    name: decoder.decode(initProfileName),
+    temp,
+    time
+  };
 
   const [, initDeviceBirthday] = await getValue(service, Characteristic.DEVICE_BIRTHDAY);
   deviceInfo.id = Buffer.from(unpack(new Uint8Array(initDeviceBirthday.buffer), { bits: 32 }).toString()).toString('base64');
@@ -385,9 +398,19 @@ export async function startPolling() {
   });
 
   const profileNamePoll = await gattPoller(service, Characteristic.PROFILE_NAME, 0);
-  profileNamePoll.on('change', (data, raw) => {
+  profileNamePoll.on('change', async (data, raw) => {
+    const [temperatureCall] = await getValue(service, Characteristic.PROFILE_PREHEAT_TEMP);
+    const [timeCall] = await getValue(service, Characteristic.PROFILE_PREHEAT_TIME);
     const name = decoder.decode(raw);
-    poller.emit('data', { profileName: name });
+    const temp = Number(hexToFloat(temperatureCall).toFixed(0));
+    const time = Number(hexToFloat(timeCall).toFixed(0));
+    poller.emit('data', {
+      profile: {
+        name,
+        temp,
+        time
+      }
+    });
   });
 
   const deviceNamePoll = await gattPoller(service, Characteristic.DEVICE_NAME);

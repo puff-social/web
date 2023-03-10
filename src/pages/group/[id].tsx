@@ -44,6 +44,7 @@ import {
   BluetoothDisabled,
 } from "../../components/icons/Bluetooth";
 import { GroupActions } from "../../components/GroupActions";
+import { PuffcoProfile } from "../../types/puffco";
 
 export default function Group({ group: initGroup }: { group: APIGroup }) {
   const router = useRouter();
@@ -60,9 +61,9 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   );
 
   const [readyMembers, setReadyMembers] = useState<string[]>([]);
-  const [deviceProfiles, setDeviceProfiles] = useState<Record<number, string>>(
-    {}
-  );
+  const [deviceProfiles, setDeviceProfiles] = useState<
+    Record<number, PuffcoProfile>
+  >({});
   const [myDevice, setMyDevice] = useState<GatewayMemberDeviceState>();
 
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);

@@ -44,7 +44,7 @@ export interface PuffcoState {
   state: PuffcoOperatingState;
   chargeSource: ChargeSource;
   deviceName: string;
-  profileName: string;
+  profile: GatewayDeviceProfile;
   chamberType: ChamberType;
   deviceModel: DeviceModel;
 }
@@ -95,6 +95,12 @@ export interface GatewayGroupMember {
   session_id: string;
 }
 
+export interface GatewayDeviceProfile {
+  name: string;
+  temp: number;
+  time: number;
+}
+
 export interface GatewayMemberDeviceState {
   activeColor: Colors;
   battery: number;
@@ -103,7 +109,7 @@ export interface GatewayMemberDeviceState {
   totalDabs: number;
   chargeSource: ChargeSource;
   deviceName: string;
-  profileName: string;
+  profile: GatewayDeviceProfile;
   chamberType: ChamberType;
   deviceModel: DeviceModel;
 }
