@@ -64,7 +64,7 @@ export function GroupMember(props: GroupMemberProps) {
 
   useEffect(() => {
     if (props.device) updatedState(props.device);
-  }, [props.device]);
+  }, [props.device?.state]);
 
   if (!bluetooth && props.us && props.nobody)
     return (
