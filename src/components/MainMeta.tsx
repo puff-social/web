@@ -1,9 +1,6 @@
 import Head from "next/head";
-import { useRouter } from "next/router";
 
 export function MainMeta({ pageName }: { pageName?: string }) {
-  const router = useRouter();
-
   return (
     <Head>
       <title>{`${pageName ? `${pageName} - ` : ""} puff.social`}</title>
@@ -13,7 +10,7 @@ export function MainMeta({ pageName }: { pageName?: string }) {
       <meta name="author" content="puff.social" />
       <meta name="copyright" content="Dustin Rouillard" />
       <meta name="rating" content="General" />
-      <meta name="url" content={`https://puff.social${router.pathname}`} />
+      <meta name="url" content={`https://puff.social/`} />
       <meta
         name="description"
         content={`Hop into a group, link your device, invite some homies, and sesh away!`}
