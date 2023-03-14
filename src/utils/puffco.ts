@@ -229,6 +229,8 @@ export async function startConnection() {
     );
 
     // @ts-ignore
+    if (typeof window != 'undefined') window.modelService = modelService;
+    // @ts-ignore
     if (typeof window != 'undefined') window.service = service;
     // @ts-ignore
     if (typeof window != 'undefined') window.Characteristic = Characteristic;
