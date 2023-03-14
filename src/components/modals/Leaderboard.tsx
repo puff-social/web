@@ -40,11 +40,18 @@ function LeaderboardItem({ index, lb, last_active }) {
           </Tippy>
           <p className="opacity-60 italic">{lb.owner_name}</p>
           <Tippy
-            content={`Device DOB: ${formatter.format(dob.duration, dob.unit)}`}
+            content={`Device DOB: ${
+              lb.device_dob == "1970-01-01T00:00:01.000Z"
+                ? "Unknown"
+                : formatter.format(dob.duration, dob.unit)
+            }`}
             placement="bottom-start"
           >
             <p className="opacity-60">
-              🎂 {new Date(lb.device_dob).toLocaleDateString()}
+              🎂{" "}
+              {lb.device_dob == "1970-01-01T00:00:01.000Z"
+                ? "Unknown"
+                : new Date(lb.device_dob).toLocaleDateString()}
             </p>
           </Tippy>
         </span>
@@ -129,26 +136,38 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                         <div className="flex flex-row drop-shadow justify-between">
                           <span className="flex flex-col justify-between">
                             <p className="text-lg">#{index + 1}</p>
-                            <span className="flex flex-col space-y-1 justify-end">
+                            <span className="flex flex-col space-y-1 justify-end w-36">
                               <Tippy content="Total Dabs" placement="bottom">
                                 <p className="font-bold text-lg">
                                   {lb.total_dabs.toLocaleString()}
                                 </p>
                               </Tippy>
-                              <p className="text truncate">{lb.device_name}</p>
+                              <Tippy
+                                content={lb.device_name}
+                                placement="bottom"
+                              >
+                                <p className="text truncate">
+                                  {lb.device_name}
+                                </p>
+                              </Tippy>
                               <p className="opacity-60 italic truncate">
                                 {lb.owner_name}
                               </p>
                               <Tippy
-                                content={`Device DOB: ${formatter.format(
-                                  dob.duration,
-                                  dob.unit
-                                )}`}
+                                content={`Device DOB: ${
+                                  lb.device_dob == "1970-01-01T00:00:01.000Z"
+                                    ? "Unknown"
+                                    : formatter.format(dob.duration, dob.unit)
+                                }`}
                                 placement="bottom"
                               >
                                 <p className="opacity-60">
                                   🎂{" "}
-                                  {new Date(lb.device_dob).toLocaleDateString()}
+                                  {lb.device_dob == "1970-01-01T00:00:01.000Z"
+                                    ? "Unknown"
+                                    : new Date(
+                                        lb.device_dob
+                                      ).toLocaleDateString()}
                                 </p>
                               </Tippy>
                               <Tippy content="Last Active" placement="bottom">
