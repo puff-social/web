@@ -124,6 +124,7 @@ export const DeviceModelMap = {
   49: "Opal",
   50: "Indiglow",
   51: "Guardian",
+  52: "Peak",
 }
 
 export enum ColorMode {
