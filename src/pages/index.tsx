@@ -97,6 +97,7 @@ export default function Home() {
           </h3>
         </div>
         <GroupActions
+          setUserSettingsModalOpen={setSettingsModalOpen}
           setInfoModalOpen={setInfoModalOpen}
           setFeedbackModalOpen={setFeedbackModalOpen}
           setLeaderboardOpen={setLeaderboardOpen}

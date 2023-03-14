@@ -28,7 +28,7 @@ interface ActionsProps {
   deviceProfiles?: Record<number, PuffcoProfile>;
   disconnect?: Function;
   setGroupSettingsModalOpen?: Dispatch<SetStateAction<boolean>>;
-  setUserSettingsModalOpen?: Dispatch<SetStateAction<boolean>>;
+  setUserSettingsModalOpen: Dispatch<SetStateAction<boolean>>;
   setInfoModalOpen: Dispatch<SetStateAction<boolean>>;
   setFeedbackModalOpen: Dispatch<SetStateAction<boolean>>;
   setLeaderboardOpen: Dispatch<SetStateAction<boolean>>;
