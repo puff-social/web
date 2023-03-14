@@ -127,7 +127,7 @@ export function GroupMember(props: GroupMemberProps) {
               {props.us ? props.name : props.member.name}
             </h1>
             {props.device && (
-              <div className="flex space-x-3 justify-center">
+              <div className="flex space-x-3">
                 <span className="flex flex-row justify-center items-center">
                   <Tippy content="Total Dabs" placement="bottom">
                     <div className="flex justify-center">
