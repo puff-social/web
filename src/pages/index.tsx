@@ -17,6 +17,7 @@ import { Tippy } from "../components/Tippy";
 import { Checkmark } from "../components/icons/Checkmark";
 import NoSSR from "../components/NoSSR";
 import { GroupActions } from "../components/GroupActions";
+import { MainMeta } from "../components/MainMeta";
 
 export default function Home() {
   const router = useRouter();
@@ -85,6 +86,7 @@ export default function Home() {
       <Head>
         <title>puff.social</title>
         <link rel="icon" href="/favicon.ico" />
+        <MainMeta />
       </Head>
 
       <div className="flex flex-col m-4 z-10">
