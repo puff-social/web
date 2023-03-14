@@ -83,11 +83,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col justify-between h-screen">
-      <Head>
-        <title>puff.social</title>
-        <link rel="icon" href="/favicon.ico" />
-        <MainMeta />
-      </Head>
+      <MainMeta />
 
       <div className="flex flex-col m-4 z-10">
         <div>
