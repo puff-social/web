@@ -32,7 +32,7 @@ export interface DeviceInformation {
 
 export interface DiagData {
   device_firmware: string;
-  device_model: number;
+  device_model: string;
   device_name: string;
 }
 

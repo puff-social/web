@@ -111,7 +111,7 @@ export interface GatewayMemberDeviceState {
   deviceName: string;
   profile: GatewayDeviceProfile;
   chamberType: ChamberType;
-  deviceModel: DeviceModel;
+  deviceModel: string;
 }
 
 export interface GroupUserUpdate {

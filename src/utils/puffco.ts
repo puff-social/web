@@ -14,7 +14,7 @@ export const FIRMWARE_INFORMATION = '00002a28-0000-1000-8000-00805f9b34fb';
 export const BASE_CHARACTERISTIC = `f9a98c15-c651-4f34-b656-d100bf5800`;
 export const HANDSHAKE_KEY = Buffer.from("FUrZc0WilhUBteT2JlCc+A==", "base64");
 
-export let deviceModel: DeviceModel;
+export let deviceModel: string;
 export let modelService: BluetoothRemoteGATTService;
 export let service: BluetoothRemoteGATTService;
 export let device: BluetoothDevice;
@@ -112,11 +112,14 @@ export enum ChargeSource {
   None = 3
 }
 
-export enum DeviceModel {
-  Peak = 48,
-  Opal = 49,
-  Indiglow = 50,
-  Guardian = 51
+export const ProductModelMap = {
+  '0': 'Peak',
+  '21': 'Peak', // Why another one
+  '4294967295': 'Peak', // wtf is this puffco
+  '1': 'Opal',
+  '22': 'Opal', // Again why another, what happened here?
+  '2': 'Indiglow',
+  '4': 'Guardian',
 }
 
 export const DeviceModelMap = {
@@ -252,7 +255,7 @@ export async function startConnection() {
     setTimeout(async () => {
       const diagData: DiagData = {
         device_firmware: decoder.decode((await getValue(modelService, FIRMWARE_INFORMATION, 1).catch(() => [null, null]))[1]),
-        device_model: Number((await getValue(modelService, MODEL_INFORMATION, 1).catch(() => [null, null]))[0]),
+        device_model: decoder.decode((await getValue(modelService, MODEL_INFORMATION, 1).catch(() => [null, null]))[1]),
         device_name: device.name
       };
 
@@ -314,9 +317,9 @@ export async function startPolling() {
 
   await new Promise((resolve) => setTimeout(() => resolve(true), 200));
 
-  const [initDeviceModal] = await getValue(modelService, MODEL_INFORMATION, 1);
-  initState.deviceModel = Number(initDeviceModal);
-  deviceInfo.model = Number(initDeviceModal);
+  const [, initDeviceModal] = await getValue(modelService, MODEL_INFORMATION, 1);
+  initState.deviceModel = decoder.decode(initDeviceModal);
+  deviceInfo.model = initState.deviceModel;
 
   const [initTemperature] = await getValue(service, Characteristic.HEATER_TEMP);
   initState.temperature = Number(hexToFloat(initTemperature).toFixed(0));
