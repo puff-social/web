@@ -91,11 +91,11 @@ export default function Home() {
         <div>
           <h1 className="text-4xl font-bold">puff.social</h1>
           <h3 className="text font-bold">
-            by{" "}
+            by&nbsp;
             <a href="https://dstn.to" target="_blank">
-              Dustin
-            </a>{" "}
-            (idea by Roberto)
+              dstn.to
+            </a>
+            &nbsp;(idea by Roberto)
           </h3>
         </div>
         <GroupActions
