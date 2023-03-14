@@ -6,7 +6,7 @@ import {
   PuffcoOperatingMap,
   PuffcoOperatingState,
 } from "../types/gateway";
-import { ChargeSource, DeviceModelMap } from "../utils/puffco";
+import { ChargeSource, ProductModelMap } from "../utils/puffco";
 import { Battery, BatteryBolt } from "./icons/Battery";
 import { Checkmark } from "./icons/Checkmark";
 import { Counter } from "./icons/Counter";
@@ -105,7 +105,7 @@ export function GroupMember(props: GroupMemberProps) {
                 : `${props.member.session_id}-${props.device.deviceName}`
             }
             className="-z-50 h-full w-[120px]"
-            model={DeviceModelMap[props.device.deviceModel].toLowerCase()}
+            model={ProductModelMap[props.device.deviceModel].toLowerCase()}
             device={props.device}
           />
           <span className="flex flex-col p-4">

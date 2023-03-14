@@ -122,14 +122,6 @@ export const ProductModelMap = {
   '4': 'Guardian',
 }
 
-export const DeviceModelMap = {
-  48: "Peak",
-  49: "Opal",
-  50: "Indiglow",
-  51: "Guardian",
-  52: "Peak",
-}
-
 export enum ColorMode {
   Preserve = 0,
   Static = 1,

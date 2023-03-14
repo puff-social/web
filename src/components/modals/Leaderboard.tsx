@@ -6,7 +6,7 @@ import { getLeaderboard } from "../../utils/analytics";
 import { DeviceLeaderboard } from "../../types/api";
 import { automaticRelativeDifference } from "../../utils/time";
 import { Tippy } from "../Tippy";
-import { ChargeSource, DeviceModelMap } from "../../utils/puffco";
+import { ChargeSource, ProductModelMap } from "../../utils/puffco";
 import { PuffcoContainer } from "../puffco";
 import { PuffcoOperatingState } from "../../types/gateway";
 
@@ -27,12 +27,12 @@ function LeaderboardItem({ index, lb, last_active }) {
             <span className="flex flex-row">
               <p className="font-bold">
                 {lb.device_name} -{" "}
-                {lb.device_model ? DeviceModelMap[lb.device_model] : "Unknown"}
+                {lb.device_model ? ProductModelMap[lb.device_model] : "Unknown"}
               </p>
               <img
                 width={18}
                 className="ml-1"
-                src={`/emojis/${DeviceModelMap[
+                src={`/emojis/${ProductModelMap[
                   lb.device_model || 48
                 ].toLowerCase()}.png`}
               />
@@ -187,7 +187,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                           </span>
                           <span className="flex flex-row drop-shadow">
                             <PuffcoContainer
-                              model={DeviceModelMap[
+                              model={ProductModelMap[
                                 lb.device_model
                               ].toLowerCase()}
                               id={index.toString()}
