@@ -249,14 +249,16 @@ export async function startConnection() {
     // @ts-ignore
     if (typeof window != 'undefined') window.DeviceCommand = DeviceCommand;
 
-    const diagData: DiagData = {
-      device_firmware: Number((await getValue(modelService, FIRMWARE_INFORMATION, 1).catch(() => [null, null]))[0]),
-      device_model: Number((await getValue(modelService, MODEL_INFORMATION, 1).catch(() => [null, null]))[0]),
-      device_name: device.name
-    };
+    setTimeout(async () => {
+      const diagData: DiagData = {
+        device_firmware: decoder.decode((await getValue(modelService, FIRMWARE_INFORMATION, 1).catch(() => [null, null]))[1]),
+        device_model: Number((await getValue(modelService, MODEL_INFORMATION, 1).catch(() => [null, null]))[0]),
+        device_name: device.name
+      };
 
-    deviceModel = diagData.device_model;
-    trackDiags(diagData);
+      deviceModel = diagData.device_model;
+      trackDiags(diagData);
+    }, 300);
 
     const accessSeedKey = await service.getCharacteristic(Characteristic.ACCESS_KEY);
     const value = await accessSeedKey.readValue();
