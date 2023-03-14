@@ -1,4 +1,4 @@
-import { ChamberType, ChargeSource, DeviceModel } from "../utils/puffco";
+import { ChamberType, ChargeSource } from "../utils/puffco";
 
 export interface Colors {
   r: number;
@@ -46,7 +46,7 @@ export interface PuffcoState {
   deviceName: string;
   profile: GatewayDeviceProfile;
   chamberType: ChamberType;
-  deviceModel: DeviceModel;
+  deviceModel: string;
 }
 
 export interface GatewayGroupCreate {
