@@ -1,3 +1,5 @@
+import { PuffcoProfile } from "./puffco";
+
 export interface APIResponse<T> {
   data: T;
   error?: {
@@ -28,10 +30,27 @@ export interface DeviceInformation {
   model: string;
 }
 
+export interface DiagService {
+  uuid: string;
+  characteristicCount: number;
+}
+
+export interface DiagParameters {
+  uid?: string;
+  dob?: number;
+  name: string;
+  model: number;
+  firmware: string;
+  chamberType?: number;
+  authenticated?: boolean;
+  pupService?: boolean;
+  loraxService?: boolean;
+}
+
 export interface DiagData {
-  device_firmware: string;
-  device_model: string;
-  device_name: string;
+  device_profiles?: Record<number, PuffcoProfile>;
+  device_services?: DiagService[];
+  device_parameters?: DiagParameters;
 }
 
 export interface DeviceLeaderboard {

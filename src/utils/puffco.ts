@@ -7,6 +7,9 @@ import { DeviceInformation, DiagData } from "../types/api";
 import { trackDiags } from "./analytics";
 import { PuffcoProfile } from "../types/puffco";
 
+export const SILLABS_OTA_SERVICE = '1d14d6ee-fd63-4fa1-bfa4-8f47b42119f0';
+export const LORAX_SERVICE = 'e276967f-ea8a-478a-a92e-d78f5dd15dd5';
+export const PUP_SERVICE = '420b9b40-457d-4abe-a3bf-71609d79581b';
 export const SERVICE = '06caf9c0-74d3-454f-9be9-e30cd999c17a';
 export const MODEL_SERVICE = '0000180a-0000-1000-8000-00805f9b34fb';
 export const MODEL_INFORMATION = '00002a24-0000-1000-8000-00805f9b34fb';
@@ -14,7 +17,7 @@ export const FIRMWARE_INFORMATION = '00002a28-0000-1000-8000-00805f9b34fb';
 export const BASE_CHARACTERISTIC = `f9a98c15-c651-4f34-b656-d100bf5800`;
 export const HANDSHAKE_KEY = Buffer.from("FUrZc0WilhUBteT2JlCc+A==", "base64");
 
-export let deviceModel: string;
+export let deviceModel: number;
 export let modelService: BluetoothRemoteGATTService;
 export let service: BluetoothRemoteGATTService;
 export let device: BluetoothDevice;
@@ -209,7 +212,7 @@ export async function startConnection() {
             services: [SERVICE],
           },
         ],
-        optionalServices: [MODEL_SERVICE]
+        optionalServices: [MODEL_SERVICE, SILLABS_OTA_SERVICE, LORAX_SERVICE, PUP_SERVICE]
       });
     } catch (error) {
       throw error;
@@ -246,12 +249,21 @@ export async function startConnection() {
 
     setTimeout(async () => {
       const diagData: DiagData = {
-        device_firmware: decoder.decode((await getValue(modelService, FIRMWARE_INFORMATION, 1).catch(() => [null, null]))[1]),
-        device_model: decoder.decode((await getValue(modelService, MODEL_INFORMATION, 1).catch(() => [null, null]))[1]),
-        device_name: device.name
+        device_parameters: {
+          name: device.name,
+          firmware: decoder.decode((await getValue(modelService, FIRMWARE_INFORMATION, 1).catch(() => [null, null]))[1]),
+          model: Number(decoder.decode((await getValue(modelService, MODEL_INFORMATION, 1).catch(() => [null, null]))[1])),
+        }
       };
 
-      deviceModel = diagData.device_model;
+      deviceModel = diagData.device_parameters.model;
+
+      try {
+        diagData.device_services = await Promise.all((await server.getPrimaryServices()).map(async service => ({ uuid: service.uuid, characteristicCount: (await service.getCharacteristics()).length })));
+        diagData.device_parameters.loraxService = await server.getPrimaryService(LORAX_SERVICE).then(() => true).catch(() => false);
+        diagData.device_parameters.pupService = await server.getPrimaryService(PUP_SERVICE).then(() => true).catch(() => false);
+      } catch (error) { }
+
       trackDiags(diagData);
     }, 300);
 
@@ -275,6 +287,34 @@ export async function startConnection() {
     await accessSeedKey.writeValue(Buffer.from(newKey));
 
     profiles = await loopProfiles();
+
+    try {
+      const [, deviceDob] = await getValue(service, Characteristic.DEVICE_BIRTHDAY);
+      const [, euid] = await getValue(service, Characteristic.EUID);
+      const [, chamberType] = await getValue(service, Characteristic.CHAMBER_TYPE, 1);
+
+      const loraxService = await server.getPrimaryService(LORAX_SERVICE).then(() => true).catch(() => false);
+      const pupService = await server.getPrimaryService(PUP_SERVICE).then(() => true).catch(() => false);
+
+      const diagData: DiagData = {
+        device_services: await Promise.all((await server.getPrimaryServices()).map(async service => ({ uuid: service.uuid, characteristicCount: (await service.getCharacteristics()).length }))),
+        device_profiles: profiles,
+        device_parameters: {
+          name: device.name,
+          firmware: decoder.decode((await getValue(modelService, FIRMWARE_INFORMATION, 1).catch(() => [null, null]))[1]),
+          model: Number(decoder.decode((await getValue(modelService, MODEL_INFORMATION, 1).catch(() => [null, null]))[1])),
+          authenticated: true,
+          loraxService, pupService,
+          uid: unpack(new Uint8Array(euid.buffer), { bits: 32 }).toString(),
+          chamberType: Number(unpack(new Uint8Array(chamberType.buffer), { bits: 8 })),
+          dob: Number(unpack(new Uint8Array(deviceDob.buffer), { bits: 32 }).toString()),
+        }
+      };
+
+      trackDiags(diagData);
+    } catch (error) {
+      console.error(`Failed to track diags: ${error}`);
+    }
 
     return { device, profiles };
   } catch (error) {
