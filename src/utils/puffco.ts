@@ -177,6 +177,8 @@ export async function loopProfiles() {
     const temp = Number(hexToFloat(temperatureCall).toFixed(0));
     const time = Number(hexToFloat(timeCall).toFixed(0));
 
+    console.log({ name, temp, time });
+
     console.log(`Profile #${key + 1} - ${name} - ${temp} - ${time}`);
     profiles[key + 1] = { name, temp, time: secondsToMinutesSeconds(time) };
   }
@@ -450,23 +452,8 @@ export async function startPolling() {
     lastTemp = conv;
   });
 
-  const profileNamePoll = await gattPoller(service, Characteristic.PROFILE_NAME, 0);
-  profileNamePoll.on('change', async (data, raw) => {
-    const [temperatureCall] = await getValue(service, Characteristic.PROFILE_PREHEAT_TEMP);
-    const [timeCall] = await getValue(service, Characteristic.PROFILE_PREHEAT_TIME);
-    const name = decoder.decode(raw);
-    const temp = Number(hexToFloat(temperatureCall).toFixed(0));
-    const time = Number(hexToFloat(timeCall).toFixed(0));
-    poller.emit('data', {
-      profile: {
-        name,
-        temp,
-        time
-      }
-    });
-  });
 
-  const currentProfilePoll = await gattPoller(service, Characteristic.PROFILE_CURRENT, 0);
+  const currentProfilePoll = await gattPoller(service, Characteristic.PROFILE_CURRENT, 0, 1000);
   currentProfilePoll.on('change', async (data, raw) => {
     const profileCurrent = new Uint8Array(raw.buffer);
     const profileIndex = DeviceProfileReverse.findIndex(profile => profile.at(2) == profileCurrent.at(2) && profile.at(3) == profileCurrent.at(3)) + 1;
@@ -488,7 +475,6 @@ export async function startPolling() {
     aciveLEDPoll.emit('stop');
     totalDabsPoll.emit('stop');
     tempPoll.emit('stop');
-    profileNamePoll.emit('stop');
     currentProfilePoll.emit('stop');
     deviceNamePoll.emit('stop');
     poller.removeAllListeners();

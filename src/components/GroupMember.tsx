@@ -178,7 +178,7 @@ export function GroupMember(props: GroupMemberProps) {
                 <span className="flex space-x-2">
                   <p className="text-sm">{props.device.profile.name}</p>
                   <span className="flex space-x-2 text-sm">
-                    <p>({secondsToMinutesSeconds(props.device.profile.time)}</p>
+                    <p>({props.device.profile.time}</p>
                     <p className="opacity-40">@</p>
                     <p>{Math.round(props.device.profile.temp * 1.8 + 32)}°)</p>
                   </span>
