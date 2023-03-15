@@ -17,7 +17,7 @@ export const FIRMWARE_INFORMATION = '00002a28-0000-1000-8000-00805f9b34fb';
 export const BASE_CHARACTERISTIC = `f9a98c15-c651-4f34-b656-d100bf5800`;
 export const HANDSHAKE_KEY = Buffer.from("FUrZc0WilhUBteT2JlCc+A==", "base64");
 
-export let deviceModel: number;
+export let deviceModel: string;
 export let modelService: BluetoothRemoteGATTService;
 export let service: BluetoothRemoteGATTService;
 export let device: BluetoothDevice;
@@ -255,7 +255,7 @@ export async function startConnection() {
         device_parameters: {
           name: device.name,
           firmware: decoder.decode((await getValue(modelService, FIRMWARE_INFORMATION, 1).catch(() => [null, null]))[1]),
-          model: Number(decoder.decode((await getValue(modelService, MODEL_INFORMATION, 1).catch(() => [null, null]))[1])),
+          model: decoder.decode((await getValue(modelService, MODEL_INFORMATION, 1).catch(() => [null, null]))[1]),
         }
       };
 
@@ -311,7 +311,7 @@ export async function startConnection() {
         device_parameters: {
           name: device.name,
           firmware: decoder.decode(firmware),
-          model: Number(decoder.decode(model)),
+          model: decoder.decode(model),
           authenticated: true,
           loraxService, pupService,
           hash: decoder.decode(gitHash),

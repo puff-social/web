@@ -39,7 +39,7 @@ export interface DiagParameters {
   uid?: string;
   dob?: number;
   name: string;
-  model: number;
+  model: string;
   firmware: string;
   hash?: string;
   uptime?: number;
