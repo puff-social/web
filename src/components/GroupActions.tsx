@@ -184,6 +184,12 @@ export function GroupActions({
                     "🫡",
                     "💨",
                     "🚬",
+                    "🗡️",
+                    "🕐",
+                    "⏭️",
+                    "⏳",
+                    "🎙️",
+                    "🔥",
                   ].map((emoji) => (
                     <span
                       className="w-9 select-none text-lg flex justify-center items-center rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 m-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
