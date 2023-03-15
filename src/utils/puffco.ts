@@ -177,8 +177,6 @@ export async function loopProfiles() {
     const temp = Number(hexToFloat(temperatureCall).toFixed(0));
     const time = Number(hexToFloat(timeCall).toFixed(0));
 
-    console.log({ name, temp, time });
-
     console.log(`Profile #${key + 1} - ${name} - ${temp} - ${time}`);
     profiles[key + 1] = { name, temp, time: secondsToMinutesSeconds(time) };
   }
