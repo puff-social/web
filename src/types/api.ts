@@ -52,6 +52,7 @@ export interface DiagParameters {
 }
 
 export interface DiagData {
+  session_id: string;
   device_profiles?: Record<number, PuffcoProfile>;
   device_services?: DiagService[];
   device_parameters?: DiagParameters;

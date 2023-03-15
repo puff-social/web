@@ -6,6 +6,7 @@ import { convertFromHex, convertHexStringToNumArray, secondsToMinutesSeconds, de
 import { DeviceInformation, DiagData } from "../types/api";
 import { trackDiags } from "./analytics";
 import { PuffcoProfile } from "../types/puffco";
+import { gateway } from "./gateway";
 
 export const SILLABS_OTA_SERVICE = '1d14d6ee-fd63-4fa1-bfa4-8f47b42119f0';
 export const LORAX_SERVICE = 'e276967f-ea8a-478a-a92e-d78f5dd15dd5';
@@ -252,6 +253,7 @@ export async function startConnection() {
 
     setTimeout(async () => {
       const diagData: DiagData = {
+        session_id: gateway.session_id,
         device_parameters: {
           name: device.name,
           firmware: decoder.decode((await getValue(modelService, FIRMWARE_INFORMATION, 1).catch(() => [null, null]))[1]),
@@ -306,6 +308,7 @@ export async function startConnection() {
       const pupService = await server.getPrimaryService(PUP_SERVICE).then(() => true).catch(() => false);
 
       const diagData: DiagData = {
+        session_id: gateway.session_id,
         device_services: await Promise.all((await server.getPrimaryServices()).map(async service => ({ uuid: service.uuid, characteristicCount: (await service.getCharacteristics()).length }))),
         device_profiles: profiles,
         device_parameters: {
