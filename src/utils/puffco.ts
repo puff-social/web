@@ -291,15 +291,15 @@ export async function startConnection() {
     profiles = await loopProfiles();
 
     try {
-      const [, model] = await getValue(modelService, MODEL_INFORMATION, 1);
-      const [, firmware] = await getValue(modelService, FIRMWARE_INFORMATION, 1);
-      const [, gitHash] = await getValue(service, Characteristic.GIT_HASH);
-      const [, deviceUptime] = await getValue(service, Characteristic.UPTIME);
-      const [, deviceUtcTime] = await getValue(service, Characteristic.UTC_TIME);
-      const [, deviceDob] = await getValue(service, Characteristic.DEVICE_BIRTHDAY);
-      const [, batteryCapacity] = await getValue(service, Characteristic.BATTERY_CAPACITY);
-      const [, euid] = await getValue(service, Characteristic.EUID);
-      const [, chamberType] = await getValue(service, Characteristic.CHAMBER_TYPE, 1);
+      const [, model] = await getValue(modelService, MODEL_INFORMATION, 0);
+      const [, firmware] = await getValue(modelService, FIRMWARE_INFORMATION, 0);
+      const [, gitHash] = await getValue(service, Characteristic.GIT_HASH, 0);
+      const [, deviceUptime] = await getValue(service, Characteristic.UPTIME, 0);
+      const [, deviceUtcTime] = await getValue(service, Characteristic.UTC_TIME, 0);
+      const [, deviceDob] = await getValue(service, Characteristic.DEVICE_BIRTHDAY, 0);
+      const [, batteryCapacity] = await getValue(service, Characteristic.BATTERY_CAPACITY, 0);
+      const [, euid] = await getValue(service, Characteristic.EUID, 0);
+      const [, chamberType] = await getValue(service, Characteristic.CHAMBER_TYPE, 0);
 
       const loraxService = await server.getPrimaryService(LORAX_SERVICE).then(() => true).catch(() => false);
       const pupService = await server.getPrimaryService(PUP_SERVICE).then(() => true).catch(() => false);
