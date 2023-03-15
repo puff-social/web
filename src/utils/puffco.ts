@@ -489,6 +489,7 @@ export async function startPolling() {
     totalDabsPoll.emit('stop');
     tempPoll.emit('stop');
     profileNamePoll.emit('stop');
+    currentProfilePoll.emit('stop');
     deviceNamePoll.emit('stop');
     poller.removeAllListeners();
   });
