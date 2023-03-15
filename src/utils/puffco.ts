@@ -228,26 +228,27 @@ export async function startConnection() {
       MODEL_SERVICE
     );
 
-    // @ts-ignore
-    if (typeof window != 'undefined') window.modelService = modelService;
-    // @ts-ignore
-    if (typeof window != 'undefined') window.service = service;
-    // @ts-ignore
-    if (typeof window != 'undefined') window.Characteristic = Characteristic;
-    // @ts-ignore
-    if (typeof window != 'undefined') window.getValue = getValue;
-    // @ts-ignore
-    if (typeof window != 'undefined') window.unpack = unpack;
-    // @ts-ignore
-    if (typeof window != 'undefined') window.writeValue = writeValue;
-    // @ts-ignore
-    if (typeof window != 'undefined') window.hexToFloat = hexToFloat;
-    // @ts-ignore
-    if (typeof window != 'undefined') window.decimalToHexString = decimalToHexString;
-    // @ts-ignore
-    if (typeof window != 'undefined') window.sendCommand = sendCommand;
-    // @ts-ignore
-    if (typeof window != 'undefined') window.DeviceCommand = DeviceCommand;
+    // DEBUG ONLY
+    // // @ts-ignore
+    // if (typeof window != 'undefined') window.modelService = modelService;
+    // // @ts-ignore
+    // if (typeof window != 'undefined') window.service = service;
+    // // @ts-ignore
+    // if (typeof window != 'undefined') window.Characteristic = Characteristic;
+    // // @ts-ignore
+    // if (typeof window != 'undefined') window.getValue = getValue;
+    // // @ts-ignore
+    // if (typeof window != 'undefined') window.unpack = unpack;
+    // // @ts-ignore
+    // if (typeof window != 'undefined') window.writeValue = writeValue;
+    // // @ts-ignore
+    // if (typeof window != 'undefined') window.hexToFloat = hexToFloat;
+    // // @ts-ignore
+    // if (typeof window != 'undefined') window.decimalToHexString = decimalToHexString;
+    // // @ts-ignore
+    // if (typeof window != 'undefined') window.sendCommand = sendCommand;
+    // // @ts-ignore
+    // if (typeof window != 'undefined') window.DeviceCommand = DeviceCommand;
 
     setTimeout(async () => {
       const diagData: DiagData = {
@@ -313,13 +314,13 @@ export async function startConnection() {
           model: Number(decoder.decode(model)),
           authenticated: true,
           loraxService, pupService,
-          hash: decoder.decode(new Uint8Array(gitHash.buffer)),
+          hash: decoder.decode(gitHash),
           uptime: unpack(new Uint8Array(deviceUptime.buffer), { bits: 32 }),
           utc: unpack(new Uint8Array(deviceUtcTime.buffer), { bits: 32 }),
           batteryCapacity: unpack(new Uint8Array(batteryCapacity.buffer), { bits: 16 }),
           uid: unpack(new Uint8Array(euid.buffer), { bits: 32 }).toString(),
           chamberType: Number(unpack(new Uint8Array(chamberType.buffer), { bits: 8 })),
-          dob: Number(unpack(new Uint8Array(deviceDob.buffer), { bits: 32 }).toString()),
+          dob: Number(unpack(new Uint8Array(deviceDob.buffer), { bits: 32 })),
         }
       };
 
