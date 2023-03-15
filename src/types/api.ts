@@ -41,6 +41,10 @@ export interface DiagParameters {
   name: string;
   model: number;
   firmware: string;
+  hash?: string;
+  uptime?: number;
+  utc?: number;
+  batteryCapacity?: number
   chamberType?: number;
   authenticated?: boolean;
   pupService?: boolean;

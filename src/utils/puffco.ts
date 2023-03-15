@@ -30,6 +30,7 @@ export const decoder = new TextDecoder('utf-8');
 export const Characteristic = {
   ACCESS_KEY: `${BASE_CHARACTERISTIC}e0`,
   EUID: `${BASE_CHARACTERISTIC}01`,
+  GIT_HASH: `${BASE_CHARACTERISTIC}02`,
   COMMAND: `${BASE_CHARACTERISTIC}40`,
   BATTERY_SOC: `${BASE_CHARACTERISTIC}20`,
   BATTERY_VOLTAGE: `${BASE_CHARACTERISTIC}21`,
@@ -63,6 +64,7 @@ export const Characteristic = {
   CHAMBER_TYPE: `${BASE_CHARACTERISTIC}3f`,
   PROFILE_CURRENT: `${BASE_CHARACTERISTIC}41`,
   STEALTH_MODE: `${BASE_CHARACTERISTIC}42`,
+  UTC_TIME: `${BASE_CHARACTERISTIC}44`,
   TEMPERATURE_OVERRIDE: `${BASE_CHARACTERISTIC}45`,
   TIME_OVERRIDE: `${BASE_CHARACTERISTIC}46`,
   LANTERN_START: `${BASE_CHARACTERISTIC}4a`,
@@ -289,7 +291,13 @@ export async function startConnection() {
     profiles = await loopProfiles();
 
     try {
+      const [, model] = await getValue(modelService, MODEL_INFORMATION, 1);
+      const [, firmware] = await getValue(modelService, FIRMWARE_INFORMATION, 1);
+      const [, gitHash] = await getValue(service, Characteristic.GIT_HASH);
+      const [, deviceUptime] = await getValue(service, Characteristic.UPTIME);
+      const [, deviceUtcTime] = await getValue(service, Characteristic.UTC_TIME);
       const [, deviceDob] = await getValue(service, Characteristic.DEVICE_BIRTHDAY);
+      const [, batteryCapacity] = await getValue(service, Characteristic.BATTERY_CAPACITY);
       const [, euid] = await getValue(service, Characteristic.EUID);
       const [, chamberType] = await getValue(service, Characteristic.CHAMBER_TYPE, 1);
 
@@ -301,15 +309,21 @@ export async function startConnection() {
         device_profiles: profiles,
         device_parameters: {
           name: device.name,
-          firmware: decoder.decode((await getValue(modelService, FIRMWARE_INFORMATION, 1).catch(() => [null, null]))[1]),
-          model: Number(decoder.decode((await getValue(modelService, MODEL_INFORMATION, 1).catch(() => [null, null]))[1])),
+          firmware: decoder.decode(firmware),
+          model: Number(decoder.decode(model)),
           authenticated: true,
           loraxService, pupService,
+          hash: decoder.decode(new Uint8Array(gitHash.buffer)),
+          uptime: unpack(new Uint8Array(deviceUptime.buffer), { bits: 32 }),
+          utc: unpack(new Uint8Array(deviceUtcTime.buffer), { bits: 32 }),
+          batteryCapacity: unpack(new Uint8Array(batteryCapacity.buffer), { bits: 16 }),
           uid: unpack(new Uint8Array(euid.buffer), { bits: 32 }).toString(),
           chamberType: Number(unpack(new Uint8Array(chamberType.buffer), { bits: 8 })),
           dob: Number(unpack(new Uint8Array(deviceDob.buffer), { bits: 32 }).toString()),
         }
       };
+
+      console.log(diagData)
 
       trackDiags(diagData);
     } catch (error) {
