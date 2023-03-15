@@ -96,9 +96,9 @@ export function GroupMember(props: GroupMemberProps) {
   if (props.us && !props.connected && connectDismissed) return <></>;
 
   return (
-    <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md m-4 w-96 h-80 justify-center items-center">
+    <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md m-4 px-8 w-96 h-80 justify-center items-center">
       {(props.us && !!props.device) || props.device ? (
-        <div className="flex flex-row">
+        <div className="flex flex-row space-x-4 w-full">
           <PuffcoContainer
             id={
               props.us
@@ -109,7 +109,7 @@ export function GroupMember(props: GroupMemberProps) {
             model={ProductModelMap[props.device.deviceModel].toLowerCase()}
             device={props.device}
           />
-          <span className="flex flex-col p-4">
+          <span className="flex flex-col p-4 w-full">
             <p style={{ visibility: "hidden", display: "none" }}>
               {props.device.activeColor.r +
                 props.device.activeColor.g +
@@ -177,7 +177,9 @@ export function GroupMember(props: GroupMemberProps) {
               </span>
               <Tippy content="Current device profile" placement="bottom">
                 <span className="flex space-x-2">
-                  <p className="text-sm">{props.device.profile.name}</p>
+                  <p className="text-sm truncate">
+                    {props.device.profile.name}
+                  </p>
                   <span className="flex space-x-2 text-sm">
                     <p>({props.device.profile.time}</p>
                     <p className="opacity-40">@</p>
@@ -185,10 +187,24 @@ export function GroupMember(props: GroupMemberProps) {
                   </span>
                 </span>
               </Tippy>
+
               {props.device.chamberType == ChamberType["3D"] ? (
-                <Tippy content="3D Chamber" placement="bottom-start">
-                  <span>
-                    <Icon3D />
+                <Tippy
+                  placement="right-start"
+                  content={
+                    <span className="flex flex-row w-fit">
+                      <span className="flex px-1 py-1.5 border border-white items-center justify-center w-fit">
+                        <p className="coda-regular tracking-widest uppercase text-xs px-1">
+                          Chamber
+                        </p>
+                      </span>
+                    </span>
+                  }
+                >
+                  <span className="flex flex-row mt-2 w-fit">
+                    <span className="flex px-1 border border-white items-center justify-center w-fit">
+                      <Icon3D />
+                    </span>
                   </span>
                 </Tippy>
               ) : (
