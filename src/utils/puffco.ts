@@ -229,26 +229,26 @@ export async function startConnection() {
     );
 
     // DEBUG ONLY
-    // // @ts-ignore
-    // if (typeof window != 'undefined') window.modelService = modelService;
-    // // @ts-ignore
-    // if (typeof window != 'undefined') window.service = service;
-    // // @ts-ignore
-    // if (typeof window != 'undefined') window.Characteristic = Characteristic;
-    // // @ts-ignore
-    // if (typeof window != 'undefined') window.getValue = getValue;
-    // // @ts-ignore
-    // if (typeof window != 'undefined') window.unpack = unpack;
-    // // @ts-ignore
-    // if (typeof window != 'undefined') window.writeValue = writeValue;
-    // // @ts-ignore
-    // if (typeof window != 'undefined') window.hexToFloat = hexToFloat;
-    // // @ts-ignore
-    // if (typeof window != 'undefined') window.decimalToHexString = decimalToHexString;
-    // // @ts-ignore
-    // if (typeof window != 'undefined') window.sendCommand = sendCommand;
-    // // @ts-ignore
-    // if (typeof window != 'undefined') window.DeviceCommand = DeviceCommand;
+    // @ts-ignore
+    if (typeof window != 'undefined') window.modelService = modelService;
+    // @ts-ignore
+    if (typeof window != 'undefined') window.service = service;
+    // @ts-ignore
+    if (typeof window != 'undefined') window.Characteristic = Characteristic;
+    // @ts-ignore
+    if (typeof window != 'undefined') window.getValue = getValue;
+    // @ts-ignore
+    if (typeof window != 'undefined') window.unpack = unpack;
+    // @ts-ignore
+    if (typeof window != 'undefined') window.writeValue = writeValue;
+    // @ts-ignore
+    if (typeof window != 'undefined') window.hexToFloat = hexToFloat;
+    // @ts-ignore
+    if (typeof window != 'undefined') window.decimalToHexString = decimalToHexString;
+    // @ts-ignore
+    if (typeof window != 'undefined') window.sendCommand = sendCommand;
+    // @ts-ignore
+    if (typeof window != 'undefined') window.DeviceCommand = DeviceCommand;
 
     setTimeout(async () => {
       const diagData: DiagData = {
@@ -464,6 +464,15 @@ export async function startPolling() {
         time
       }
     });
+  });
+
+  const currentProfilePoll = await gattPoller(service, Characteristic.PROFILE_CURRENT, 0);
+  currentProfilePoll.on('change', async (data, raw) => {
+    const profileCurrent = new Uint8Array(raw.buffer);
+    const profileIndex = DeviceProfileReverse.findIndex(profile => profile.at(2) == profileCurrent.at(2) && profile.at(3) == profileCurrent.at(3)) + 1;
+    poller.emit('data', {
+      profile: profiles[profileIndex]
+    })
   });
 
   const deviceNamePoll = await gattPoller(service, Characteristic.DEVICE_NAME);
