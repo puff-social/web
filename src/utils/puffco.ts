@@ -323,8 +323,6 @@ export async function startConnection() {
         }
       };
 
-      console.log(diagData)
-
       trackDiags(diagData);
     } catch (error) {
       console.error(`Failed to track diags: ${error}`);
