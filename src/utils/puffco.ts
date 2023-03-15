@@ -1,6 +1,6 @@
 import { createHash } from "crypto";
 import { EventEmitter } from "events";
-import { unpack } from 'byte-data';
+import { unpack, pack } from 'byte-data';
 import { GatewayMemberDeviceState } from "../types/gateway";
 import { convertFromHex, convertHexStringToNumArray, secondsToMinutesSeconds, decimalToHexString, flipHexString, gattPoller, getValue, hexToFloat } from "./functions";
 import { DeviceInformation, DiagData } from "../types/api";
@@ -241,6 +241,8 @@ export async function startConnection() {
     if (typeof window != 'undefined') window.getValue = getValue;
     // @ts-ignore
     if (typeof window != 'undefined') window.unpack = unpack;
+    // @ts-ignore
+    if (typeof window != 'undefined') window.pack = pack;
     // @ts-ignore
     if (typeof window != 'undefined') window.writeValue = writeValue;
     // @ts-ignore
