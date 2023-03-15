@@ -27,6 +27,7 @@ export let poller: EventEmitter;
 export let profiles: Record<number, PuffcoProfile>;
 
 export const decoder = new TextDecoder('utf-8');
+export const encoder = new TextEncoder();
 
 export const Characteristic = {
   ACCESS_KEY: `${BASE_CHARACTERISTIC}e0`,
@@ -356,7 +357,7 @@ export async function writeValue(characteristic: string, value: Uint8Array) {
   await char.writeValue(Buffer.from(value));
 }
 
-export async function startPolling() {
+export async function startPolling(device?: BluetoothDevice) {
   poller = new EventEmitter();
   if (!service) return;
 
@@ -389,8 +390,13 @@ export async function startPolling() {
   initState.totalDabs = Number(hexToFloat(flipHexString('0x' + dabsString, 8)));
   deviceInfo.totalDabs = initState.totalDabs;
 
-  const [, initDeviceName] = await getValue(service, Characteristic.DEVICE_NAME);
-  initState.deviceName = decoder.decode(initDeviceName);
+  const [, initDeviceName] = await getValue(service, Characteristic.DEVICE_NAME, 0);
+  if (initDeviceName.byteLength == 0 && device) {
+    await writeValue(Characteristic.DEVICE_NAME, encoder.encode(device.name));
+    initState.deviceName = device.name;
+  } else {
+    initState.deviceName = decoder.decode(initDeviceName);
+  }
   deviceInfo.name = initState.deviceName;
 
   const [, initProfileName] = await getValue(service, Characteristic.PROFILE_NAME, 0);

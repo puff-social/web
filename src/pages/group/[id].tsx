@@ -433,7 +433,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
         position: "bottom-right",
       });
       setDeviceProfiles(profiles);
-      const { poller, initState, deviceInfo } = await startPolling();
+      const { poller, initState, deviceInfo } = await startPolling(device);
       await trackDevice(deviceInfo, ourName);
       gateway.send(Op.SendDeviceState, initState);
       setDeviceConnected(true);
