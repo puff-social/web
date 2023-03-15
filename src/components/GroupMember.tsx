@@ -6,7 +6,7 @@ import {
   PuffcoOperatingMap,
   PuffcoOperatingState,
 } from "../types/gateway";
-import { ChargeSource, ProductModelMap } from "../utils/puffco";
+import { ChamberType, ChargeSource, ProductModelMap } from "../utils/puffco";
 import { Battery, BatteryBolt } from "./icons/Battery";
 import { Checkmark } from "./icons/Checkmark";
 import { Counter } from "./icons/Counter";
@@ -15,6 +15,7 @@ import { Tippy } from "./Tippy";
 import { Bluetooth } from "./icons/Bluetooth";
 import { Crown } from "./icons/Crown";
 import { secondsToMinutesSeconds } from "../utils/functions";
+import { Icon3D } from "./icons/3DIcon";
 
 interface GroupMemberProps {
   name?: string;
@@ -184,6 +185,15 @@ export function GroupMember(props: GroupMemberProps) {
                   </span>
                 </span>
               </Tippy>
+              {props.device.chamberType == ChamberType["3D"] ? (
+                <Tippy content="3D Chamber" placement="bottom-start">
+                  <span>
+                    <Icon3D />
+                  </span>
+                </Tippy>
+              ) : (
+                <></>
+              )}
             </span>
           </span>
         </div>
