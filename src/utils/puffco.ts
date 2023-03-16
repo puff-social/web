@@ -393,7 +393,9 @@ export async function startPolling(device?: BluetoothDevice) {
   deviceInfo.model = initState.deviceModel;
 
   const [, initDeviceFirmware] = await getValue(modelService, FIRMWARE_INFORMATION, 0);
+  const [, initGitHash] = await getValue(service, Characteristic.GIT_HASH, 0);
   deviceInfo.firmware = decoder.decode(initDeviceFirmware);
+  deviceInfo.hash = decoder.decode(initGitHash);
 
   const [initTemperature] = await getValue(service, Characteristic.HEATER_TEMP);
   initState.temperature = Number(hexToFloat(initTemperature).toFixed(0));

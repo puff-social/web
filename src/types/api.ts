@@ -30,6 +30,7 @@ export interface DeviceInformation {
   owner: string;
   model: string;
   firmware: string;
+  hash: string;
 }
 
 export interface DiagService {

@@ -136,7 +136,9 @@ export function DeviceSettingsModal({
           </span>
           <span className="flex justify-between">
             <p className="font-bold">Firmware</p>
-            <p className="font-bold opacity-40">{info.firmware}</p>
+            <p className="font-bold opacity-40">
+              {info.firmware} ({info.hash})
+            </p>
           </span>
           <span className="flex justify-between">
             <p className="font-bold">Hit Count</p>
