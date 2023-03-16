@@ -67,11 +67,11 @@ export default function Home() {
   }, []);
 
   async function connectGroup(group: Pick<APIGroup, "name" | "group_id">) {
-    router.push(`/group/${group.group_id}`);
+    router.push(`/${group.group_id}`);
   }
 
   async function connectToPrivate(id: string) {
-    router.push(`/group/${id}`);
+    router.push(`/${id}`);
   }
 
   const createGroup = useCallback(() => {

@@ -56,7 +56,7 @@ export default function App({ Component, pageProps }) {
   }, []);
 
   async function connectGroup(group: Pick<APIGroup, "name" | "group_id">) {
-    router.push(`/group/${group.group_id}`);
+    router.push(`/${group.group_id}`);
   }
 
   return (

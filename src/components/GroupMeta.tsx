@@ -16,7 +16,7 @@ export function GroupMeta({ group }: { group?: APIGroup }) {
         name="url"
         content={
           group
-            ? `https://puff.social/group/${group.group_id}`
+            ? `https://puff.social/${group.group_id}`
             : "https://puff.social"
         }
       />

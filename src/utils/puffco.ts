@@ -19,6 +19,7 @@ export const BASE_CHARACTERISTIC = `f9a98c15-c651-4f34-b656-d100bf5800`;
 export const HANDSHAKE_KEY = Buffer.from("FUrZc0WilhUBteT2JlCc+A==", "base64");
 
 export let deviceModel: string;
+export let deviceFirmware: string;
 export let modelService: BluetoothRemoteGATTService;
 export let service: BluetoothRemoteGATTService;
 export let device: BluetoothDevice;
@@ -261,16 +262,20 @@ export async function startConnection() {
     if (typeof window != 'undefined') window.DeviceCommand = DeviceCommand;
 
     setTimeout(async () => {
+      const [, model] = await getValue(modelService, MODEL_INFORMATION, 0);
+      const [, firmware] = await getValue(modelService, FIRMWARE_INFORMATION, 0);
+
       const diagData: DiagData = {
         session_id: gateway.session_id,
         device_parameters: {
           name: device.name,
-          firmware: decoder.decode((await getValue(modelService, FIRMWARE_INFORMATION, 1).catch(() => [null, null]))[1]),
-          model: decoder.decode((await getValue(modelService, MODEL_INFORMATION, 1).catch(() => [null, null]))[1]),
+          firmware: decoder.decode(model),
+          model: decoder.decode(firmware),
         }
       };
 
       deviceModel = diagData.device_parameters.model;
+      deviceFirmware = diagData.device_parameters.firmware;
 
       try {
         diagData.device_services = await Promise.all((await server.getPrimaryServices()).map(async service => ({ uuid: service.uuid, characteristicCount: (await service.getCharacteristics()).length })));
@@ -279,7 +284,7 @@ export async function startConnection() {
       } catch (error) { }
 
       trackDiags(diagData);
-    }, 300);
+    }, 1000);
 
     const accessSeedKey = await service.getCharacteristic(Characteristic.ACCESS_KEY);
     const value = await accessSeedKey.readValue();
@@ -302,44 +307,44 @@ export async function startConnection() {
 
     profiles = await loopProfiles();
 
-    try {
-      const [, model] = await getValue(modelService, MODEL_INFORMATION, 0);
-      const [, firmware] = await getValue(modelService, FIRMWARE_INFORMATION, 0);
-      const [, gitHash] = await getValue(service, Characteristic.GIT_HASH, 0);
-      const [, deviceUptime] = await getValue(service, Characteristic.UPTIME, 0);
-      const [, deviceUtcTime] = await getValue(service, Characteristic.UTC_TIME, 0);
-      const [, deviceDob] = await getValue(service, Characteristic.DEVICE_BIRTHDAY, 0);
-      const [, batteryCapacity] = await getValue(service, Characteristic.BATTERY_CAPACITY, 0);
-      const [, euid] = await getValue(service, Characteristic.EUID, 0);
-      const [, chamberType] = await getValue(service, Characteristic.CHAMBER_TYPE, 0);
+    setTimeout(async () => {
+      try {
+        const [, gitHash] = await getValue(service, Characteristic.GIT_HASH, 0);
+        const [, deviceUptime] = await getValue(service, Characteristic.UPTIME, 0);
+        const [, deviceUtcTime] = await getValue(service, Characteristic.UTC_TIME, 0);
+        const [, deviceDob] = await getValue(service, Characteristic.DEVICE_BIRTHDAY, 0);
+        const [, batteryCapacity] = await getValue(service, Characteristic.BATTERY_CAPACITY, 0);
+        const [, euid] = await getValue(service, Characteristic.EUID, 0);
+        const [, chamberType] = await getValue(service, Characteristic.CHAMBER_TYPE, 0);
 
-      const loraxService = await server.getPrimaryService(LORAX_SERVICE).then(() => true).catch(() => false);
-      const pupService = await server.getPrimaryService(PUP_SERVICE).then(() => true).catch(() => false);
+        const loraxService = await server.getPrimaryService(LORAX_SERVICE).then(() => true).catch(() => false);
+        const pupService = await server.getPrimaryService(PUP_SERVICE).then(() => true).catch(() => false);
 
-      const diagData: DiagData = {
-        session_id: gateway.session_id,
-        device_services: await Promise.all((await server.getPrimaryServices()).map(async service => ({ uuid: service.uuid, characteristicCount: (await service.getCharacteristics()).length }))),
-        device_profiles: profiles,
-        device_parameters: {
-          name: device.name,
-          firmware: decoder.decode(firmware),
-          model: decoder.decode(model),
-          authenticated: true,
-          loraxService, pupService,
-          hash: decoder.decode(gitHash),
-          uptime: unpack(new Uint8Array(deviceUptime.buffer), { bits: 32 }),
-          utc: unpack(new Uint8Array(deviceUtcTime.buffer), { bits: 32 }),
-          batteryCapacity: unpack(new Uint8Array(batteryCapacity.buffer), { bits: 16 }),
-          uid: unpack(new Uint8Array(euid.buffer), { bits: 32 }).toString(),
-          chamberType: Number(unpack(new Uint8Array(chamberType.buffer), { bits: 8 })),
-          dob: Number(unpack(new Uint8Array(deviceDob.buffer), { bits: 32 })),
-        }
-      };
+        const diagData: DiagData = {
+          session_id: gateway.session_id,
+          device_services: await Promise.all((await server.getPrimaryServices()).map(async service => ({ uuid: service.uuid, characteristicCount: (await service.getCharacteristics()).length }))),
+          device_profiles: profiles,
+          device_parameters: {
+            name: device.name,
+            firmware: deviceFirmware,
+            model: deviceModel,
+            authenticated: true,
+            loraxService, pupService,
+            hash: decoder.decode(gitHash),
+            uptime: unpack(new Uint8Array(deviceUptime.buffer), { bits: 32 }),
+            utc: unpack(new Uint8Array(deviceUtcTime.buffer), { bits: 32 }),
+            batteryCapacity: unpack(new Uint8Array(batteryCapacity.buffer), { bits: 16 }),
+            uid: unpack(new Uint8Array(euid.buffer), { bits: 32 }).toString(),
+            chamberType: Number(unpack(new Uint8Array(chamberType.buffer), { bits: 8 })),
+            dob: Number(unpack(new Uint8Array(deviceDob.buffer), { bits: 32 })),
+          }
+        };
 
-      trackDiags(diagData);
-    } catch (error) {
-      console.error(`Failed to track diags: ${error}`);
-    }
+        trackDiags(diagData);
+      } catch (error) {
+        console.error(`Failed to track diags: ${error}`);
+      }
+    }, 1500);
 
     return { device, profiles };
   } catch (error) {
