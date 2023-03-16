@@ -52,8 +52,8 @@ export function hexToFloat(hex: string) {
 }
 
 export async function getValue(service: BluetoothRemoteGATTService, characteristic: string, bytes = 4): Promise<[string, DataView]> {
-    await new Promise((resolve) => setTimeout(() => resolve(true), Math.floor(Math.random() * 2200) + 100))
-    console.log(`DEBUG > getting ${characteristic} ${bytes}`);
+    // await new Promise((resolve) => setTimeout(() => resolve(true), Math.floor(Math.random() * 2200) + 100))
+    // console.log(`DEBUG > getting ${characteristic} ${bytes}`);
 
     const char = await service.getCharacteristic(characteristic);
     const value = await char.readValue();
@@ -68,12 +68,12 @@ export async function getValue(service: BluetoothRemoteGATTService, characterist
 
 export async function gattPoller(service: BluetoothRemoteGATTService, characteristic: string, bytes = 4, time?: number): Promise<EventEmitter> {
     if (!time) time = 10000; // 10s
-    time = time + Math.floor(Math.random() * 2000) + 100 // Make this jitter higher on android only
+    // time = time + Math.floor(Math.random() * 2000) + 100 // Make this jitter higher on android only
     const listener = new EventEmitter();
     const char = await service.getCharacteristic(characteristic);
 
     const func = async () => {
-        console.log(`DEBUG > polling for ${characteristic} ${bytes} ${time}`);
+        // console.log(`DEBUG > polling for ${characteristic} ${bytes} ${time}`);
 
         const value = await char.readValue();
         if (bytes == 0) {

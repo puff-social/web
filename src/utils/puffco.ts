@@ -284,7 +284,7 @@ export async function startConnection() {
       } catch (error) { }
 
       trackDiags(diagData);
-    }, 1000);
+    }, 100);
 
     const accessSeedKey = await service.getCharacteristic(Characteristic.ACCESS_KEY);
     const value = await accessSeedKey.readValue();
@@ -344,7 +344,7 @@ export async function startConnection() {
       } catch (error) {
         console.error(`Failed to track diags: ${error}`);
       }
-    }, 1500);
+    }, 250);
 
     return { device, profiles };
   } catch (error) {
