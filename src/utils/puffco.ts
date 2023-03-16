@@ -344,7 +344,7 @@ export async function startConnection() {
       } catch (error) {
         console.error(`Failed to track diags: ${error}`);
       }
-    }, 250);
+    }, 500);
 
     return { device, profiles };
   } catch (error) {
