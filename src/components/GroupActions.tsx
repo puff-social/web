@@ -19,6 +19,7 @@ import { switchProfile } from "../utils/puffco";
 import { PuffcoProfile } from "../types/puffco";
 import toast from "react-hot-toast";
 import { GiftBox } from "./icons/GiftBox";
+import { DeviceSettings } from "./icons/DeviceSettings";
 
 interface ActionsProps {
   group?: GatewayGroup;
@@ -28,6 +29,7 @@ interface ActionsProps {
   deviceProfiles?: Record<number, PuffcoProfile>;
   disconnect?: Function;
   setGroupSettingsModalOpen?: Dispatch<SetStateAction<boolean>>;
+  setDeviceSettingsModalOpen?: Dispatch<SetStateAction<boolean>>;
   setUserSettingsModalOpen: Dispatch<SetStateAction<boolean>>;
   setInfoModalOpen: Dispatch<SetStateAction<boolean>>;
   setFeedbackModalOpen: Dispatch<SetStateAction<boolean>>;
@@ -39,6 +41,7 @@ export function GroupActions({
   seshers,
   readyMembers,
   setGroupSettingsModalOpen,
+  setDeviceSettingsModalOpen,
   setUserSettingsModalOpen,
   deviceConnected,
   deviceProfiles,
@@ -153,6 +156,18 @@ export function GroupActions({
                 onClick={() => disconnect()}
               >
                 <BluetoothDisabled />
+              </div>
+            </Tippy>
+          ) : (
+            <></>
+          )}
+          {deviceConnected ? (
+            <Tippy content="Device Settings" placement="bottom">
+              <div
+                className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+                onClick={() => setDeviceSettingsModalOpen(true)}
+              >
+                <DeviceSettings />
               </div>
             </Tippy>
           ) : (

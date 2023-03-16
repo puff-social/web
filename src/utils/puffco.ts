@@ -113,6 +113,12 @@ export enum ChamberType {
   "3D" = 3
 }
 
+export const ChamberTypeMap = {
+  0: "None",
+  1: "Normal",
+  3: "3D"
+}
+
 export enum ChargeSource {
   USB,
   Wireless,
@@ -352,6 +358,20 @@ export async function sendCommand(command: Uint8Array) {
   await writeValue(Characteristic.COMMAND, command);
 }
 
+export async function updateDeviceDob(date: Date) {
+  await writeValue(
+    Characteristic.DEVICE_BIRTHDAY,
+    new Uint8Array(pack(date.getTime() / 1000, { bits: 32 }))
+  );
+}
+
+export async function updateDeviceName(name: string) {
+  await writeValue(
+    Characteristic.DEVICE_NAME,
+    new TextEncoder().encode(name)
+  );
+}
+
 export async function writeValue(characteristic: string, value: Uint8Array) {
   if (!service) return;
 
@@ -368,9 +388,12 @@ export async function startPolling(device?: BluetoothDevice) {
 
   await new Promise((resolve) => setTimeout(() => resolve(true), 200));
 
-  const [, initDeviceModal] = await getValue(modelService, MODEL_INFORMATION, 1);
+  const [, initDeviceModal] = await getValue(modelService, MODEL_INFORMATION, 0);
   initState.deviceModel = decoder.decode(initDeviceModal);
   deviceInfo.model = initState.deviceModel;
+
+  const [, initDeviceFirmware] = await getValue(modelService, FIRMWARE_INFORMATION, 0);
+  deviceInfo.firmware = decoder.decode(initDeviceFirmware);
 
   const [initTemperature] = await getValue(service, Characteristic.HEATER_TEMP);
   initState.temperature = Number(hexToFloat(initTemperature).toFixed(0));
@@ -413,7 +436,7 @@ export async function startPolling(device?: BluetoothDevice) {
   };
 
   const [, initDeviceBirthday] = await getValue(service, Characteristic.DEVICE_BIRTHDAY);
-  deviceInfo.id = Buffer.from(unpack(new Uint8Array(initDeviceBirthday.buffer), { bits: 32 }).toString()).toString('base64');
+  deviceInfo.dob = Number(unpack(new Uint8Array(initDeviceBirthday.buffer), { bits: 32 }).toString());
 
   const [, initEuid] = await getValue(service, Characteristic.EUID);
   deviceInfo.uid = Buffer.from(unpack(new Uint8Array(initEuid.buffer), { bits: 32 }).toString()).toString('base64');

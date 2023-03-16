@@ -45,6 +45,8 @@ import {
 } from "../../components/icons/Bluetooth";
 import { GroupActions } from "../../components/GroupActions";
 import { PuffcoProfile } from "../../types/puffco";
+import { DeviceInformation } from "../../types/api";
+import { DeviceSettingsModal } from "../../components/modals/DeviceSettings";
 
 export default function Group({ group: initGroup }: { group: APIGroup }) {
   const router = useRouter();
@@ -64,11 +66,13 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   const [deviceProfiles, setDeviceProfiles] = useState<
     Record<number, PuffcoProfile>
   >({});
+  const [deviceInfo, setDeviceInfo] = useState<DeviceInformation>();
   const [myDevice, setMyDevice] = useState<GatewayMemberDeviceState>();
 
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [userSettingsModalOpen, setUserSettingsModalOpen] = useState(false);
+  const [deviceSettingsModalOpen, setDeviceSettingsModalOpen] = useState(false);
   const [groupSettingsModalOpen, setGroupSettingsModalOpen] = useState(false);
   const [infoModalOpen, setInfoModalOpen] = useState(() =>
     typeof localStorage != "undefined"
@@ -437,10 +441,14 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       await trackDevice(deviceInfo, ourName);
       gateway.send(Op.SendDeviceState, initState);
       setDeviceConnected(true);
+      setDeviceInfo(deviceInfo as DeviceInformation);
       setMyDevice((curr) => ({ ...curr, ...initState }));
       poller.on("data", async (data) => {
         if (data.totalDabs)
-          trackDevice({ ...deviceInfo, totalDabs: data.totalDabs }, ourName);
+          setDeviceInfo((deviceInfo) => {
+            trackDevice({ ...deviceInfo, totalDabs: data.totalDabs }, ourName);
+            return deviceInfo;
+          });
         setGroup((currGroup) => {
           if (
             currGroup.state == GroupState.Awaiting &&
@@ -518,6 +526,18 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
         modalOpen={userSettingsModalOpen}
         setModalOpen={setUserSettingsModalOpen}
       />
+      {deviceConnected ? (
+        <DeviceSettingsModal
+          device={myDevice}
+          info={deviceInfo}
+          setDeviceInfo={setDeviceInfo}
+          setMyDevice={setMyDevice}
+          modalOpen={deviceSettingsModalOpen}
+          setModalOpen={setDeviceSettingsModalOpen}
+        />
+      ) : (
+        <></>
+      )}
       <InfoModal modalOpen={infoModalOpen} setModalOpen={setInfoModalOpen} />
 
       <LeaderboardModal
@@ -566,6 +586,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                 deviceProfiles={deviceProfiles}
                 disconnect={disconnect}
                 setGroupSettingsModalOpen={setGroupSettingsModalOpen}
+                setDeviceSettingsModalOpen={setDeviceSettingsModalOpen}
                 setUserSettingsModalOpen={setUserSettingsModalOpen}
                 setInfoModalOpen={setInfoModalOpen}
                 setFeedbackModalOpen={setFeedbackModalOpen}

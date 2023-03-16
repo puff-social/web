@@ -23,11 +23,13 @@ export interface APIGroup {
 
 export interface DeviceInformation {
   id: string;
+  dob: number;
   name: string;
   uid: string;
   totalDabs: number;
   owner: string;
   model: string;
+  firmware: string;
 }
 
 export interface DiagService {
