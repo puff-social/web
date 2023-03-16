@@ -261,21 +261,21 @@ export async function startConnection() {
     // @ts-ignore
     if (typeof window != 'undefined') window.DeviceCommand = DeviceCommand;
 
-    setTimeout(async () => {
-      const [, model] = await getValue(modelService, MODEL_INFORMATION, 0);
-      const [, firmware] = await getValue(modelService, FIRMWARE_INFORMATION, 0);
+    const [, model] = await getValue(modelService, MODEL_INFORMATION, 0);
+    const [, firmware] = await getValue(modelService, FIRMWARE_INFORMATION, 0);
+    deviceFirmware = decoder.decode(firmware);
+    deviceModel = decoder.decode(model);
 
+    setTimeout(async () => {
       const diagData: DiagData = {
         session_id: gateway.session_id,
         device_parameters: {
           name: device.name,
-          firmware: decoder.decode(model),
-          model: decoder.decode(firmware),
+          firmware: deviceFirmware,
+          model: deviceModel,
         }
       };
 
-      deviceModel = diagData.device_parameters.model;
-      deviceFirmware = diagData.device_parameters.firmware;
 
       try {
         diagData.device_services = await Promise.all((await server.getPrimaryServices()).map(async service => ({ uuid: service.uuid, characteristicCount: (await service.getCharacteristics()).length })));
@@ -307,44 +307,42 @@ export async function startConnection() {
 
     profiles = await loopProfiles();
 
-    setTimeout(async () => {
-      try {
-        const [, gitHash] = await getValue(service, Characteristic.GIT_HASH, 0);
-        const [, deviceUptime] = await getValue(service, Characteristic.UPTIME, 0);
-        const [, deviceUtcTime] = await getValue(service, Characteristic.UTC_TIME, 0);
-        const [, deviceDob] = await getValue(service, Characteristic.DEVICE_BIRTHDAY, 0);
-        const [, batteryCapacity] = await getValue(service, Characteristic.BATTERY_CAPACITY, 0);
-        const [, euid] = await getValue(service, Characteristic.EUID, 0);
-        const [, chamberType] = await getValue(service, Characteristic.CHAMBER_TYPE, 0);
+    try {
+      const [, gitHash] = await getValue(service, Characteristic.GIT_HASH, 0);
+      const [, deviceUptime] = await getValue(service, Characteristic.UPTIME, 0);
+      const [, deviceUtcTime] = await getValue(service, Characteristic.UTC_TIME, 0);
+      const [, deviceDob] = await getValue(service, Characteristic.DEVICE_BIRTHDAY, 0);
+      const [, batteryCapacity] = await getValue(service, Characteristic.BATTERY_CAPACITY, 0);
+      const [, euid] = await getValue(service, Characteristic.EUID, 0);
+      const [, chamberType] = await getValue(service, Characteristic.CHAMBER_TYPE, 0);
 
-        const loraxService = await server.getPrimaryService(LORAX_SERVICE).then(() => true).catch(() => false);
-        const pupService = await server.getPrimaryService(PUP_SERVICE).then(() => true).catch(() => false);
+      const loraxService = await server.getPrimaryService(LORAX_SERVICE).then(() => true).catch(() => false);
+      const pupService = await server.getPrimaryService(PUP_SERVICE).then(() => true).catch(() => false);
 
-        const diagData: DiagData = {
-          session_id: gateway.session_id,
-          device_services: await Promise.all((await server.getPrimaryServices()).map(async service => ({ uuid: service.uuid, characteristicCount: (await service.getCharacteristics()).length }))),
-          device_profiles: profiles,
-          device_parameters: {
-            name: device.name,
-            firmware: deviceFirmware,
-            model: deviceModel,
-            authenticated: true,
-            loraxService, pupService,
-            hash: decoder.decode(gitHash),
-            uptime: unpack(new Uint8Array(deviceUptime.buffer), { bits: 32 }),
-            utc: unpack(new Uint8Array(deviceUtcTime.buffer), { bits: 32 }),
-            batteryCapacity: unpack(new Uint8Array(batteryCapacity.buffer), { bits: 16 }),
-            uid: unpack(new Uint8Array(euid.buffer), { bits: 32 }).toString(),
-            chamberType: Number(unpack(new Uint8Array(chamberType.buffer), { bits: 8 })),
-            dob: Number(unpack(new Uint8Array(deviceDob.buffer), { bits: 32 })),
-          }
-        };
+      const diagData: DiagData = {
+        session_id: gateway.session_id,
+        device_services: await Promise.all((await server.getPrimaryServices()).map(async service => ({ uuid: service.uuid, characteristicCount: (await service.getCharacteristics()).length }))),
+        device_profiles: profiles,
+        device_parameters: {
+          name: device.name,
+          firmware: deviceFirmware,
+          model: deviceModel,
+          authenticated: true,
+          loraxService, pupService,
+          hash: decoder.decode(gitHash),
+          uptime: unpack(new Uint8Array(deviceUptime.buffer), { bits: 32 }),
+          utc: unpack(new Uint8Array(deviceUtcTime.buffer), { bits: 32 }),
+          batteryCapacity: unpack(new Uint8Array(batteryCapacity.buffer), { bits: 16 }),
+          uid: unpack(new Uint8Array(euid.buffer), { bits: 32 }).toString(),
+          chamberType: Number(unpack(new Uint8Array(chamberType.buffer), { bits: 8 })),
+          dob: Number(unpack(new Uint8Array(deviceDob.buffer), { bits: 32 })),
+        }
+      };
 
-        trackDiags(diagData);
-      } catch (error) {
-        console.error(`Failed to track diags: ${error}`);
-      }
-    }, 500);
+      trackDiags(diagData);
+    } catch (error) {
+      console.error(`Failed to track diags: ${error}`);
+    }
 
     return { device, profiles };
   } catch (error) {
