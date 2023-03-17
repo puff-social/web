@@ -377,8 +377,8 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   useEffect(() => {
     if (initGroup && initGroup.group_id) {
       if (firstVisit) {
-        // if (typeof localStorage != "undefined")
-        //   localStorage.setItem("puff-social-first-visit", "false");
+        if (typeof localStorage != "undefined")
+          localStorage.setItem("puff-social-first-visit", "false");
         toast(
           <span className="max-w-md">
             We see this is your first visit, you should read our{" "}
