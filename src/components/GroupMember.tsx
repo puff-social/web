@@ -104,11 +104,11 @@ export function GroupMember(props: GroupMemberProps) {
     <div className="flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md m-4 px-8 w-96 h-72 justify-center items-center">
       {(props.us && !!props.device) || props.device ? (
         <div className="flex flex-col justify-between w-full">
-          <div className="flex flex-row-reverse">
+          <div className="flex flex-row-reverse absolute right-0 bottom-0 m-4">
             {!props.owner &&
             props.group.owner_session_id == gateway.session_id ? (
               <Tippy
-                placement="left-start"
+                placement="top-start"
                 trigger="click"
                 content={
                   <div className="flex flex-col bg-neutral-300 dark:bg-neutral-900 rounded-lg drop-shadow-xl p-4 space-y-2 w-72">
