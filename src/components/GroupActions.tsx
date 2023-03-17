@@ -31,7 +31,6 @@ interface ActionsProps {
   setGroupSettingsModalOpen?: Dispatch<SetStateAction<boolean>>;
   setDeviceSettingsModalOpen?: Dispatch<SetStateAction<boolean>>;
   setUserSettingsModalOpen: Dispatch<SetStateAction<boolean>>;
-  setInfoModalOpen: Dispatch<SetStateAction<boolean>>;
   setFeedbackModalOpen: Dispatch<SetStateAction<boolean>>;
   setLeaderboardOpen: Dispatch<SetStateAction<boolean>>;
 }
@@ -46,7 +45,6 @@ export function GroupActions({
   deviceConnected,
   deviceProfiles,
   disconnect,
-  setInfoModalOpen,
   setFeedbackModalOpen,
   setLeaderboardOpen,
 }: ActionsProps) {
@@ -242,7 +240,7 @@ export function GroupActions({
       <Tippy content="Information" placement="bottom">
         <div
           className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-          onClick={() => setInfoModalOpen(true)}
+          onClick={() => router.push("/info")}
         >
           <Info />
         </div>

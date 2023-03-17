@@ -1,19 +1,12 @@
-import Head from "next/head";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
 
 import { APIGroup } from "../types/api";
 import { getGroups } from "../utils/api";
 import { gateway, Op } from "../utils/gateway";
-import { Settings } from "../components/icons/Settings";
 import { UserSettingsModal } from "../components/modals/UserSettings";
-import { InfoModal } from "../components/modals/Info";
-import { Info } from "../components/icons/Info";
 import { FeedbackModal } from "../components/modals/Feedback";
-import { Mail } from "../components/icons/Mail";
-import { LeaderboardIcon } from "../components/icons/LeaderboardIcon";
 import { LeaderboardModal } from "../components/modals/Leaderboard";
-import { Tippy } from "../components/Tippy";
 import { Checkmark } from "../components/icons/Checkmark";
 import NoSSR from "../components/NoSSR";
 import { GroupActions } from "../components/GroupActions";
@@ -28,10 +21,10 @@ export default function Home() {
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
-  const [infoModalOpen, setInfoModalOpen] = useState(() =>
+  const [firstVisit] = useState(() =>
     typeof localStorage != "undefined"
-      ? !(localStorage.getItem("puff-social-first-visit") == "false")
-      : false
+      ? localStorage.getItem("puff-social-first-visit") != "false"
+      : true
   );
 
   const [groupVisibility, getGroupVisbility] = useState(() =>
@@ -57,10 +50,14 @@ export default function Home() {
   useEffect(() => {
     init();
 
-    if (typeof localStorage != "undefined")
-      localStorage.setItem("puff-social-first-visit", "false");
+    if (firstVisit) {
+      if (typeof localStorage != "undefined")
+        localStorage.setItem("puff-social-first-visit", "false");
+      router.push("/info");
+    }
 
     gateway.on("public_groups_update", groupsUpdated);
+
     return () => {
       gateway.removeListener("public_groups_update", groupsUpdated);
     };
@@ -98,7 +95,6 @@ export default function Home() {
         </div>
         <GroupActions
           setUserSettingsModalOpen={setSettingsModalOpen}
-          setInfoModalOpen={setInfoModalOpen}
           setFeedbackModalOpen={setFeedbackModalOpen}
           setLeaderboardOpen={setLeaderboardOpen}
         />
@@ -113,7 +109,6 @@ export default function Home() {
         modalOpen={leaderboardOpen}
         setModalOpen={setLeaderboardOpen}
       />
-      <InfoModal modalOpen={infoModalOpen} setModalOpen={setInfoModalOpen} />
       <FeedbackModal
         modalOpen={feedbackModalOpen}
         setModalOpen={setFeedbackModalOpen}

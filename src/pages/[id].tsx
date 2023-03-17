@@ -29,7 +29,6 @@ import {
 } from "../utils/puffco";
 import { gateway, Op } from "../utils/gateway";
 import { UserSettingsModal } from "../components/modals/UserSettings";
-import { InfoModal } from "../components/modals/Info";
 import { trackDevice } from "../utils/analytics";
 import { GroupMeta } from "../components/GroupMeta";
 import { NextPageContext } from "next";
@@ -49,6 +48,7 @@ import { PuffcoProfile } from "../types/puffco";
 import { DeviceInformation } from "../types/api";
 import { DeviceSettingsModal } from "../components/modals/DeviceSettings";
 import { Kick } from "../components/icons/Kick";
+import Link from "next/link";
 
 export default function Group({ group: initGroup }: { group: APIGroup }) {
   const router = useRouter();
@@ -76,10 +76,11 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   const [userSettingsModalOpen, setUserSettingsModalOpen] = useState(false);
   const [deviceSettingsModalOpen, setDeviceSettingsModalOpen] = useState(false);
   const [groupSettingsModalOpen, setGroupSettingsModalOpen] = useState(false);
-  const [infoModalOpen, setInfoModalOpen] = useState(() =>
+
+  const [firstVisit] = useState(() =>
     typeof localStorage != "undefined"
-      ? !(localStorage.getItem("puff-social-first-visit") == "false")
-      : false
+      ? localStorage.getItem("puff-social-first-visit") != "false"
+      : true
   );
 
   function validState(state: GatewayMemberDeviceState) {
@@ -375,6 +376,25 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
 
   useEffect(() => {
     if (initGroup && initGroup.group_id) {
+      if (firstVisit) {
+        // if (typeof localStorage != "undefined")
+        //   localStorage.setItem("puff-social-first-visit", "false");
+        toast(
+          <span className="max-w-md">
+            We see this is your first visit, you should read our{" "}
+            <Link className="text-blue-700 dark:text-blue-400" href={"/info"}>
+              info page
+            </Link>{" "}
+            to learn more about what puff.social is :)
+          </span>,
+          {
+            position: "top-center",
+            icon: "👋",
+            style: { width: "300px" },
+            duration: 10000,
+          }
+        );
+      }
       gateway.on("joined_group", joinedGroup);
       gateway.on("group_join_error", groupJoinError);
       gateway.on("group_user_update", groupMemberUpdated);
@@ -550,7 +570,6 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       ) : (
         <></>
       )}
-      <InfoModal modalOpen={infoModalOpen} setModalOpen={setInfoModalOpen} />
 
       <LeaderboardModal
         modalOpen={leaderboardOpen}
@@ -600,7 +619,6 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                 setGroupSettingsModalOpen={setGroupSettingsModalOpen}
                 setDeviceSettingsModalOpen={setDeviceSettingsModalOpen}
                 setUserSettingsModalOpen={setUserSettingsModalOpen}
-                setInfoModalOpen={setInfoModalOpen}
                 setFeedbackModalOpen={setFeedbackModalOpen}
                 setLeaderboardOpen={setLeaderboardOpen}
               />
