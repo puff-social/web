@@ -85,7 +85,7 @@ export interface GatewayGroup {
   sesh_counter: number;
 }
 
-export interface GatewayGroupDelete {
+export interface GatewayGroupAction {
   group_id: string;
 }
 

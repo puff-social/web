@@ -7,6 +7,7 @@ import { Tippy } from "../components/Tippy";
 import {
   GatewayError,
   GatewayGroup,
+  GatewayGroupAction,
   GatewayGroupMember,
   GatewayMemberDeviceState,
   GroupActionInitiator,
@@ -47,6 +48,7 @@ import { GroupActions } from "../components/GroupActions";
 import { PuffcoProfile } from "../types/puffco";
 import { DeviceInformation } from "../types/api";
 import { DeviceSettingsModal } from "../components/modals/DeviceSettings";
+import { Kick } from "../components/icons/Kick";
 
 export default function Group({ group: initGroup }: { group: APIGroup }) {
   const router = useRouter();
@@ -187,6 +189,14 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
         });
       return [...curr.filter((mem) => mem.session_id != session_id)];
     });
+  }
+
+  function groupUserKicked() {
+    toast(`You were kicked from this group`, {
+      position: "bottom-right",
+      icon: <Kick />,
+    });
+    router.push("/");
   }
 
   const groupReaction = useCallback(
@@ -378,6 +388,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       gateway.on("group_user_unready", groupMemberUnready);
       gateway.on("group_user_join", groupMemberJoin);
       gateway.on("group_user_left", groupMemberLeft);
+      gateway.on("group_user_kicked", groupUserKicked);
       gateway.on("group_reaction", groupReaction);
       if (gateway.ws.readyState == gateway.ws.OPEN)
         gateway.send(Op.Join, { group_id: initGroup.group_id });
@@ -410,6 +421,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
         gateway.removeListener("group_user_unready", groupMemberUnready);
         gateway.removeListener("group_user_join", groupMemberJoin);
         gateway.removeListener("group_user_left", groupMemberLeft);
+        gateway.removeListener("group_user_kicked", groupUserKicked);
         gateway.removeListener("group_reaction", groupReaction);
       };
     }
@@ -606,6 +618,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                 connectToDevice={connectToDevice}
                 nobody={seshers == 0}
                 owner={group.owner_session_id == gateway.session_id}
+                group={group}
                 us
               />
               {groupMembers
@@ -616,6 +629,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                     ready={readyMembers.includes(member.session_id)}
                     member={member}
                     owner={group.owner_session_id == member.session_id}
+                    group={group}
                     key={member.session_id}
                   />
                 ))}

@@ -1,7 +1,7 @@
 import { EventEmitter } from "events";
 import { inflate, deflate } from "pako";
 import { APIGroup } from "../types/api";
-import { GatewayError, GatewayGroup, GatewayGroupCreate, GatewayGroupDelete, GroupActionInitiator, GroupReaction, GroupUserDeviceDisconnect, GroupUserDeviceUpdate, GroupUserJoin, GroupUserLeft, GroupUserUpdate } from "../types/gateway";
+import { GatewayError, GatewayGroup, GatewayGroupCreate, GatewayGroupAction, GroupActionInitiator, GroupReaction, GroupUserDeviceDisconnect, GroupUserDeviceUpdate, GroupUserJoin, GroupUserLeft, GroupUserUpdate } from "../types/gateway";
 
 export enum Op {
   Hello,
@@ -20,6 +20,8 @@ export enum Op {
   ResumeSession,
   SendReaction,
   DeleteGroup,
+  TransferOwnership,
+  KickFromGroup,
   Heartbeat = 420
 }
 
@@ -45,6 +47,7 @@ enum Event {
   GroupUserDeviceDisconnect = "GROUP_USER_DEVICE_DISCONNECT",
   GroupReaction = "GROUP_REACTION",
   GroupMessage = "GROUP_MESSAGE",
+  GroupUserKicked = "GROUP_USER_KICKED",
   SessionResumed = "SESSION_RESUMED"
 }
 
@@ -83,7 +86,7 @@ export interface Gateway {
   on(event: "group_user_left", listener: (group: GroupUserLeft) => void): this;
   on(event: "group_create", listener: (group: GatewayGroupCreate) => void): this;
   on(event: "group_update", listener: (group: GatewayGroup) => void): this;
-  on(event: "group_delete", listener: (group: GatewayGroupDelete) => void): this;
+  on(event: "group_delete", listener: (group: GatewayGroupAction) => void): this;
   on(event: "group_user_update", listener: (group: GroupUserUpdate) => void): this;
   on(event: "group_user_device_update", listener: (group: GroupUserDeviceUpdate) => void): this;
   on(event: "group_user_device_disconnect", listener: (group: GroupUserDeviceDisconnect) => void): this;
@@ -96,6 +99,7 @@ export interface Gateway {
   on(event: "group_create_error", listener: (error: GatewayError) => void): this;
   on(event: "group_message", listener: (message: any) => void): this;
   on(event: "group_reaction", listener: (reaction: GroupReaction) => void): this;
+  on(event: "group_user_kicked", listener: (group: GatewayGroupAction) => void): this;
   on(event: "user_update_error", listener: (error: GatewayError) => void): this;
 }
 export class Gateway extends EventEmitter {
@@ -283,6 +287,10 @@ export class Gateway extends EventEmitter {
           case Event.SessionResumed: {
             this.session_id = data.d.session_id;
             this.emit('session_resumed', data.d);
+            break;
+          }
+          case Event.GroupUserKicked: {
+            this.emit('group_user_kicked', data.d);
             break;
           }
         }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import {
+  GatewayGroup,
   GatewayGroupMember,
   GatewayMemberDeviceState,
   PuffcoOperatingMap,
@@ -16,9 +17,13 @@ import { Bluetooth } from "./icons/Bluetooth";
 import { Crown } from "./icons/Crown";
 import { secondsToMinutesSeconds } from "../utils/functions";
 import { Icon3D } from "./icons/3DIcon";
+import { Dots } from "./icons/Dots";
+import { Kick } from "./icons/Kick";
+import { Op, gateway } from "../utils/gateway";
 
 interface GroupMemberProps {
   name?: string;
+  group?: GatewayGroup;
   device?: GatewayMemberDeviceState;
   member?: GatewayGroupMember;
   ready?: boolean;
@@ -96,122 +101,165 @@ export function GroupMember(props: GroupMemberProps) {
   if (props.us && !props.connected && connectDismissed) return <></>;
 
   return (
-    <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md m-4 px-8 w-96 h-80 justify-center items-center">
+    <div className="flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md m-4 px-8 w-96 h-72 justify-center items-center">
       {(props.us && !!props.device) || props.device ? (
-        <div className="flex flex-row space-x-4 w-full">
-          <PuffcoContainer
-            id={
-              props.us
-                ? "self"
-                : `${props.member.session_id}-${props.device.deviceName}`
-            }
-            className="-z-50 h-full w-[120px]"
-            model={ProductModelMap[props.device.deviceModel].toLowerCase()}
-            device={props.device}
-          />
-          <span className="flex flex-col p-4 w-full">
-            <p style={{ visibility: "hidden", display: "none" }}>
-              {props.device.activeColor.r +
-                props.device.activeColor.g +
-                props.device.activeColor.b}
-            </p>
-            {props.owner ? (
-              <Tippy content="Group owner" placement="top-start">
-                <div>
-                  <Crown className="text-green-700" />
-                </div>
+        <div className="flex flex-col justify-between w-full">
+          <div className="flex flex-row-reverse">
+            {!props.owner &&
+            props.group.owner_session_id == gateway.session_id ? (
+              <Tippy
+                placement="left-start"
+                trigger="click"
+                content={
+                  <div className="flex flex-col bg-neutral-900 rounded-lg drop-shadow-xl p-4 space-y-2 w-72">
+                    <span
+                      className="flex p-2 rounded-md bg-neutral-700 hover:bg-neutral-600 cursor-pointer justify-between"
+                      onClick={() =>
+                        gateway.send(Op.TransferOwnership, {
+                          session_id: props.member.session_id,
+                        })
+                      }
+                    >
+                      <p>Make owner</p>
+                      <Crown />
+                    </span>
+                    <span
+                      className="flex p-2 rounded-md bg-neutral-700 hover:bg-neutral-600 cursor-pointer justify-between text-red-300"
+                      onClick={() =>
+                        gateway.send(Op.KickFromGroup, {
+                          session_id: props.member.session_id,
+                        })
+                      }
+                    >
+                      <p>Kick from group</p>
+                      <Kick />
+                    </span>
+                  </div>
+                }
+                interactive
+              >
+                <span>
+                  <Dots />
+                </span>
               </Tippy>
             ) : (
               <></>
             )}
-            <h1 className="m-0 text-xl font-bold truncate">
-              {props.us ? props.name : props.member.name}
-            </h1>
-            {props.device && (
-              <div className="flex space-x-3">
-                <span className="flex flex-row justify-center items-center">
-                  <Tippy content="Total Dabs" placement="bottom">
-                    <div className="flex justify-center">
-                      <Counter className="m-1 ml-0" />
-                      <p className="m-0 p-1 text-lg">
-                        {props.device.totalDabs.toLocaleString()}
-                      </p>
-                    </div>
-                  </Tippy>
-                </span>
-                <Tippy content="Battery" placement="bottom">
+          </div>
+          <div className="flex flex-row space-x-4 w-full h-full items-center justify-center">
+            <PuffcoContainer
+              id={
+                props.us
+                  ? "self"
+                  : `${props.member.session_id}-${props.device.deviceName}`
+              }
+              className="-z-50 h-full w-[160px] scale-150"
+              model={ProductModelMap[props.device.deviceModel].toLowerCase()}
+              device={props.device}
+            />
+            <span className="flex flex-col p-4 w-full">
+              <p style={{ visibility: "hidden", display: "none" }}>
+                {props.device.activeColor.r +
+                  props.device.activeColor.g +
+                  props.device.activeColor.b}
+              </p>
+              {props.owner ? (
+                <Tippy content="Group owner" placement="top-start">
+                  <div>
+                    <Crown className="text-green-700" />
+                  </div>
+                </Tippy>
+              ) : (
+                <></>
+              )}
+              <h1 className="m-0 text-xl font-bold truncate">
+                {props.us ? props.name : props.member.name}
+              </h1>
+              {props.device && (
+                <div className="flex space-x-3">
                   <span className="flex flex-row justify-center items-center">
-                    {props.device.chargeSource == ChargeSource.None ? (
-                      <Battery className="m-1" />
-                    ) : (
-                      <BatteryBolt className="m-1" />
-                    )}
-                    <p className="m-0 p-1 text-lg">{props.device.battery}%</p>
+                    <Tippy content="Total Dabs" placement="bottom">
+                      <div className="flex justify-center">
+                        <Counter className="m-1 ml-0" />
+                        <p className="m-0 p-1 text-lg">
+                          {props.device.totalDabs.toLocaleString()}
+                        </p>
+                      </div>
+                    </Tippy>
+                  </span>
+                  <Tippy content="Battery" placement="bottom">
+                    <span className="flex flex-row justify-center items-center">
+                      {props.device.chargeSource == ChargeSource.None ? (
+                        <Battery className="m-1" />
+                      ) : (
+                        <BatteryBolt className="m-1" />
+                      )}
+                      <p className="m-0 p-1 text-lg">{props.device.battery}%</p>
+                    </span>
+                  </Tippy>
+                </div>
+              )}
+
+              <span className="mt-4">
+                <h2 className="text-2xl">
+                  {props.device.temperature
+                    ? Math.floor(props.device.temperature * 1.8 + 32)
+                    : "--"}
+                  °
+                </h2>
+                <span className="flex flex-row">
+                  <h3 className="text-lg m-0">
+                    {props.ready &&
+                    props.device.state != PuffcoOperatingState.HEAT_CYCLE_ACTIVE
+                      ? "Ready"
+                      : PuffcoOperatingMap[props.device.state]}
+                    {[7, 8].includes(props.device.state)
+                      ? ` - ${secondsToMinutesSeconds(stateTimer)}`
+                      : ""}
+                  </h3>
+                  {props.ready ? (
+                    <Checkmark className="ml-2 text-green-700 w-[20px] h-[20px]" />
+                  ) : (
+                    <></>
+                  )}
+                </span>
+                <Tippy content="Current device profile" placement="bottom">
+                  <span className="flex space-x-2">
+                    <p className="text-sm truncate">
+                      {props.device.profile.name}
+                    </p>
+                    <span className="flex space-x-2 text-sm">
+                      <p>({props.device.profile.time}</p>
+                      <p className="opacity-40">@</p>
+                      <p>
+                        {Math.round(props.device.profile.temp * 1.8 + 32)}°)
+                      </p>
+                    </span>
                   </span>
                 </Tippy>
-              </div>
-            )}
 
-            <span className="mt-4">
-              <h2 className="text-2xl">
-                {props.device.temperature
-                  ? Math.floor(props.device.temperature * 1.8 + 32)
-                  : "--"}
-                °
-              </h2>
-              <span className="flex flex-row">
-                <h3 className="text-lg m-0">
-                  {props.ready &&
-                  props.device.state != PuffcoOperatingState.HEAT_CYCLE_ACTIVE
-                    ? "Ready"
-                    : PuffcoOperatingMap[props.device.state]}
-                  {[7, 8].includes(props.device.state)
-                    ? ` - ${secondsToMinutesSeconds(stateTimer)}`
-                    : ""}
-                </h3>
-                {props.ready ? (
-                  <Checkmark className="ml-2 text-green-700 w-[20px] h-[20px]" />
-                ) : (
-                  <></>
-                )}
-              </span>
-              <Tippy content="Current device profile" placement="bottom">
-                <span className="flex space-x-2">
-                  <p className="text-sm truncate">
-                    {props.device.profile.name}
-                  </p>
-                  <span className="flex space-x-2 text-sm">
-                    <p>({props.device.profile.time}</p>
-                    <p className="opacity-40">@</p>
-                    <p>{Math.round(props.device.profile.temp * 1.8 + 32)}°)</p>
-                  </span>
-                </span>
-              </Tippy>
-
-              {props.device.chamberType == ChamberType["3D"] ? (
-                <Tippy
-                  placement="right-start"
-                  content={
-                    <span className="flex flex-row w-fit">
+                {props.device.chamberType == ChamberType["3D"] ? (
+                  <Tippy
+                    placement="right-start"
+                    content={
                       <span className="flex px-1 py-1.5 border border-white items-center justify-center w-fit">
                         <p className="coda-regular tracking-widest uppercase text-xs px-1">
                           Chamber
                         </p>
                       </span>
-                    </span>
-                  }
-                >
-                  <span className="flex flex-row mt-2 w-fit">
-                    <span className="flex px-1 border border-white items-center justify-center w-fit">
+                    }
+                  >
+                    <span className="flex mt-2 px-1 border border-white items-center justify-center w-fit">
                       <Icon3D />
                     </span>
-                  </span>
-                </Tippy>
-              ) : (
-                <></>
-              )}
+                  </Tippy>
+                ) : (
+                  <></>
+                )}
+              </span>
             </span>
-          </span>
+          </div>
+          <div />
         </div>
       ) : props.nobodyelse ? (
         <span className="flex flex-col space-y-8 justify-between items-center">
