@@ -7,7 +7,6 @@ import { Tippy } from "../components/Tippy";
 import {
   GatewayError,
   GatewayGroup,
-  GatewayGroupAction,
   GatewayGroupMember,
   GatewayMemberDeviceState,
   GroupActionInitiator,
@@ -49,6 +48,8 @@ import { DeviceInformation } from "../types/api";
 import { DeviceSettingsModal } from "../components/modals/DeviceSettings";
 import { Kick } from "../components/icons/Kick";
 import Link from "next/link";
+import { ChatBox } from "../components/Chat";
+import { ChatIcon } from "../components/icons/Chat";
 
 export default function Group({ group: initGroup }: { group: APIGroup }) {
   const router = useRouter();
@@ -57,6 +58,9 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   const [group, setGroup] = useState<GatewayGroup>();
   const [groupJoinErrorMessage, setGroupJoinErrorMessage] = useState<string>();
   const [groupMembers, setGroupMembers] = useState<GatewayGroupMember[]>([]);
+
+  const [chatBoxOpen, setChatBoxOpen] = useState(false);
+  const [chatUnread, setChatUnread] = useState(false);
 
   const [ourName, setOurName] = useState(() =>
     typeof localStorage != "undefined"
@@ -374,6 +378,8 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     gateway.send(Op.DisconnectDevice);
   }, [deviceConnected]);
 
+  function groupMessage() {}
+
   useEffect(() => {
     if (initGroup && initGroup.group_id) {
       if (firstVisit) {
@@ -455,6 +461,13 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   }, [updatedGroup]);
 
   useEffect(() => {
+    gateway.on("group_message", groupMessage);
+    return () => {
+      gateway.removeListener("group_message", groupMessage);
+    };
+  }, [chatBoxOpen]);
+
+  useEffect(() => {
     gateway.on("group_delete", deletedGroup);
     return () => {
       gateway.removeListener("group_delete", deletedGroup);
@@ -525,6 +538,10 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     setSeshers(currentSeshers + (deviceConnected ? 1 : 0));
     setWatchers(currentWatchers + (!deviceConnected ? 1 : 0));
   }, [groupMembers, deviceConnected]);
+
+  function closeChatBox(event: KeyboardEvent) {
+    event.code == "Escape" ? setChatBoxOpen(false) : null;
+  }
 
   return !initGroup ? (
     <div className="flex flex-col justify-center text-black bg-white dark:text-white dark:bg-neutral-900 h-screen">
@@ -653,6 +670,34 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                 ))}
               {seshers == 1 ? <GroupMember nobodyelse /> : <></>}
             </>
+          </div>
+
+          <div className="absolute right-0 bottom-0 m-4">
+            <Tippy
+              interactive
+              placement="left-start"
+              content={
+                <ChatBox
+                  chatBoxOpen={chatBoxOpen}
+                  group={group}
+                  ourName={ourName}
+                  members={groupMembers}
+                />
+              }
+              visible={chatBoxOpen}
+              onClickOutside={() => setChatBoxOpen(false)}
+              onShown={() => {
+                document.removeEventListener("keydown", closeChatBox);
+                document.addEventListener("keydown", closeChatBox);
+              }}
+            >
+              <span
+                onClick={() => setChatBoxOpen((prev) => !prev)}
+                className="flex bg-green-400 hover:bg-green-600 text-white p-4 rounded-full w-fit h-fit justify-center items-center"
+              >
+                <ChatIcon />
+              </span>
+            </Tippy>
           </div>
 
           <div />

@@ -138,3 +138,14 @@ export interface GroupReaction {
 export interface GroupActionInitiator {
   session_id: string;
 }
+
+export interface ChatMessageData {
+  content: string;
+  timestamp: number;
+}
+
+export interface GroupChatMessage {
+  group_id: string
+  author_session_id: string;
+  message: ChatMessageData;
+}
