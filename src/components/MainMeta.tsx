@@ -11,9 +11,12 @@ export function MainMeta({ pageName }: { pageName?: string }) {
       <meta name="copyright" content="Dustin Rouillard" />
       <meta name="rating" content="General" />
       <meta name="url" content={`https://puff.social/`} />
+      <meta name="summary" content={`The Virtual Dab Lounge`} />
+      <meta name="subject" content={`The Virtual Dab Lounge`} />
+      <meta name="subtitle" content={`The Virtual Dab Lounge`} />
       <meta
         name="description"
-        content={`Hop into a group, link your device, invite some homies, and sesh away!`}
+        content={`The Virtual Dab Lounge - Hop into a group, link your device, invite some homies, and start syncing your seshes today!`}
       />
       <meta name="twitter:creator" content="@dustinrouillard" />
       <meta name="twitter:site" content="@dustinrouillard" />
