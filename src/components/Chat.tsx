@@ -88,7 +88,7 @@ export function ChatBox(props: Props) {
                   :
                 </span>
                 <span>
-                  {new Date().toLocaleTimeString(
+                  {new Date(message.message.timestamp).toLocaleTimeString(
                     navigator.language || "en-US",
                     { timeStyle: "short" }
                   )}
