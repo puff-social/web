@@ -21,7 +21,7 @@ export default function Info() {
 
   return (
     <div className="flex flex-col justify-between h-screen">
-      <MainMeta />
+      <MainMeta pageName="Info" />
 
       <div className="flex flex-col m-4 z-10">
         <h1 className="text-4xl font-bold">puff.social</h1>
