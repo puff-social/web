@@ -23,7 +23,10 @@ export default function Info() {
     <div className="flex flex-col justify-between h-screen">
       <MainMeta pageName="Info" />
 
-      <div className="flex flex-col m-4 z-10">
+      <div
+        className="flex flex-col m-4 z-10 cursor-pointer"
+        onClick={() => router.push("/")}
+      >
         <h1 className="text-4xl font-bold">puff.social</h1>
         <h3 className="text font-bold">
           by&nbsp;
