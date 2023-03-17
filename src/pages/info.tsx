@@ -159,7 +159,7 @@ export default function Info() {
           </p>
         </div>
         <button
-          className="bg-blue-200 p-8 rounded-md w-96 mt-8 text-black dark:text-white"
+          className="bg-blue-500 p-8 rounded-md w-96 mt-8 text-black dark:text-white"
           onClick={() => router.push("/")}
         >
           Enter puff.social
