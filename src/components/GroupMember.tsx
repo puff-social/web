@@ -111,9 +111,9 @@ export function GroupMember(props: GroupMemberProps) {
                 placement="left-start"
                 trigger="click"
                 content={
-                  <div className="flex flex-col bg-neutral-900 rounded-lg drop-shadow-xl p-4 space-y-2 w-72">
+                  <div className="flex flex-col bg-neutral-300 dark:bg-neutral-900 rounded-lg drop-shadow-xl p-4 space-y-2 w-72">
                     <span
-                      className="flex p-2 rounded-md bg-neutral-700 hover:bg-neutral-600 cursor-pointer justify-between"
+                      className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between"
                       onClick={() =>
                         gateway.send(Op.TransferOwnership, {
                           session_id: props.member.session_id,
@@ -124,7 +124,7 @@ export function GroupMember(props: GroupMemberProps) {
                       <Crown />
                     </span>
                     <span
-                      className="flex p-2 rounded-md bg-neutral-700 hover:bg-neutral-600 cursor-pointer justify-between text-red-300"
+                      className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between text-red-600 dark:text-red-300"
                       onClick={() =>
                         gateway.send(Op.KickFromGroup, {
                           session_id: props.member.session_id,
