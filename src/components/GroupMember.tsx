@@ -153,7 +153,8 @@ export function GroupMember(props: GroupMemberProps) {
                   ? "self"
                   : `${props.member.session_id}-${props.device.deviceName}`
               }
-              className="-z-50 h-full w-[160px] scale-150"
+              svgClassName="h-60"
+              className="-z-50 h-full w-[160px]"
               model={ProductModelMap[props.device.deviceModel].toLowerCase()}
               device={props.device}
             />

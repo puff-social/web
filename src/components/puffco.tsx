@@ -5,6 +5,7 @@ import { PuffcoOperatingState } from "../types/gateway";
 import { ChargeSource } from "../utils/puffco";
 
 export interface DeviceProps {
+  svgClassName?: string;
   activeColor?: { r: number; g: number; b: number };
   brightness?: number;
   battery?: number;
@@ -18,6 +19,7 @@ export function PuffcoContainer({
   device,
   model = "peak",
   className,
+  svgClassName,
 }: {
   id: string;
   device?: DeviceProps;
@@ -115,7 +117,7 @@ export function PuffcoContainer({
       suppressHydrationWarning
     >
       <div className={`flex justify-center items-center self-center`}>
-        <svg className="flex absolute w-full h-80">
+        <svg className={`flex absolute w-full h-80 ${svgClassName || ""}`}>
           <image
             x="0"
             y="0"
@@ -130,7 +132,7 @@ export function PuffcoContainer({
             }.png`}
           ></image>
         </svg>
-        <svg className="flex absolute w-full h-80">
+        <svg className={`flex absolute w-full h-80 ${svgClassName || ""}`}>
           <filter
             id={`${id}-svg2Matrix`}
             x="0"
@@ -155,7 +157,7 @@ export function PuffcoContainer({
             href={`/peak/device-glass-left.png`}
           ></image>
         </svg>
-        <svg className="flex absolute w-full h-80">
+        <svg className={`flex absolute w-full h-80 ${svgClassName || ""}`}>
           <filter
             id={`${id}-svg3Matrix`}
             x="0"
@@ -180,7 +182,7 @@ export function PuffcoContainer({
             href={`/peak/device-glass-right.png`}
           ></image>
         </svg>
-        <svg className="flex absolute w-full h-80">
+        <svg className={`flex absolute w-full h-80 ${svgClassName || ""}`}>
           <filter
             id={`${id}-svg4Matrix`}
             x="0"
@@ -205,7 +207,7 @@ export function PuffcoContainer({
             href={`/peak/device-base-left.png`}
           ></image>
         </svg>
-        <svg className="flex absolute w-full h-80">
+        <svg className={`flex absolute w-full h-80 ${svgClassName || ""}`}>
           <filter
             id={`${id}-svg5Matrix`}
             x="0"
