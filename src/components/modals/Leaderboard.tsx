@@ -27,7 +27,9 @@ function LeaderboardItem({ index, lb, last_active }) {
             <span className="flex flex-row">
               <p className="font-bold">
                 {lb.device_name} -{" "}
-                {lb.device_model ? ProductModelMap[lb.device_model] : "Unknown"}
+                {lb.device_model
+                  ? ProductModelMap[lb.device_model] || "Peak"
+                  : "Unknown"}
               </p>
               <img
                 width={18}
@@ -187,9 +189,9 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                           </span>
                           <span className="flex flex-row drop-shadow">
                             <PuffcoContainer
-                              model={ProductModelMap[
-                                lb.device_model
-                              ].toLowerCase()}
+                              model={(
+                                ProductModelMap[lb.device_model] || "peak"
+                              ).toLowerCase()}
                               id={index.toString()}
                               className="flex items-center justify-center self-center w-[90px]"
                               device={{
