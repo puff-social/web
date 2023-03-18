@@ -101,7 +101,7 @@ export function GroupMember(props: GroupMemberProps) {
   if (props.us && !props.connected && connectDismissed) return <></>;
 
   return (
-    <div className="flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md m-4 px-8 w-96 h-72 justify-center items-center">
+    <div className="group flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md m-4 px-8 w-96 h-72 justify-center items-center">
       {(props.us && !!props.device) || props.device ? (
         <div className="flex flex-col justify-between w-full">
           <div className="flex flex-row-reverse absolute right-0 bottom-0 m-4">
@@ -138,7 +138,7 @@ export function GroupMember(props: GroupMemberProps) {
                 }
                 interactive
               >
-                <span>
+                <span className="group-hover:block hidden">
                   <Dots />
                 </span>
               </Tippy>
