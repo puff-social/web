@@ -32,7 +32,7 @@ function LeaderboardItem({ index, lb, last_active }) {
                   : "Unknown"}
               </p>
               <img
-                width={18}
+                width={24}
                 className="ml-1"
                 src={`/emojis/${ProductModelMap[
                   lb.device_model || 48
