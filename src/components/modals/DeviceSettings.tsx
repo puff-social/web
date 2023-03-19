@@ -130,9 +130,11 @@ export function DeviceSettingsModal({
           </span>
           <span className="flex justify-between">
             <p className="font-bold">Model</p>
-            <p className="font-bold opacity-40">
-              {ProductModelMap[device.deviceModel]}
-            </p>
+            <Tippy content={`Raw: ${device.deviceModel}`} placement="bottom">
+              <p className="font-bold opacity-40">
+                {ProductModelMap[device.deviceModel]}
+              </p>
+            </Tippy>
           </span>
           <span className="flex justify-between">
             <p className="font-bold">Firmware</p>
