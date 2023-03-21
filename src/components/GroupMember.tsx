@@ -40,7 +40,7 @@ interface GroupMemberProps {
 }
 
 export function GroupMember(props: GroupMemberProps) {
-  const userActionsButton = useRef<HTMLSpanElement>();
+  const userActionsButton = useRef();
   const [connectDismissed, setConnectDismissed] = useState(false);
   const [currentState, setCurrentState] = useState<number>(props.device?.state);
   const [stateTimer, setStateTimer] = useState<number>(0);
