@@ -117,7 +117,7 @@ export default function Home() {
       <div className="flex flex-col">
         <div className="flex flex-col rounded-md bg-white dark:bg-neutral-800 p-2 m-3 w-[600px] text-black dark:text-white drop-shadow-xl">
           <h2 className="text-xl font-bold p-1">Join a group</h2>
-          <div className="flex flex-col overflow-scroll h-80 p-2 justify-center">
+          <div className="flex flex-col overflow-y-scroll h-80 p-2 justify-center">
             {items.length > 0 ? (
               items.map((item) => (
                 <div
