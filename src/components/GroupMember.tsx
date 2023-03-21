@@ -40,7 +40,7 @@ interface GroupMemberProps {
 }
 
 export function GroupMember(props: GroupMemberProps) {
-  const userActionsButton = useRef();
+  const userActionsButton = useRef<any>();
   const [connectDismissed, setConnectDismissed] = useState(false);
   const [currentState, setCurrentState] = useState<number>(props.device?.state);
   const [stateTimer, setStateTimer] = useState<number>(0);
@@ -87,7 +87,7 @@ export function GroupMember(props: GroupMemberProps) {
         setLeaderboardPos(lb.data.position);
       }
     })();
-  }, [props.device]);
+  }, [props.device?.totalDabs]);
 
   useEffect(() => {
     setLeaderboardPos(props.leaderboardPosition);
@@ -134,7 +134,7 @@ export function GroupMember(props: GroupMemberProps) {
                 followCursor
                 disabled={
                   userActionsButton &&
-                  !userActionsButton.current?.checkVisibility()
+                  !userActionsButton?.current?.checkVisibility()
                 }
                 inlinePositioning
                 content={
