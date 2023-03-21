@@ -6,7 +6,8 @@ import { getLeaderboard } from "../../utils/analytics";
 import { DeviceLeaderboard } from "../../types/api";
 import { automaticRelativeDifference } from "../../utils/time";
 import { Tippy } from "../Tippy";
-import { ChargeSource, ProductModelMap } from "../../utils/puffco";
+import { ChargeSource } from "../../utils/puffco";
+import { ProductModelMap } from "../../utils/constants";
 import { PuffcoContainer } from "../puffco";
 import { PuffcoOperatingState } from "../../types/gateway";
 
@@ -115,7 +116,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
       }}
     >
       <div className="flex flex-col m-2 p-10 rounded-md bg-white dark:bg-neutral-800 text-black space-y-3 dark:text-white justify-center w-[1000px]">
-        <div className="flex justify-between justify-center items-center">
+        <div className="flex justify-between items-center">
           <h1 className="text-xl">Total Dabs Leaderboards</h1>
 
           <Cross
@@ -133,7 +134,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                     new Date(lb.device_dob)
                   );
                   return (
-                    <span className="flex flex-col bg-white dark:bg-neutral-900 rounded-md drop-shadow-xl rounded-md w-96 p-3">
+                    <span className="flex flex-col bg-white dark:bg-neutral-900 rounded-md drop-shadow-xl w-96 p-3">
                       <span className="flex flex-col justify-center align-center">
                         <div className="flex flex-row drop-shadow justify-between">
                           <span className="flex flex-col justify-between">

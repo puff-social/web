@@ -62,11 +62,11 @@ export interface DiagData {
 }
 
 export interface DeviceLeaderboard {
+  id: string;
   device_dob: string;
   device_id: string;
   device_name: string;
   device_model: string;
-  id: string;
   owner_name: string;
   total_dabs: number;
   last_active: string;

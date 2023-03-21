@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import {
   GatewayGroup,
@@ -7,7 +7,8 @@ import {
   PuffcoOperatingMap,
   PuffcoOperatingState,
 } from "../types/gateway";
-import { ChamberType, ChargeSource, ProductModelMap } from "../utils/puffco";
+import { ChamberType, ChargeSource } from "../utils/puffco";
+import { ProductModelMap } from "../utils/constants";
 import { Battery, BatteryBolt } from "./icons/Battery";
 import { Checkmark } from "./icons/Checkmark";
 import { Counter } from "./icons/Counter";
@@ -20,12 +21,15 @@ import { Icon3D } from "./icons/3DIcon";
 import { Dots } from "./icons/Dots";
 import { Kick } from "./icons/Kick";
 import { Op, gateway } from "../utils/gateway";
+import { getLeaderboardDevice } from "../utils/analytics";
+import { ShareIcon } from "./icons/Share";
 
 interface GroupMemberProps {
   name?: string;
   group?: GatewayGroup;
   device?: GatewayMemberDeviceState;
   member?: GatewayGroupMember;
+  leaderboardPosition?: number;
   ready?: boolean;
   connected?: boolean;
   owner?: boolean;
@@ -36,10 +40,14 @@ interface GroupMemberProps {
 }
 
 export function GroupMember(props: GroupMemberProps) {
+  const userActionsButton = useRef<HTMLSpanElement>();
   const [connectDismissed, setConnectDismissed] = useState(false);
   const [currentState, setCurrentState] = useState<number>(props.device?.state);
   const [stateTimer, setStateTimer] = useState<number>(0);
   const [stateInt, setStateInt] = useState<NodeJS.Timer>();
+  const [leaderboardPos, setLeaderboardPos] = useState<number>(
+    props.leaderboardPosition || 0
+  );
 
   const [bluetooth] = useState<boolean>(() => {
     if (typeof window == "undefined") false;
@@ -71,6 +79,19 @@ export function GroupMember(props: GroupMemberProps) {
   useEffect(() => {
     if (props.device) updatedState(props.device);
   }, [props.device?.state]);
+
+  useEffect(() => {
+    (async () => {
+      if (props.device?.deviceUid) {
+        const lb = await getLeaderboardDevice(props.device.deviceUid);
+        setLeaderboardPos(lb.data.position);
+      }
+    })();
+  }, [props.device]);
+
+  useEffect(() => {
+    setLeaderboardPos(props.leaderboardPosition);
+  }, [props.leaderboardPosition]);
 
   if (!bluetooth && props.us && props.nobody)
     return (
@@ -110,6 +131,12 @@ export function GroupMember(props: GroupMemberProps) {
               <Tippy
                 placement="top-start"
                 trigger="click"
+                followCursor
+                disabled={
+                  userActionsButton &&
+                  !userActionsButton.current?.checkVisibility()
+                }
+                inlinePositioning
                 content={
                   <div className="flex flex-col bg-neutral-300 dark:bg-neutral-900 rounded-lg drop-shadow-xl p-4 space-y-2 w-72">
                     <span
@@ -138,7 +165,10 @@ export function GroupMember(props: GroupMemberProps) {
                 }
                 interactive
               >
-                <span className="group-hover:block hidden">
+                <span
+                  className="group-hover:block hidden"
+                  ref={userActionsButton}
+                >
                   <Dots />
                 </span>
               </Tippy>
@@ -164,15 +194,22 @@ export function GroupMember(props: GroupMemberProps) {
                   props.device.activeColor.g +
                   props.device.activeColor.b}
               </p>
-              {props.owner ? (
-                <Tippy content="Group owner" placement="top-start">
-                  <div>
-                    <Crown className="text-green-700" />
+              <span className="flex flex-row space-x-2 items-center">
+                <Tippy content="Leaderboard Position" placement="top-start">
+                  <div className="flex items-center rounded-md px-1 bg-white dark:bg-neutral-700 drop-shadow-xl text-black dark:text-white">
+                    <p className="opacity-70">#{leaderboardPos}</p>
                   </div>
                 </Tippy>
-              ) : (
-                <></>
-              )}
+                {props.owner ? (
+                  <Tippy content="Group owner" placement="top-start">
+                    <div className="flex items-center">
+                      <Crown className="text-green-700" />
+                    </div>
+                  </Tippy>
+                ) : (
+                  <></>
+                )}
+              </span>
               <h1 className="m-0 text-xl font-bold truncate">
                 {props.us ? props.name : props.member.name}
               </h1>

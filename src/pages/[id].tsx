@@ -62,6 +62,8 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   const [chatBoxOpen, setChatBoxOpen] = useState(false);
   const [chatUnread, setChatUnread] = useState(false);
 
+  const [ourLeaderboardPosition, setOurLeaderboardPosition] =
+    useState<number>(0);
   const [ourName, setOurName] = useState(() =>
     typeof localStorage != "undefined"
       ? localStorage.getItem("puff-social-name") || "Unnamed"
@@ -483,7 +485,8 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       });
       setDeviceProfiles(profiles);
       const { poller, initState, deviceInfo } = await startPolling(device);
-      await trackDevice(deviceInfo, ourName);
+      const tracked = await trackDevice(deviceInfo, ourName);
+      setOurLeaderboardPosition(tracked.data.position);
       gateway.send(Op.SendDeviceState, initState);
       setDeviceConnected(true);
       setDeviceInfo(deviceInfo as DeviceInformation);
@@ -649,6 +652,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
               <GroupMember
                 device={myDevice}
                 name={ourName}
+                leaderboardPosition={ourLeaderboardPosition}
                 ready={readyMembers.includes(gateway.session_id)}
                 connectToDevice={connectToDevice}
                 nobody={seshers == 0}

@@ -16,10 +16,10 @@ import { Info } from "../icons/Info";
 import { Tippy } from "../Tippy";
 import {
   ChamberTypeMap,
-  ProductModelMap,
   updateDeviceDob,
   updateDeviceName,
 } from "../../utils/puffco";
+import { ProductModelMap } from "../../utils/constants";
 import toast from "react-hot-toast";
 import { trackDevice } from "../../utils/analytics";
 

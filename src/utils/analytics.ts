@@ -2,7 +2,7 @@ import { createCipheriv, createHash } from "crypto";
 import { APIResponse, DeviceLeaderboard, DiagData } from "../types/api";
 import { DeviceInformation } from "../types/api";
 
-export const API_URL = typeof location != 'undefined' && ['localhost', 'dev.puff.social'].includes(location.hostname) ? (location.hostname == 'dev.puff.social' ? 'https://kief.puff.social' : 'http://127.0.0.1:8000') : 'https://hash.puff.social';
+export const API_URL = ((typeof location != 'undefined' && ['localhost', 'dev.puff.social'].includes(location.hostname)) || process.env.DEV == "1") ? (typeof location != 'undefined' && location.hostname == 'dev.puff.social' ? 'https://kief.puff.social' : 'http://127.0.0.1:8000') : 'https://hash.puff.social';
 
 function signRequest<T>(body: T): [string, string] {
   const signature = createHash('sha256').update(JSON.stringify(body)).digest('base64');
@@ -26,10 +26,17 @@ export async function getLeaderboard() {
 
 export async function trackDevice(device: Partial<DeviceInformation>, name: string) {
   const [signature, body] = signRequest({ device, name });
-  fetch(`${API_URL}/v1/track`, { method: 'POST', headers: { 'content-type': 'text/plain', 'x-signature': signature }, body });
+  const req = await fetch(`${API_URL}/v1/track`, { method: 'POST', headers: { 'content-type': 'text/plain', 'x-signature': signature }, body });
+  return (await req.json()) as APIResponse<{ device: DeviceLeaderboard, position: number }>;
 }
 
 export async function trackDiags(data: DiagData) {
   const [signature, body] = signRequest(data);
   fetch(`${API_URL}/v1/diag`, { method: 'POST', headers: { 'content-type': 'text/plain', 'x-signature': signature }, body });
+}
+
+export async function getLeaderboardDevice(id: string) {
+  const req = await fetch(`${API_URL}/v1/device/${id.startsWith('device') ? id : `device_${id}`}`);
+  if (req.status != 200) throw { code: 'device_not_found' };
+  return (await req.json()) as APIResponse<{ device: DeviceLeaderboard, position: number }>
 }

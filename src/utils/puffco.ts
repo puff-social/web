@@ -126,16 +126,6 @@ export enum ChargeSource {
   None = 3
 }
 
-export const ProductModelMap = {
-  '0': 'Peak',
-  '21': 'Peak', // Why another one
-  '4294967295': 'Peak', // wtf is this puffco
-  '1': 'Opal',
-  '22': 'Opal', // Again why another, what happened here?
-  '2': 'Indiglow',
-  '4': 'Guardian',
-}
-
 export enum ColorMode {
   Preserve = 0,
   Static = 1,
@@ -445,6 +435,7 @@ export async function startPolling(device?: BluetoothDevice) {
 
   const [, initEuid] = await getValue(service, Characteristic.EUID);
   deviceInfo.uid = Buffer.from(unpack(new Uint8Array(initEuid.buffer), { bits: 32 }).toString()).toString('base64');
+  initState.deviceUid = deviceInfo.uid;
 
   const [, initChamberType] = await getValue(service, Characteristic.CHAMBER_TYPE, 1);
   initState.chamberType = (unpack(new Uint8Array(initChamberType.buffer), { bits: 8 }));
