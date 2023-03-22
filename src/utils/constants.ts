@@ -7,3 +7,6 @@ export const ProductModelMap = {
   '2': 'Indiglow',
   '4': 'Guardian',
 }
+
+export const TEMPERATURE_MAX = 500;
+export const TEMPERATURE_MIN = 0;

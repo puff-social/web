@@ -58,8 +58,12 @@ export function GroupActions({
         <span className="pr-3 flex flex-row">
           {group.state == GroupState.Chilling ? (
             seshers > 0 &&
-            members.filter((mem) => mem.away && mem.device_state != null)
-              .length != seshers ? (
+            members.filter(
+              (mem) =>
+                mem.away &&
+                typeof mem.device_state == "object" &&
+                Object.keys(mem.device_state).length > 0
+            ).length != seshers ? (
               <Tippy content="Start Sesh" placement="bottom">
                 <div
                   className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl text-green-500 dark:text-green-200"

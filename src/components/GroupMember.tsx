@@ -8,7 +8,11 @@ import {
   PuffcoOperatingState,
 } from "../types/gateway";
 import { ChamberType, ChargeSource } from "../utils/puffco";
-import { ProductModelMap } from "../utils/constants";
+import {
+  ProductModelMap,
+  TEMPERATURE_MAX,
+  TEMPERATURE_MIN,
+} from "../utils/constants";
 import { Battery, BatteryBolt } from "./icons/Battery";
 import { Checkmark } from "./icons/Checkmark";
 import { Counter } from "./icons/Counter";
@@ -313,12 +317,17 @@ export function GroupMember(props: GroupMemberProps) {
               )}
 
               <span className="mt-4">
-                <h2 className="text-2xl">
-                  {props.device.temperature
-                    ? Math.floor(props.device.temperature * 1.8 + 32)
-                    : "--"}
-                  °
-                </h2>
+                {props.device.chamberType == ChamberType.None ? (
+                  "No Chamber"
+                ) : props.device.temperature &&
+                  props.device.temperature >= TEMPERATURE_MIN &&
+                  props.device.temperature <= TEMPERATURE_MAX ? (
+                  <h2 className="text-2xl">
+                    {Math.floor(props.device.temperature * 1.8 + 32)}°
+                  </h2>
+                ) : (
+                  <h2 className="text-2xl">--</h2>
+                )}
                 <span className="flex flex-row">
                   <h3 className="text-lg m-0">
                     {props.ready &&

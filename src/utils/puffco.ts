@@ -437,7 +437,7 @@ export async function startPolling(device?: BluetoothDevice) {
   deviceInfo.uid = Buffer.from(unpack(new Uint8Array(initEuid.buffer), { bits: 32 }).toString()).toString('base64');
   initState.deviceUid = deviceInfo.uid;
 
-  const [, initChamberType] = await getValue(service, Characteristic.CHAMBER_TYPE, 1);
+  const [, initChamberType] = await getValue(service, Characteristic.CHAMBER_TYPE, 0);
   initState.chamberType = (unpack(new Uint8Array(initChamberType.buffer), { bits: 8 }));
 
   const chargingPoll = await gattPoller(service, Characteristic.BATTERY_CHARGE_SOURCE, 4, 4300);
@@ -455,7 +455,7 @@ export async function startPolling(device?: BluetoothDevice) {
     poller.emit('data', { state: hexToFloat(data) });
   });
 
-  const chamberType = await gattPoller(service, Characteristic.CHAMBER_TYPE, 1, 1600);
+  const chamberType = await gattPoller(service, Characteristic.CHAMBER_TYPE, 0, 1600);
   chamberType.on('change', (data, raw) => {
     poller.emit('data', { chamberType: (unpack(new Uint8Array(raw.buffer), { bits: 8 })) });
   });
