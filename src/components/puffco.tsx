@@ -114,14 +114,16 @@ export function PuffcoContainer({
       className={`flex flex-col justify-center items-center${
         className ? ` ${className}` : ""
       }`}
-      suppressHydrationWarning
     >
       <div className={`flex justify-center items-center self-center`}>
-        <svg className={`flex absolute ${svgClassName || "w-full h-80"}`}>
+        <svg
+          className={`${
+            svgClassName || "w-full"
+          } flex justify-center items-center self-center`}
+          viewBox="0 0 5 8"
+        >
           <image
-            x="0"
-            y="0"
-            width="100%"
+            className="flex justify-center items-center self-center"
             height="100%"
             href={`/${model}/${
               model == "opal"
@@ -130,107 +132,46 @@ export function PuffcoContainer({
                   : "device-light-bg"
                 : "device"
             }.png`}
-          ></image>
-        </svg>
-        <svg className={`flex absolute ${svgClassName || "w-full h-80"}`}>
+          />
           <filter
-            id={`${id}-svg2Matrix`}
+            className="flex justify-center items-center self-center"
+            id={`${id}-svg-matrix`}
             x="0"
             y="0"
-            width="100%"
             height="100%"
           >
             <feColorMatrix
               type="matrix"
               values={`${r / 100} 0 0 0 0
-                      0 ${g / 100} 0 0 0
-                      0 0 ${b / 100} 0 0
-                      0 0 0 ${brightness / 100} 0`}
+                        0 ${g / 100} 0 0 0
+                        0 0 ${b / 100} 0 0
+                        0 0 0 ${brightness / 100} 0`}
             ></feColorMatrix>
           </filter>
           <image
-            x="0"
-            y="0"
-            width="100%"
+            className="flex justify-center items-center self-center"
             height="100%"
-            filter={`url(#${id}-svg2Matrix)`}
+            filter={`url(#${id}-svg-matrix)`}
             href={`/peak/device-glass-left.png`}
-          ></image>
-        </svg>
-        <svg className={`flex absolute ${svgClassName || "w-full h-80"}`}>
-          <filter
-            id={`${id}-svg3Matrix`}
-            x="0"
-            y="0"
-            width="100%"
-            height="100%"
-          >
-            <feColorMatrix
-              type="matrix"
-              values={`${r / 100} 0 0 0 0
-                      0 ${g / 100} 0 0 0
-                      0 0 ${b / 100} 0 0
-                      0 0 0 ${brightness / 100} 0`}
-            ></feColorMatrix>
-          </filter>
+          />
           <image
-            x="0"
-            y="0"
-            width="100%"
+            className="flex justify-center items-center self-center"
             height="100%"
-            filter={`url(#${id}-svg3Matrix)`}
+            filter={`url(#${id}-svg-matrix)`}
             href={`/peak/device-glass-right.png`}
-          ></image>
-        </svg>
-        <svg className={`flex absolute ${svgClassName || "w-full h-80"}`}>
-          <filter
-            id={`${id}-svg4Matrix`}
-            x="0"
-            y="0"
-            width="100%"
-            height="100%"
-          >
-            <feColorMatrix
-              type="matrix"
-              values={`${r / 100} 0 0 0 0
-                      0 ${g / 100} 0 0 0
-                      0 0 ${b / 100} 0 0
-                      0 0 0 ${brightness / 100} 0`}
-            ></feColorMatrix>
-          </filter>
+          />
           <image
-            x="0"
-            y="0"
-            width="100%"
+            className="flex justify-center items-center self-center"
             height="100%"
-            filter={`url(#${id}-svg4Matrix)`}
+            filter={`url(#${id}-svg-matrix)`}
             href={`/peak/device-base-left.png`}
-          ></image>
-        </svg>
-        <svg className={`flex absolute ${svgClassName || "w-full h-80"}`}>
-          <filter
-            id={`${id}-svg5Matrix`}
-            x="0"
-            y="0"
-            width="100%"
-            height="100%"
-          >
-            <feColorMatrix
-              type="matrix"
-              values={`${r / 100} 0 0 0 0
-                      0 ${g / 100} 0 0 0
-                      0 0 ${b / 100} 0 0
-                      0 0 0 ${brightness / 100} 0`}
-            ></feColorMatrix>
-          </filter>
+          />
           <image
-            x="0"
-            y="0"
-            width="100%"
+            className="flex justify-center items-center self-center"
             height="100%"
-            filter={`url(#${id}-svg5Matrix)`}
+            filter={`url(#${id}-svg-matrix)`}
             href={`/peak/device-base-right.png`}
-          ></image>
+          />
         </svg>
       </div>
     </div>

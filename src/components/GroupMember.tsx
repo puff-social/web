@@ -40,7 +40,7 @@ interface GroupMemberProps {
 }
 
 export function GroupMember(props: GroupMemberProps) {
-  const userActionsButton = useRef<any>();
+  const userActionsButton = useRef<HTMLSpanElement>();
   const [connectDismissed, setConnectDismissed] = useState(false);
   const [currentState, setCurrentState] = useState<number>(props.device?.state);
   const [stateTimer, setStateTimer] = useState<number>(0);
@@ -95,7 +95,7 @@ export function GroupMember(props: GroupMemberProps) {
 
   if (!bluetooth && props.us && props.nobody)
     return (
-      <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md m-4 w-96 h-80 justify-center items-center">
+      <div className="flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md m-4 px-8 w-96 h-72 justify-center items-center">
         <span className="flex flex-col space-y-8 justify-between items-center">
           <h3 className="text-center text-lg">Ain't no seshers here!</h3>
           <p className="text-center text-small break-normal px-2">
@@ -122,73 +122,88 @@ export function GroupMember(props: GroupMemberProps) {
   if (props.us && !props.connected && connectDismissed) return <></>;
 
   return (
-    <div className="group flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md m-4 px-8 w-96 h-72 justify-center items-center">
+    <div className="group flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md m-4 px-4 w-[440px] h-72 justify-center items-center overflow-hidden">
       {(props.us && !!props.device) || props.device ? (
-        <div className="flex flex-col justify-between w-full">
+        <div className="flex flex-col justify-center w-full overflow-hidden">
           <div className="flex flex-row-reverse absolute right-0 bottom-0 m-4">
-            {!props.owner &&
-            props.group.owner_session_id == gateway.session_id ? (
-              <Tippy
-                placement="top-start"
-                trigger="click"
-                followCursor
-                disabled={
-                  userActionsButton &&
-                  !userActionsButton?.current?.checkVisibility()
-                }
-                inlinePositioning
-                content={
-                  <div className="flex flex-col bg-neutral-300 dark:bg-neutral-900 rounded-lg drop-shadow-xl p-4 space-y-2 w-72">
-                    <span
-                      className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between"
-                      onClick={() =>
-                        gateway.send(Op.TransferOwnership, {
-                          session_id: props.member.session_id,
-                        })
-                      }
-                    >
-                      <p>Make owner</p>
-                      <Crown />
-                    </span>
-                    <span
-                      className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between text-red-600 dark:text-red-300"
-                      onClick={() =>
-                        gateway.send(Op.KickFromGroup, {
-                          session_id: props.member.session_id,
-                        })
-                      }
-                    >
-                      <p>Kick from group</p>
-                      <Kick />
-                    </span>
-                  </div>
-                }
-                interactive
+            <Tippy
+              placement="right-start"
+              trigger="click"
+              content={
+                <div className="flex flex-col bg-neutral-300 dark:bg-neutral-900 rounded-lg drop-shadow-xl p-4 space-y-2 w-72">
+                  <span
+                    className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between"
+                    onClick={() => {
+                      toast(
+                        `Copied share card for ${props.device.deviceName}`,
+                        {
+                          position: "bottom-right",
+                          duration: 2500,
+                          icon: "📋",
+                        }
+                      );
+                      navigator.clipboard.writeText(
+                        `https://puff.social/api/device/device_${props.device.deviceUid}`
+                      );
+                    }}
+                  >
+                    <p>Copy share card</p>
+                    <ShareIcon />
+                  </span>
+                  {!props.owner &&
+                  props.group.owner_session_id == gateway.session_id ? (
+                    <>
+                      <span
+                        className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between"
+                        onClick={() =>
+                          gateway.send(Op.TransferOwnership, {
+                            session_id: props.member.session_id,
+                          })
+                        }
+                      >
+                        <p>Make owner</p>
+                        <Crown />
+                      </span>
+                      <span
+                        className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between text-red-600 dark:text-red-300"
+                        onClick={() =>
+                          gateway.send(Op.KickFromGroup, {
+                            session_id: props.member.session_id,
+                          })
+                        }
+                      >
+                        <p>Kick from group</p>
+                        <Kick />
+                      </span>
+                    </>
+                  ) : (
+                    <></>
+                  )}
+                </div>
+              }
+              interactive
+            >
+              <span
+                className="group-hover:block group-hover:visible hidden invisible"
+                ref={userActionsButton}
               >
-                <span
-                  className="group-hover:block hidden"
-                  ref={userActionsButton}
-                >
-                  <Dots />
-                </span>
-              </Tippy>
-            ) : (
-              <></>
-            )}
+                <Dots />
+              </span>
+            </Tippy>
           </div>
-          <div className="flex flex-row space-x-4 w-full h-full items-center justify-center">
+          <div className="flex flex-row w-full h-full items-center justify-center">
             <PuffcoContainer
               id={
                 props.us
                   ? "self"
-                  : `${props.member.session_id}-${props.device.deviceName}`
+                  : `${props.member.session_id}-${props.device.deviceUid}`
               }
-              svgClassName="w-full h-60"
-              className="-z-50 h-full w-[160px]"
+              svgClassName="w-40 h-full"
+              className="-z-50 min-w-[40%]"
               model={ProductModelMap[props.device.deviceModel].toLowerCase()}
               device={props.device}
             />
-            <span className="flex flex-col p-4 w-full">
+            <span className="flex flex-col p-4 w-full min-w-[60%]">
               <p style={{ visibility: "hidden", display: "none" }}>
                 {props.device.activeColor.r +
                   props.device.activeColor.g +
@@ -210,11 +225,13 @@ export function GroupMember(props: GroupMemberProps) {
                   <></>
                 )}
               </span>
-              <h1 className="m-0 text-xl font-bold truncate">
-                {props.us ? props.name : props.member.name}
-              </h1>
+              <Tippy content={props.device.deviceName} placement="bottom-start">
+                <h1 className="m-0 text-xl font-bold truncate">
+                  {props.us ? props.name : props.member.name}
+                </h1>
+              </Tippy>
               {props.device && (
-                <div className="flex space-x-3">
+                <div className="flex space-x-2">
                   <span className="flex flex-row justify-center items-center">
                     <Tippy content="Total Dabs" placement="bottom">
                       <div className="flex justify-center">
@@ -232,7 +249,7 @@ export function GroupMember(props: GroupMemberProps) {
                       ) : (
                         <BatteryBolt className="m-1" />
                       )}
-                      <p className="m-0 p-1 text-lg">{props.device.battery}%</p>
+                      <p className="m-0 p-1 text-lg">{100}%</p>
                     </span>
                   </Tippy>
                 </div>
@@ -263,7 +280,7 @@ export function GroupMember(props: GroupMemberProps) {
                 </span>
                 <Tippy content="Current device profile" placement="bottom">
                   <span className="flex space-x-2">
-                    <p className="text-sm truncate">
+                    <p className="text-sm truncate max-w-[8rem]">
                       {props.device.profile.name}
                     </p>
                     <span className="flex space-x-2 text-sm">
