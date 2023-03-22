@@ -24,7 +24,7 @@ import { DeviceSettings } from "./icons/DeviceSettings";
 interface ActionsProps {
   group?: GatewayGroup;
   seshers?: number;
-  members: GatewayGroupMember[];
+  members?: GatewayGroupMember[];
   readyMembers?: string[];
   deviceConnected?: boolean;
   deviceProfiles?: Record<number, PuffcoProfile>;
