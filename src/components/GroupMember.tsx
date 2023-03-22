@@ -249,7 +249,7 @@ export function GroupMember(props: GroupMemberProps) {
                       ) : (
                         <BatteryBolt className="m-1" />
                       )}
-                      <p className="m-0 p-1 text-lg">{100}%</p>
+                      <p className="m-0 p-1 text-lg">{props.device.battery}%</p>
                     </span>
                   </Tippy>
                 </div>
