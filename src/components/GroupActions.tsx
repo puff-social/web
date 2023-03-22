@@ -62,7 +62,7 @@ export function GroupActions({
               (mem) =>
                 mem.away &&
                 typeof mem.device_state == "object" &&
-                Object.keys(mem.device_state).length > 0
+                Object.keys(mem.device_state || {}).length > 0
             ).length != seshers ? (
               <Tippy content="Start Sesh" placement="bottom">
                 <div
