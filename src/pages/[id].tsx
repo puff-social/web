@@ -198,11 +198,11 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     });
   }
 
-  function groupMemberJoin({ session_id, name }: GroupUserJoin) {
+  function groupMemberJoin({ session_id, name, away }: GroupUserJoin) {
     toast(`${name} joined`, {
       position: "bottom-right",
     });
-    setGroupMembers((curr) => [...curr, { session_id, name }]);
+    setGroupMembers((curr) => [...curr, { session_id, name, away }]);
   }
 
   function groupMemberLeft({ session_id }: GroupUserLeft) {

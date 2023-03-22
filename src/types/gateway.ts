@@ -62,6 +62,7 @@ export interface GroupUserJoin {
   group_id: string;
   session_id: string;
   name: string;
+  away: boolean;
 }
 
 export interface GroupUserLeft {
