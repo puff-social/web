@@ -50,6 +50,10 @@ import { Kick } from "../components/icons/Kick";
 import Link from "next/link";
 import { ChatBox } from "../components/Chat";
 import { ChatIcon } from "../components/icons/Chat";
+import { Snowflake } from "../components/icons/Snowflake";
+import { AltSmoke, Smoke } from "../components/icons/Smoke";
+import { Checkmark } from "../components/icons/Checkmark";
+import { Eye } from "../components/icons/Eye";
 
 export default function Group({ group: initGroup }: { group: APIGroup }) {
   const router = useRouter();
@@ -605,27 +609,50 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
           <div className="flex flex-col m-4 z-10">
             <div className="flex flex-col">
               <div>
-                <h1 className="text-4xl text-black dark:text-white font-bold">
+                <h1 className="flex flex-row text-4xl text-black dark:text-white font-bold items-center">
                   {group.name}
                   <Tippy content="Private group" placement="right">
                     <span className="pl-2 opacity-50 cursor-default">
                       {group.visibility == "private" ? "🔒" : ""}
                     </span>
                   </Tippy>
+                  <Tippy
+                    content={
+                      <h3 className="rounded-md p-2 bg-white text-black dark:bg-neutral-800 dark:text-white drop-shadow-xl capitalize">
+                        State: {group.state}
+                      </h3>
+                    }
+                    placement="right"
+                  >
+                    <span>
+                      {group.state == GroupState.Chilling ? (
+                        <Snowflake />
+                      ) : group.state == GroupState.Awaiting ? (
+                        <Checkmark />
+                      ) : (
+                        <Smoke />
+                      )}
+                    </span>
+                  </Tippy>
                 </h1>
-                <h3 className="text-black dark:text-white font-bold capitalize">
-                  State: {group.state}
-                </h3>
                 <p className="text-black dark:text-white font-bold">
-                  {seshers} sesher{seshers > 1 ? "s" : ""} - {watchers} watcher
-                  {watchers ? "s" : ""}
+                  {group.sesh_counter == 0
+                    ? "No seshes yet!"
+                    : `${group.sesh_counter.toLocaleString()} seshes this group`}
                 </p>
+                <Tippy content="Seshers / Watchers" placement="right">
+                  <span className="flex flex-row items-center space-x-2 w-fit">
+                    <span className="flex flex-row items-center text-black dark:text-white font-bold space-x-1">
+                      <p>{seshers}</p>
+                      <AltSmoke />
+                    </span>
+                    <span className="flex flex-row items-center text-black dark:text-white font-bold space-x-1">
+                      <p>{watchers}</p>
+                      <Eye />
+                    </span>
+                  </span>
+                </Tippy>
               </div>
-              <p className="text-black dark:text-white font-bold">
-                {group.sesh_counter == 0
-                  ? "No seshes yet!"
-                  : `${group.sesh_counter.toLocaleString()} seshes this group`}
-              </p>
             </div>
 
             {group ? (

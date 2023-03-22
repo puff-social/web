@@ -95,7 +95,7 @@ export function GroupMember(props: GroupMemberProps) {
 
   if (!bluetooth && props.us && props.nobody)
     return (
-      <div className="flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md m-4 px-8 w-96 h-72 justify-center items-center">
+      <div className="flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md m-4 px-8 w-[440px] h-72 justify-center items-center">
         <span className="flex flex-col space-y-8 justify-between items-center">
           <h3 className="text-center text-lg">Ain't no seshers here!</h3>
           <p className="text-center text-small break-normal px-2">
