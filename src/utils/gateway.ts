@@ -1,7 +1,7 @@
 import { EventEmitter } from "events";
 import { inflate, deflate } from "pako";
 import { APIGroup } from "../types/api";
-import { GatewayError, GatewayGroup, GatewayGroupCreate, GatewayGroupAction, GroupActionInitiator, GroupReaction, GroupUserDeviceDisconnect, GroupUserDeviceUpdate, GroupUserJoin, GroupUserLeft, GroupUserUpdate, GroupChatMessage } from "../types/gateway";
+import { GatewayError, GatewayGroup, GatewayGroupCreate, GatewayGroupAction, GroupActionInitiator, GroupReaction, GroupUserDeviceDisconnect, GroupUserDeviceUpdate, GroupUserJoin, GroupUserLeft, GroupUserUpdate, GroupChatMessage, GatewayGroupUserAwayState, GroupHeatBegin, GroupHeatInquire } from "../types/gateway";
 
 export enum Op {
   Hello,
@@ -22,6 +22,7 @@ export enum Op {
   DeleteGroup,
   TransferOwnership,
   KickFromGroup,
+  AwayState,
   Heartbeat = 420
 }
 
@@ -48,6 +49,7 @@ enum Event {
   GroupReaction = "GROUP_REACTION",
   GroupMessage = "GROUP_MESSAGE",
   GroupUserKicked = "GROUP_USER_KICKED",
+  GroupUserAwayState = "GROUP_USER_AWAY_STATE",
   RateLimited = "RATE_LIMITED",
   SessionResumed = "SESSION_RESUMED"
 }
@@ -92,8 +94,8 @@ export interface Gateway {
   on(event: "group_user_device_update", listener: (group: GroupUserDeviceUpdate) => void): this;
   on(event: "group_user_device_disconnect", listener: (group: GroupUserDeviceDisconnect) => void): this;
   on(event: "group_action_error", listener: (error: GatewayError) => void): this;
-  on(event: "group_heat_inquiry", listener: (group: GroupActionInitiator) => void): this;
-  on(event: "group_heat_begin", listener: () => void): this;
+  on(event: "group_heat_inquiry", listener: (group: GroupHeatInquire) => void): this;
+  on(event: "group_heat_begin", listener: (heat: GroupHeatBegin) => void): this;
   on(event: "group_user_ready", listener: (action: GroupActionInitiator) => void): this;
   on(event: "group_user_unready", listener: (action: GroupActionInitiator) => void): this;
   on(event: "public_groups_update", listener: (groups: APIGroup[]) => void): this;
@@ -101,6 +103,7 @@ export interface Gateway {
   on(event: "group_message", listener: (message: GroupChatMessage) => void): this;
   on(event: "group_reaction", listener: (reaction: GroupReaction) => void): this;
   on(event: "group_user_kicked", listener: (group: GatewayGroupAction) => void): this;
+  on(event: "group_user_away_state", listener: (group: GatewayGroupUserAwayState) => void): this;
   on(event: "rate_limited", listener: () => void): this;
   on(event: "user_update_error", listener: (error: GatewayError) => void): this;
 }
@@ -239,7 +242,7 @@ export class Gateway extends EventEmitter {
             break;
           }
           case Event.GroupHeatBegin: {
-            this.emit('group_heat_begin');
+            this.emit('group_heat_begin', data.d);
             break;
           }
           case Event.GroupUserReady: {
@@ -293,6 +296,10 @@ export class Gateway extends EventEmitter {
           }
           case Event.GroupUserKicked: {
             this.emit('group_user_kicked', data.d);
+            break;
+          }
+          case Event.GroupUserAwayState: {
+            this.emit('group_user_away_state', data.d);
             break;
           }
           case Event.RateLimited: {

@@ -23,6 +23,7 @@ import { Kick } from "./icons/Kick";
 import { Op, gateway } from "../utils/gateway";
 import { getLeaderboardDevice } from "../utils/analytics";
 import { ShareIcon } from "./icons/Share";
+import { Away, UnAway } from "./icons/Away";
 
 interface GroupMemberProps {
   name?: string;
@@ -31,6 +32,7 @@ interface GroupMemberProps {
   member?: GatewayGroupMember;
   leaderboardPosition?: number;
   ready?: boolean;
+  away?: boolean;
   connected?: boolean;
   owner?: boolean;
   us?: boolean;
@@ -122,7 +124,11 @@ export function GroupMember(props: GroupMemberProps) {
   if (props.us && !props.connected && connectDismissed) return <></>;
 
   return (
-    <div className="group flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md m-4 px-4 w-[440px] h-72 justify-center items-center overflow-hidden">
+    <div
+      className={`group flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md m-4 px-4 w-[440px] h-72 justify-center items-center overflow-hidden ${
+        (props.us ? props.away : props.member?.away) ? "brightness-75" : ""
+      }`}
+    >
       {(props.us && !!props.device) || props.device ? (
         <div className="flex flex-col justify-center w-full overflow-hidden">
           <div className="flex flex-row-reverse absolute right-0 bottom-0 m-4">
@@ -131,6 +137,48 @@ export function GroupMember(props: GroupMemberProps) {
               trigger="click"
               content={
                 <div className="flex flex-col bg-neutral-300 dark:bg-neutral-900 rounded-lg drop-shadow-xl p-4 space-y-2 w-72">
+                  {props.us ? (
+                    <span
+                      className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between"
+                      onClick={() => {
+                        toast(
+                          `Marked you as ${
+                            (props.us ? props.away : props.member.away)
+                              ? "no longer away"
+                              : "away"
+                          }`,
+                          {
+                            position: "bottom-right",
+                            duration: 2500,
+                            icon: (
+                              props.us ? props.away : props.member.away
+                            ) ? (
+                              <UnAway />
+                            ) : (
+                              <Away />
+                            ),
+                          }
+                        );
+                        gateway.send(Op.AwayState, {
+                          state: props.us ? !props.away : !props.member.away,
+                        });
+                      }}
+                    >
+                      {(props.us ? props.away : props.member.away) ? (
+                        <>
+                          <p>Unset away state</p>
+                          <UnAway />
+                        </>
+                      ) : (
+                        <>
+                          <p>Set away state</p>
+                          <Away />
+                        </>
+                      )}
+                    </span>
+                  ) : (
+                    <></>
+                  )}
                   <span
                     className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between"
                     onClick={() => {
@@ -215,6 +263,15 @@ export function GroupMember(props: GroupMemberProps) {
                     <p className="opacity-70">#{leaderboardPos}</p>
                   </div>
                 </Tippy>
+                {(props.us ? props.away : props.member.away) ? (
+                  <Tippy content="Away" placement="top-start">
+                    <div className="flex items-center">
+                      <Away className="text-yellow-700" />
+                    </div>
+                  </Tippy>
+                ) : (
+                  <></>
+                )}
                 {props.owner ? (
                   <Tippy content="Group owner" placement="top-start">
                     <div className="flex items-center">

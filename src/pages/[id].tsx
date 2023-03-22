@@ -8,8 +8,11 @@ import {
   GatewayError,
   GatewayGroup,
   GatewayGroupMember,
+  GatewayGroupUserAwayState,
   GatewayMemberDeviceState,
   GroupActionInitiator,
+  GroupHeatBegin,
+  GroupHeatInquire,
   GroupReaction,
   GroupState,
   GroupUserDeviceUpdate,
@@ -68,6 +71,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
 
   const [ourLeaderboardPosition, setOurLeaderboardPosition] =
     useState<number>(0);
+  const [usAway, setUsAway] = useState(false);
   const [ourName, setOurName] = useState(() =>
     typeof localStorage != "undefined"
       ? localStorage.getItem("puff-social-name") || "Unnamed"
@@ -152,6 +156,16 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       const existing = curr.find((mem) => mem.session_id == member.session_id);
       if (!existing) return curr;
       for (const key in member) existing[key] = member[key];
+      return [...curr];
+    });
+  }
+
+  function groupUserAwayState(state: GatewayGroupUserAwayState) {
+    if (state.session_id == gateway.session_id) setUsAway(state.state);
+    setGroupMembers((curr) => {
+      const existing = curr.find((mem) => mem.session_id == state.session_id);
+      if (!existing) return curr;
+      existing.away = state.state;
       return [...curr];
     });
   }
@@ -258,39 +272,43 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     [groupMembers]
   );
 
-  async function startDab() {
+  async function startDab(data: GroupHeatBegin) {
     toast("3...", { duration: 1000, position: "bottom-right" });
     setTimeout(() => {
       toast("2...", { duration: 1000, position: "bottom-right" });
       setTimeout(() => {
         toast("1...", { duration: 900, position: "bottom-right" });
         toast("Dab", { duration: 1000, position: "bottom-right" });
-        sendCommand(DeviceCommand.HEAT_CYCLE_BEGIN);
+
+        if (!data.away && !data.watcher && !data.excluded)
+          sendCommand(DeviceCommand.HEAT_CYCLE_BEGIN);
       }, 1000);
     }, 1000);
   }
 
   const inquireDab = useCallback(
-    (data: GroupActionInitiator) => {
+    (data: GroupHeatInquire) => {
       setGroupMembers((groupMembers) => {
         const initiator = groupMembers.find(
           (mem) => mem.session_id == data.session_id
         );
-
-        sendCommand(DeviceCommand.BONDING);
-        setLightMode(PuffLightMode.QueryReady);
-
         toast(
           `${
             data.session_id == gateway.session_id ? ourName : initiator.name
           } wants to start`,
           { icon: "🔥", duration: 5000, position: "bottom-right" }
         );
-        toast(`Confirm by pressing your button`, {
-          icon: "🔘",
-          duration: 8000,
-          position: "bottom-right",
-        });
+
+        if (!data.away && !data.watcher && !data.excluded) {
+          sendCommand(DeviceCommand.BONDING);
+          setLightMode(PuffLightMode.QueryReady);
+          toast(`Confirm by pressing your button`, {
+            icon: "🔘",
+            duration: 8000,
+            position: "bottom-right",
+          });
+        }
+
         return groupMembers;
       });
     },
@@ -421,6 +439,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       gateway.on("group_user_join", groupMemberJoin);
       gateway.on("group_user_left", groupMemberLeft);
       gateway.on("group_user_kicked", groupUserKicked);
+      gateway.on("group_user_away_state", groupUserAwayState);
       gateway.on("group_reaction", groupReaction);
       if (gateway.ws.readyState == gateway.ws.OPEN)
         gateway.send(Op.Join, { group_id: initGroup.group_id });
@@ -454,6 +473,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
         gateway.removeListener("group_user_join", groupMemberJoin);
         gateway.removeListener("group_user_left", groupMemberLeft);
         gateway.removeListener("group_user_kicked", groupUserKicked);
+        gateway.removeListener("group_user_away_state", groupUserAwayState);
         gateway.removeListener("group_reaction", groupReaction);
       };
     }
@@ -659,6 +679,15 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
               <GroupActions
                 group={group}
                 seshers={seshers}
+                members={[
+                  ...groupMembers,
+                  {
+                    name: ourName,
+                    session_id: gateway.session_id,
+                    away: usAway,
+                    device_state: myDevice,
+                  },
+                ]}
                 readyMembers={readyMembers}
                 deviceConnected={deviceConnected}
                 deviceProfiles={deviceProfiles}
@@ -685,6 +714,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                 nobody={seshers == 0}
                 owner={group.owner_session_id == gateway.session_id}
                 group={group}
+                away={usAway}
                 us
               />
               {groupMembers

@@ -93,6 +93,7 @@ export interface GatewayGroupMember {
   device_state?: GatewayMemberDeviceState;
   name: string;
   session_id: string;
+  away?: boolean;
 }
 
 export interface GatewayDeviceProfile {
@@ -140,6 +141,19 @@ export interface GroupActionInitiator {
   session_id: string;
 }
 
+export interface GroupHeatInquire {
+  session_id: string;
+  away: boolean;
+  watcher: boolean;
+  excluded: boolean;
+}
+
+export interface GroupHeatBegin {
+  away: boolean;
+  watcher: boolean;
+  excluded: boolean;
+}
+
 export interface ChatMessageData {
   content: string;
   timestamp: number;
@@ -149,4 +163,9 @@ export interface GroupChatMessage {
   group_id: string
   author_session_id: string;
   message: ChatMessageData;
+}
+
+export interface GatewayGroupUserAwayState {
+  session_id: string;
+  state: boolean;
 }

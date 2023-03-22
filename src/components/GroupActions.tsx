@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import { BluetoothDisabled } from "./icons/Bluetooth";
 import { Edit } from "./icons/Edit";
 import { Info } from "./icons/Info";
@@ -7,7 +7,7 @@ import { Mail } from "./icons/Mail";
 import { Settings } from "./icons/Settings";
 import { Smoke } from "./icons/Smoke";
 import { Stop } from "./icons/Stop";
-import { GatewayGroup, GroupState } from "../types/gateway";
+import { GatewayGroup, GatewayGroupMember, GroupState } from "../types/gateway";
 import { Op, gateway } from "../utils/gateway";
 import { Reaction } from "./icons/Reaction";
 import { Tippy } from "./Tippy";
@@ -24,6 +24,7 @@ import { DeviceSettings } from "./icons/DeviceSettings";
 interface ActionsProps {
   group?: GatewayGroup;
   seshers?: number;
+  members: GatewayGroupMember[];
   readyMembers?: string[];
   deviceConnected?: boolean;
   deviceProfiles?: Record<number, PuffcoProfile>;
@@ -38,6 +39,7 @@ interface ActionsProps {
 export function GroupActions({
   group,
   seshers,
+  members,
   readyMembers,
   setGroupSettingsModalOpen,
   setDeviceSettingsModalOpen,
@@ -55,7 +57,9 @@ export function GroupActions({
       {!!group ? (
         <span className="pr-3 flex flex-row">
           {group.state == GroupState.Chilling ? (
-            seshers > 0 ? (
+            seshers > 0 &&
+            members.filter((mem) => mem.away && mem.device_state != null)
+              .length != seshers ? (
               <Tippy content="Start Sesh" placement="bottom">
                 <div
                   className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl text-green-500 dark:text-green-200"
