@@ -440,12 +440,12 @@ export async function startPolling(device?: BluetoothDevice) {
   const [, initChamberType] = await getValue(service, Characteristic.CHAMBER_TYPE, 1);
   initState.chamberType = (unpack(new Uint8Array(initChamberType.buffer), { bits: 8 }));
 
-  const chargingPoll = await gattPoller(service, Characteristic.BATTERY_CHARGE_SOURCE, 4, 5000);
+  const chargingPoll = await gattPoller(service, Characteristic.BATTERY_CHARGE_SOURCE, 4, 4300);
   chargingPoll.on('change', (data, raw) => {
     poller.emit('data', { chargeSource: Number(hexToFloat(data).toFixed(0)) });
   });
 
-  const batteryPoll = await gattPoller(service, Characteristic.BATTERY_SOC);
+  const batteryPoll = await gattPoller(service, Characteristic.BATTERY_SOC, 9200);
   batteryPoll.on('change', (data, raw) => {
     poller.emit('data', { battery: Number(hexToFloat(data).toFixed(0)) });
   });
@@ -455,7 +455,12 @@ export async function startPolling(device?: BluetoothDevice) {
     poller.emit('data', { state: hexToFloat(data) });
   });
 
-  const aciveLEDPoll = await gattPoller(service, Characteristic.ACTIVE_LED_COLOR, 4, 1000);
+  const chamberType = await gattPoller(service, Characteristic.CHAMBER_TYPE, 1, 1600);
+  chamberType.on('change', (data, raw) => {
+    poller.emit('data', { chamberType: (unpack(new Uint8Array(raw.buffer), { bits: 8 })) });
+  });
+
+  const aciveLEDPoll = await gattPoller(service, Characteristic.ACTIVE_LED_COLOR, 4, 1050);
   let currentLedColor: { r: number; g: number; b: number };
   aciveLEDPoll.on('data', (data, raw: Buffer) => {
     const r = (raw as any).getUint8(0);
@@ -465,7 +470,7 @@ export async function startPolling(device?: BluetoothDevice) {
     currentLedColor = { r, g, b };
   });
 
-  const totalDabsPoll = await gattPoller(service, Characteristic.TOTAL_HEAT_CYCLES);
+  const totalDabsPoll = await gattPoller(service, Characteristic.TOTAL_HEAT_CYCLES, 7200);
   totalDabsPoll.on('data', (data, raw) => {
     const dabsString = decimalToHexString(raw.getUint8(0)).toString() + decimalToHexString(raw.getUint8(1)).toString() + decimalToHexString(raw.getUint8(2)).toString() + decimalToHexString(raw.getUint8(3)).toString();
     const float = hexToFloat(flipHexString('0x' + dabsString, 8));
@@ -481,7 +486,7 @@ export async function startPolling(device?: BluetoothDevice) {
   });
 
 
-  const currentProfilePoll = await gattPoller(service, Characteristic.PROFILE_CURRENT, 0, 1000);
+  const currentProfilePoll = await gattPoller(service, Characteristic.PROFILE_CURRENT, 0, 1010);
   currentProfilePoll.on('change', async (data, raw) => {
     const profileCurrent = new Uint8Array(raw.buffer);
     const profileIndex = DeviceProfileReverse.findIndex(profile => profile.at(2) == profileCurrent.at(2) && profile.at(3) == profileCurrent.at(3)) + 1;
@@ -490,7 +495,7 @@ export async function startPolling(device?: BluetoothDevice) {
     })
   });
 
-  const deviceNamePoll = await gattPoller(service, Characteristic.DEVICE_NAME);
+  const deviceNamePoll = await gattPoller(service, Characteristic.DEVICE_NAME, 65000);
   deviceNamePoll.on('change', (data, raw) => {
     const name = decoder.decode(raw);
     poller.emit('data', { deviceName: name });
@@ -500,6 +505,7 @@ export async function startPolling(device?: BluetoothDevice) {
     chargingPoll.emit('stop');
     batteryPoll.emit('stop');
     operatingState.emit('stop');
+    chamberType.emit('stop');
     aciveLEDPoll.emit('stop');
     totalDabsPoll.emit('stop');
     tempPoll.emit('stop');
