@@ -661,7 +661,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                     : `${group.sesh_counter.toLocaleString()} seshes this group`}
                 </p>
                 <Tippy content="Seshers / Watchers" placement="right">
-                  <span className="flex flex-row items-center space-x-2 w-fit">
+                  <span className="flex flex-row items-center space-x-2 w-fit opacity-60">
                     <span className="flex flex-row items-center text-black dark:text-white font-bold space-x-1">
                       <p>{seshers}</p>
                       <AltSmoke />
