@@ -48,6 +48,7 @@ interface GroupMemberProps {
 export function GroupMember(props: GroupMemberProps) {
   const userActionsButton = useRef<HTMLSpanElement>();
   const [connectDismissed, setConnectDismissed] = useState(false);
+  const [hoveringCard, setHoveringCard] = useState(false);
   const [currentState, setCurrentState] = useState<number>(props.device?.state);
   const [stateTimer, setStateTimer] = useState<number>(0);
   const [stateInt, setStateInt] = useState<NodeJS.Timer>();
@@ -132,6 +133,8 @@ export function GroupMember(props: GroupMemberProps) {
       className={`group flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md m-4 px-4 w-[440px] h-72 justify-center items-center overflow-hidden ${
         (props.us ? props.away : props.member?.away) ? "brightness-75" : ""
       }`}
+      onMouseEnter={() => setHoveringCard(true)}
+      onMouseLeave={() => setHoveringCard(false)}
     >
       {(props.us && !!props.device) || props.device ? (
         <div className="flex flex-col justify-center w-full overflow-hidden">
@@ -139,6 +142,8 @@ export function GroupMember(props: GroupMemberProps) {
             <Tippy
               placement="right-start"
               trigger="click"
+              disabled={hoveringCard ? false : true}
+              arrow={false}
               content={
                 <div className="flex flex-col bg-neutral-300 dark:bg-neutral-900 rounded-lg drop-shadow-xl p-4 space-y-2 w-72">
                   {props.us ? (
@@ -184,7 +189,7 @@ export function GroupMember(props: GroupMemberProps) {
                     <></>
                   )}
                   <span
-                    className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between"
+                    className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
                     onClick={() => {
                       toast(
                         `Copied share card for ${props.device.deviceName}`,
@@ -206,7 +211,7 @@ export function GroupMember(props: GroupMemberProps) {
                   props.group.owner_session_id == gateway.session_id ? (
                     <>
                       <span
-                        className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between"
+                        className="flex p-2 rounded-md text-green-700 bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
                         onClick={() =>
                           gateway.send(Op.TransferOwnership, {
                             session_id: props.member.session_id,
@@ -217,7 +222,7 @@ export function GroupMember(props: GroupMemberProps) {
                         <Crown />
                       </span>
                       <span
-                        className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between text-red-600 dark:text-red-300"
+                        className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between text-red-600 dark:text-red-300 transition-all"
                         onClick={() =>
                           gateway.send(Op.KickFromGroup, {
                             session_id: props.member.session_id,
@@ -235,12 +240,16 @@ export function GroupMember(props: GroupMemberProps) {
               }
               interactive
             >
-              <span
-                className="group-hover:block group-hover:visible hidden invisible"
-                ref={userActionsButton}
-              >
-                <Dots />
-              </span>
+              <div>
+                <Tippy content="Actions" placement="top-end" animation="fade">
+                  <span
+                    className="opacity-20 group-hover:opacity-100 transition-all"
+                    ref={userActionsButton}
+                  >
+                    <Dots />
+                  </span>
+                </Tippy>
+              </div>
             </Tippy>
           </div>
           <div className="flex flex-row w-full h-full items-center justify-center">
@@ -294,7 +303,7 @@ export function GroupMember(props: GroupMemberProps) {
               {props.device && (
                 <div className="flex space-x-2">
                   <span className="flex flex-row justify-center items-center">
-                    <Tippy content="Total Dabs" placement="bottom">
+                    <Tippy content="Total Dabs" placement="right">
                       <div className="flex justify-center">
                         <Counter className="m-1 ml-0" />
                         <p className="m-0 p-1 text-lg">
@@ -303,16 +312,14 @@ export function GroupMember(props: GroupMemberProps) {
                       </div>
                     </Tippy>
                   </span>
-                  <Tippy content="Battery" placement="bottom">
-                    <span className="flex flex-row justify-center items-center">
-                      {props.device.chargeSource == ChargeSource.None ? (
-                        <Battery className="m-1" />
-                      ) : (
-                        <BatteryBolt className="m-1" />
-                      )}
-                      <p className="m-0 p-1 text-lg">{props.device.battery}%</p>
-                    </span>
-                  </Tippy>
+                  <span className="flex flex-row justify-center items-center">
+                    {props.device.chargeSource == ChargeSource.None ? (
+                      <Battery className="m-1" />
+                    ) : (
+                      <BatteryBolt className="m-1" />
+                    )}
+                    <p className="m-0 p-1 text-lg">{props.device.battery}%</p>
+                  </span>
                 </div>
               )}
 
@@ -362,15 +369,16 @@ export function GroupMember(props: GroupMemberProps) {
                 {props.device.chamberType == ChamberType["3D"] ? (
                   <Tippy
                     placement="right-start"
+                    arrow={false}
                     content={
-                      <span className="flex px-1 py-1.5 border border-white items-center justify-center w-fit">
+                      <span className="flex px-1 py-1.5 border border-black dark:border-white text-black dark:text-white items-center justify-center w-fit">
                         <p className="coda-regular tracking-widest uppercase text-xs px-1">
                           Chamber
                         </p>
                       </span>
                     }
                   >
-                    <span className="flex mt-2 px-1 border border-white items-center justify-center w-fit">
+                    <span className="flex mt-2 px-1 border border-black dark:border-white text-black dark:text-white items-center justify-center w-fit">
                       <Icon3D />
                     </span>
                   </Tippy>

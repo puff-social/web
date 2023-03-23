@@ -53,10 +53,8 @@ import { Kick } from "../components/icons/Kick";
 import Link from "next/link";
 import { ChatBox } from "../components/Chat";
 import { ChatIcon } from "../components/icons/Chat";
-import { Snowflake } from "../components/icons/Snowflake";
-import { AltSmoke, Smoke } from "../components/icons/Smoke";
-import { Checkmark } from "../components/icons/Checkmark";
-import { Eye } from "../components/icons/Eye";
+import { GroupHeader } from "../components/group/Header";
+import { GroupMembersModal } from "../components/modals/GroupMembers";
 
 export default function Group({ group: initGroup }: { group: APIGroup }) {
   const router = useRouter();
@@ -87,6 +85,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
 
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [groupMembersModalOpen, setGroupMembersModalOpen] = useState(false);
   const [userSettingsModalOpen, setUserSettingsModalOpen] = useState(false);
   const [deviceSettingsModalOpen, setDeviceSettingsModalOpen] = useState(false);
   const [groupSettingsModalOpen, setGroupSettingsModalOpen] = useState(false);
@@ -615,6 +614,24 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
         <></>
       )}
 
+      {groupMembers && group ? (
+        <GroupMembersModal
+          modalOpen={groupMembersModalOpen}
+          setModalOpen={setGroupMembersModalOpen}
+          group={group}
+          members={[
+            ...groupMembers,
+            {
+              name: ourName,
+              session_id: gateway.session_id,
+              away: usAway,
+              device_state: myDevice,
+            },
+          ]}
+        />
+      ) : (
+        <></>
+      )}
       <LeaderboardModal
         modalOpen={leaderboardOpen}
         setModalOpen={setLeaderboardOpen}
@@ -627,77 +644,38 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       {groupConnected ? (
         <NoSSR>
           <div className="flex flex-col m-4 z-10">
-            <div className="flex flex-col">
-              <div>
-                <h1 className="flex flex-row text-4xl text-black dark:text-white font-bold items-center">
-                  {group.name}
-                  <Tippy content="Private group" placement="right">
-                    <span className="pl-2 opacity-50 cursor-default">
-                      {group.visibility == "private" ? "🔒" : ""}
-                    </span>
-                  </Tippy>
-                  <Tippy
-                    content={
-                      <h3 className="rounded-md p-2 bg-white text-black dark:bg-neutral-800 dark:text-white drop-shadow-xl capitalize">
-                        State: {group.state}
-                      </h3>
-                    }
-                    placement="right"
-                  >
-                    <span>
-                      {group.state == GroupState.Chilling ? (
-                        <Snowflake />
-                      ) : group.state == GroupState.Awaiting ? (
-                        <Checkmark />
-                      ) : (
-                        <Smoke />
-                      )}
-                    </span>
-                  </Tippy>
-                </h1>
-                <p className="text-black dark:text-white font-bold">
-                  {group.sesh_counter == 0
-                    ? "No seshes yet!"
-                    : `${group.sesh_counter.toLocaleString()} seshes this group`}
-                </p>
-                <Tippy content="Seshers / Watchers" placement="right">
-                  <span className="flex flex-row items-center space-x-2 w-fit opacity-60">
-                    <span className="flex flex-row items-center text-black dark:text-white font-bold space-x-1">
-                      <p>{seshers}</p>
-                      <AltSmoke />
-                    </span>
-                    <span className="flex flex-row items-center text-black dark:text-white font-bold space-x-1">
-                      <p>{watchers}</p>
-                      <Eye />
-                    </span>
-                  </span>
-                </Tippy>
-              </div>
-            </div>
-
             {group ? (
-              <GroupActions
-                group={group}
-                seshers={seshers}
-                members={[
-                  ...groupMembers,
-                  {
-                    name: ourName,
-                    session_id: gateway.session_id,
-                    away: usAway,
-                    device_state: myDevice,
-                  },
-                ]}
-                readyMembers={readyMembers}
-                deviceConnected={deviceConnected}
-                deviceProfiles={deviceProfiles}
-                disconnect={disconnect}
-                setGroupSettingsModalOpen={setGroupSettingsModalOpen}
-                setDeviceSettingsModalOpen={setDeviceSettingsModalOpen}
-                setUserSettingsModalOpen={setUserSettingsModalOpen}
-                setFeedbackModalOpen={setFeedbackModalOpen}
-                setLeaderboardOpen={setLeaderboardOpen}
-              />
+              <>
+                <GroupHeader
+                  group={group}
+                  watchers={watchers}
+                  seshers={seshers}
+                  setGroupMembersModalOpen={setGroupMembersModalOpen}
+                />
+
+                <GroupActions
+                  group={group}
+                  seshers={seshers}
+                  members={[
+                    ...groupMembers,
+                    {
+                      name: ourName,
+                      session_id: gateway.session_id,
+                      away: usAway,
+                      device_state: myDevice,
+                    },
+                  ]}
+                  readyMembers={readyMembers}
+                  deviceConnected={deviceConnected}
+                  deviceProfiles={deviceProfiles}
+                  disconnect={disconnect}
+                  setGroupSettingsModalOpen={setGroupSettingsModalOpen}
+                  setDeviceSettingsModalOpen={setDeviceSettingsModalOpen}
+                  setUserSettingsModalOpen={setUserSettingsModalOpen}
+                  setFeedbackModalOpen={setFeedbackModalOpen}
+                  setLeaderboardOpen={setLeaderboardOpen}
+                />
+              </>
             ) : (
               <></>
             )}
@@ -752,12 +730,16 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                 document.addEventListener("keydown", closeChatBox);
               }}
             >
-              <span
-                onClick={() => setChatBoxOpen((prev) => !prev)}
-                className="flex bg-green-400 hover:bg-green-600 text-white p-4 rounded-full w-fit h-fit justify-center items-center"
-              >
-                <ChatIcon />
-              </span>
+              <div>
+                <Tippy content="Group Chat" placement="top-end">
+                  <span
+                    onClick={() => setChatBoxOpen((prev) => !prev)}
+                    className="flex bg-green-400 hover:bg-green-600 text-white p-4 rounded-full w-fit h-fit justify-center items-center transition-all"
+                  >
+                    <ChatIcon />
+                  </span>
+                </Tippy>
+              </div>
             </Tippy>
           </div>
 

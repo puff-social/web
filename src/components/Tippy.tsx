@@ -1,15 +1,22 @@
 import TippyReact, { TippyProps } from "@tippyjs/react";
 
-export function Tippy(props: TippyProps) {
+interface CustomProps {
+  extraClass?: string;
+}
+
+export function Tippy(props: TippyProps & CustomProps) {
   return (
     <TippyReact
-      duration={0}
+      duration={175}
+      arrow
       {...props}
+      theme="custom"
+      className={`${
+        typeof props.content == "string" ? "tippy-box-tip" : "tippy-box-none"
+      } ${props.extraClass}`}
       content={
         typeof props.content == "string" ? (
-          <span className="rounded-md p-2 bg-white text-black dark:bg-neutral-800 dark:text-white drop-shadow-xl">
-            {props.content}
-          </span>
+          <span>{props.content}</span>
         ) : (
           props.content
         )

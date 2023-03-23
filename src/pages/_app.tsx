@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { Transition } from "@headlessui/react";
 import { Toaster, ToastIcon, toast, resolveValue } from "react-hot-toast";
 
+import "tippy.js/dist/tippy.css";
 import "../assets/app.css";
 import { gateway } from "../utils/gateway";
 

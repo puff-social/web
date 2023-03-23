@@ -13,6 +13,18 @@ body {
   body {
     @apply text-black bg-white dark:text-white dark:bg-neutral-900;
   }
+
+  .tippy-box-tip .tippy-arrow {
+    @apply rounded-md text-white dark:text-neutral-800 drop-shadow-xl;
+  }
+  
+  .tippy-box-tip {
+    @apply rounded-md bg-white text-black dark:bg-neutral-800 dark:text-white p-2 drop-shadow-xl; 
+  }
+  
+  .tippy-box-none {
+    @apply bg-transparent; 
+  }
 }
 
 .emoji-styles {

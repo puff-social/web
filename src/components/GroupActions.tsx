@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef } from "react";
 import { BluetoothDisabled } from "./icons/Bluetooth";
 import { Edit } from "./icons/Edit";
 import { Info } from "./icons/Info";
@@ -50,10 +50,15 @@ export function GroupActions({
   setFeedbackModalOpen,
   setLeaderboardOpen,
 }: ActionsProps) {
+  const reactionButton = useRef<HTMLDivElement>();
+
   const router = useRouter();
 
   return (
-    <div className="flex flex-row drop-shadow-xl rounded-md py-2 flex-wrap">
+    <div
+      className="flex flex-row drop-shadow-xl rounded-md py-2 flex-wrap"
+      ref={reactionButton}
+    >
       {!!group ? (
         <span className="pr-3 flex flex-row">
           {group.state == GroupState.Chilling ? (
@@ -187,50 +192,54 @@ export function GroupActions({
               <Leave />
             </div>
           </Tippy>
-          <Tippy
-            content={
-              <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-72">
-                <p className="text-lg font-bold">Reactions</p>
-                <span className="flex flex-wrap">
-                  {[
-                    "👍",
-                    "✌️",
-                    "👋",
-                    "🤙",
-                    "😂",
-                    "😮‍💨",
-                    "🤬",
-                    "🤯",
-                    "🫠",
-                    "🫡",
-                    "💨",
-                    "🚬",
-                    "🗡️",
-                    "🕐",
-                    "⏭️",
-                    "⏳",
-                    "🎙️",
-                    "🔥",
-                  ].map((emoji) => (
-                    <span
-                      className="w-9 select-none text-lg flex justify-center items-center rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 m-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
-                      onClick={() => {
-                        gateway.send(Op.SendReaction, { emoji });
-                      }}
-                    >
-                      {emoji}
+          <Tippy content="Group Reactions" placement="bottom">
+            <div>
+              <Tippy
+                content={
+                  <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-72">
+                    <p className="text-lg font-bold">Reactions</p>
+                    <span className="flex flex-wrap">
+                      {[
+                        "👍",
+                        "✌️",
+                        "👋",
+                        "🤙",
+                        "😂",
+                        "😮‍💨",
+                        "🤬",
+                        "🤯",
+                        "🫠",
+                        "🫡",
+                        "💨",
+                        "🚬",
+                        "🗡️",
+                        "🕐",
+                        "⏭️",
+                        "⏳",
+                        "🎙️",
+                        "🔥",
+                      ].map((emoji) => (
+                        <span
+                          className="w-9 select-none text-lg flex justify-center items-center rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 m-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
+                          onClick={() => {
+                            gateway.send(Op.SendReaction, { emoji });
+                          }}
+                        >
+                          {emoji}
+                        </span>
+                      ))}
                     </span>
-                  ))}
-                </span>
-              </div>
-            }
-            interactive
-            zIndex={50000}
-            placement="bottom-start"
-            trigger="click"
-          >
-            <div className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl">
-              <Reaction />
+                  </div>
+                }
+                interactive
+                zIndex={50000}
+                placement="bottom-start"
+                trigger="click"
+              >
+                <div className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl">
+                  <Reaction />
+                </div>
+              </Tippy>
             </div>
           </Tippy>
         </span>
@@ -261,7 +270,7 @@ export function GroupActions({
           <Mail />
         </div>
       </Tippy>
-      <Tippy content="Support development" placement="bottom">
+      <Tippy content="Support Development" placement="bottom">
         <div
           className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
           onClick={() => window.open("https://dstn.to/sponsor")}
