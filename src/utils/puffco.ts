@@ -445,8 +445,8 @@ export async function startPolling(device?: BluetoothDevice) {
     poller.emit('data', { chargeSource: Number(hexToFloat(data).toFixed(0)) });
   });
 
-  const batteryPoll = await gattPoller(service, Characteristic.BATTERY_SOC, 9200);
-  batteryPoll.on('change', (data, raw) => {
+  const batteryPoll = await gattPoller(service, Characteristic.BATTERY_SOC, 4, 9200);
+  batteryPoll.on('change', (data) => {
     poller.emit('data', { battery: Number(hexToFloat(data).toFixed(0)) });
   });
 
@@ -455,7 +455,7 @@ export async function startPolling(device?: BluetoothDevice) {
     poller.emit('data', { state: hexToFloat(data) });
   });
 
-  const chamberType = await gattPoller(service, Characteristic.CHAMBER_TYPE, 0, 1600);
+  const chamberType = await gattPoller(service, Characteristic.CHAMBER_TYPE, 1, 1600);
   chamberType.on('change', (data, raw) => {
     poller.emit('data', { chamberType: (unpack(new Uint8Array(raw.buffer), { bits: 8 })) });
   });
@@ -470,7 +470,7 @@ export async function startPolling(device?: BluetoothDevice) {
     currentLedColor = { r, g, b };
   });
 
-  const totalDabsPoll = await gattPoller(service, Characteristic.TOTAL_HEAT_CYCLES, 7200);
+  const totalDabsPoll = await gattPoller(service, Characteristic.TOTAL_HEAT_CYCLES, 1, 7200);
   totalDabsPoll.on('data', (data, raw) => {
     const dabsString = decimalToHexString(raw.getUint8(0)).toString() + decimalToHexString(raw.getUint8(1)).toString() + decimalToHexString(raw.getUint8(2)).toString() + decimalToHexString(raw.getUint8(3)).toString();
     const float = hexToFloat(flipHexString('0x' + dabsString, 8));
@@ -486,16 +486,18 @@ export async function startPolling(device?: BluetoothDevice) {
   });
 
 
+  let lastIndex: number;
   const currentProfilePoll = await gattPoller(service, Characteristic.PROFILE_CURRENT, 0, 1010);
-  currentProfilePoll.on('change', async (data, raw) => {
+  currentProfilePoll.on('data', async (data, raw) => {
     const profileCurrent = new Uint8Array(raw.buffer);
     const profileIndex = DeviceProfileReverse.findIndex(profile => profile.at(2) == profileCurrent.at(2) && profile.at(3) == profileCurrent.at(3)) + 1;
-    poller.emit('data', {
+    if (profileIndex != lastIndex) poller.emit('data', {
       profile: profiles[profileIndex]
     })
+    lastIndex = profileIndex;
   });
 
-  const deviceNamePoll = await gattPoller(service, Characteristic.DEVICE_NAME, 65000);
+  const deviceNamePoll = await gattPoller(service, Characteristic.DEVICE_NAME, 1, 65000);
   deviceNamePoll.on('change', (data, raw) => {
     const name = decoder.decode(raw);
     poller.emit('data', { deviceName: name });

@@ -73,14 +73,13 @@ export async function gattPoller(service: BluetoothRemoteGATTService, characteri
     const char = await service.getCharacteristic(characteristic);
 
     const func = async () => {
-        // console.log(`DEBUG > polling for ${characteristic} ${bytes} ${time}`);
-
         const value = await char.readValue();
         if (bytes == 0) {
             listener.emit('data', null, value);
             listener.emit('change', null, value);
         } else {
-            const str = decimalToHexString(value.getUint8(0)).toString() + decimalToHexString(value.getUint8(1)).toString() + decimalToHexString(value.getUint8(2)).toString() + decimalToHexString(value.getUint8(3)).toString();
+            let str = '';
+            for (let i = 0; i < bytes; i++) str += decimalToHexString(value.getUint8(i)).toString();
             const hex = flipHexString('0x' + str, 8)
             listener.emit('data', hex, value);
             if (hex != lastValue) listener.emit('change', hex, value);
