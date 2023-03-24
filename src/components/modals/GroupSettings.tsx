@@ -6,6 +6,7 @@ import { gateway, Op } from "../../utils/gateway";
 import { Checkmark } from "../icons/Checkmark";
 import { GatewayGroup } from "../../types/gateway";
 import { useRouter } from "next/router";
+import { Lock, Unlock } from "../icons/Lock";
 
 export interface ModalProps {
   modalOpen: boolean;
@@ -89,7 +90,10 @@ export function GroupSettingsModal({
               className="p-4 bg-white dark:bg-stone-800 drop-shadow-lg hover:bg-gray-300 dark:hover:bg-stone-900 rounded-md w-full flex flex-row justify-between items-center"
               onClick={() => setGroupVisibility("public")}
             >
-              <p>🌍 Public</p>
+              <span className="flex flex-row items-center">
+                <Unlock className="w-5 mr-2" />
+                <p>Public</p>
+              </span>
               {groupVisibility == "public" ? (
                 <Checkmark className="h-5 text-green-600 dark:text-green-500" />
               ) : (
@@ -100,7 +104,10 @@ export function GroupSettingsModal({
               className="p-4 bg-white dark:bg-stone-800 drop-shadow-lg hover:bg-gray-300 dark:hover:bg-stone-900 rounded-md w-full flex flex-row justify-between items-center"
               onClick={() => setGroupVisibility("private")}
             >
-              <p>🔒 Private</p>
+              <span className="flex flex-row items-center">
+                <Lock className="w-5 mr-2" />
+                <p>Private</p>
+              </span>
               {groupVisibility == "private" ? (
                 <Checkmark className="h-5 text-green-600 dark:text-green-500" />
               ) : (

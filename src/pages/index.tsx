@@ -11,6 +11,7 @@ import { Checkmark } from "../components/icons/Checkmark";
 import NoSSR from "../components/NoSSR";
 import { GroupActions } from "../components/GroupActions";
 import { MainMeta } from "../components/MainMeta";
+import { Unlock, Lock } from "../components/icons/Lock";
 
 export default function Home() {
   const router = useRouter();
@@ -182,12 +183,15 @@ export default function Home() {
                 className="p-4 bg-white dark:bg-stone-800 drop-shadow-lg hover:bg-gray-300 dark:hover:bg-stone-900 rounded-md w-full flex flex-row justify-between items-center"
                 onClick={() => getGroupVisbility("public")}
               >
-                <p>🌍 Public</p>
+                <span className="flex flex-row items-center">
+                  <Unlock className="w-5 mr-2" />
+                  <p>Public</p>
+                </span>
                 <NoSSR>
                   {groupVisibility == "public" ? (
                     <Checkmark className="h-5 text-green-600 dark:text-green-500" />
                   ) : (
-                    <></>
+                    ""
                   )}
                 </NoSSR>
               </div>
@@ -195,12 +199,15 @@ export default function Home() {
                 className="p-4 bg-white dark:bg-stone-800 drop-shadow-lg hover:bg-gray-300 dark:hover:bg-stone-900 rounded-md w-full flex flex-row justify-between items-center"
                 onClick={() => getGroupVisbility("private")}
               >
-                <p>🔒 Private</p>
+                <span className="flex flex-row items-center">
+                  <Lock className="w-5 mr-2" />
+                  <p>Private</p>
+                </span>
                 <NoSSR>
                   {groupVisibility == "private" ? (
                     <Checkmark className="h-5 text-green-600 dark:text-green-500" />
                   ) : (
-                    <></>
+                    ""
                   )}
                 </NoSSR>
               </div>

@@ -6,6 +6,7 @@ import { Snowflake } from "../icons/Snowflake";
 import { Smoke, AltSmoke } from "../icons/Smoke";
 
 import { GatewayGroup, GroupState } from "../../types/gateway";
+import { Lock } from "../icons/Lock";
 
 interface Props {
   group: GatewayGroup;
@@ -25,16 +26,17 @@ export function GroupHeader({
       <h1 className="flex flex-row text-4xl text-black dark:text-white font-bold items-center">
         {group.name}
         <Tippy content="Private group" placement="right">
-          <span className="pl-2 opacity-50 cursor-default">
-            {group.visibility == "private" ? "🔒" : ""}
+          <span className="ml-3 opacity-80 cursor-default ">
+            {group.visibility == "private" ? <Lock /> : ""}
           </span>
         </Tippy>
+        <hr className="bg-white w-1 h-full opacity-40 rounded-full mx-3" />
         <Tippy
           extraClass="capitalize"
           content={`State: ${group.state}`}
           placement="right"
         >
-          <span>
+          <span className="bg-neutral-400 dark:bg-neutral-800 p-1 rounded-md">
             {group.state == GroupState.Chilling ? (
               <Snowflake />
             ) : group.state == GroupState.Awaiting ? (
