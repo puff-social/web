@@ -25,7 +25,7 @@ export default function Home() {
   const [firstVisit] = useState(() =>
     typeof localStorage != "undefined"
       ? localStorage.getItem("puff-social-first-visit") != "false"
-      : true
+      : false
   );
 
   const [groupVisibility, getGroupVisbility] = useState(() =>

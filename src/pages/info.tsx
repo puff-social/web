@@ -9,7 +9,7 @@ export default function Info() {
   const [firstVisit] = useState(() =>
     typeof localStorage != "undefined"
       ? localStorage.getItem("puff-social-first-visit") != "false"
-      : true
+      : false
   );
 
   useEffect(() => {
@@ -155,10 +155,12 @@ export default function Info() {
             </span>
           </p>
 
-          <p className="w-[700px] italic text-xs">
+          <p className="w-[700px] italic text-sm">
             If you're reading this and work at Puffco, I just want to give cool
             tools to the community, would love to see a group sesh feature in
-            the app (maybe we can chat about that) :)
+            the app (maybe we can chat about that) :) -- If you have an issue
+            with this or want me to change anything, reach out to me
+            (contact@puff.social)
           </p>
         </div>
         <button

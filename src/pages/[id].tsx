@@ -93,7 +93,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   const [firstVisit] = useState(() =>
     typeof localStorage != "undefined"
       ? localStorage.getItem("puff-social-first-visit") != "false"
-      : true
+      : false
   );
 
   function validState(state: GatewayMemberDeviceState) {
@@ -586,7 +586,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     </div>
   ) : (
     <div className="flex flex-col justify-between h-screen">
-      <GroupMeta group={initGroup} />
+      <GroupMeta initGroup={initGroup} group={group} />
 
       {group ? (
         <GroupSettingsModal

@@ -257,7 +257,7 @@ export function GroupActions({
       <Tippy content="Information" placement="bottom">
         <div
           className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-          onClick={() => router.push("/info")}
+          onClick={() => window.open("/info")}
         >
           <Info />
         </div>

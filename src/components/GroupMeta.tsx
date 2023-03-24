@@ -1,11 +1,22 @@
 import Head from "next/head";
 
 import { APIGroup } from "../types/api";
+import { GatewayGroup } from "../types/gateway";
 
-export function GroupMeta({ group }: { group?: APIGroup }) {
+export function GroupMeta({
+  group,
+  initGroup,
+}: {
+  initGroup?: APIGroup;
+  group?: GatewayGroup;
+}) {
   return (
     <Head>
-      <title>{group ? `${group.name} - puff.social` : "puff.social"}</title>
+      <title>
+        {initGroup
+          ? `${(group || initGroup).name} - puff.social`
+          : "puff.social"}
+      </title>
       <link rel="icon" href="/favicon.ico" />
 
       <meta httpEquiv="X-UA-Compatible" content="ie=edge" />
@@ -16,7 +27,7 @@ export function GroupMeta({ group }: { group?: APIGroup }) {
         name="url"
         content={
           group
-            ? `https://puff.social/${group.group_id}`
+            ? `https://puff.social/${initGroup.group_id}`
             : "https://puff.social"
         }
       />
@@ -25,8 +36,10 @@ export function GroupMeta({ group }: { group?: APIGroup }) {
         content={
           group
             ? `Join ${
-                group.sesher_count > 0 ? `${group.sesher_count} seshers in` : ""
-              } ${group.name} on puff.social`
+                initGroup.sesher_count > 0
+                  ? `${initGroup.sesher_count} seshers in`
+                  : ""
+              } ${initGroup.name} on puff.social`
             : ""
         }
       />
@@ -37,7 +50,7 @@ export function GroupMeta({ group }: { group?: APIGroup }) {
         name="twitter:image"
         content={`https://puff.social/api/group/${
           group
-            ? `${group.group_id}?name=${group.name}&seshers=${group.sesher_count}&watchers=${group.watcher_count}&seshCount=${group.sesh_counter}`
+            ? `${initGroup.group_id}?name=${initGroup.name}&seshers=${initGroup.sesher_count}&watchers=${initGroup.watcher_count}&seshCount=${initGroup.sesh_counter}`
             : "not_found"
         }`}
       />
@@ -45,7 +58,7 @@ export function GroupMeta({ group }: { group?: APIGroup }) {
         property="og:image"
         content={`https://puff.social/api/group/${
           group
-            ? `${group.group_id}?name=${group.name}&seshers=${group.sesher_count}&watchers=${group.watcher_count}&seshCount=${group.sesh_counter}`
+            ? `${initGroup.group_id}?name=${initGroup.name}&seshers=${initGroup.sesher_count}&watchers=${initGroup.watcher_count}&seshCount=${initGroup.sesh_counter}`
             : "not_found"
         }`}
       />
