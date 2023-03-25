@@ -248,20 +248,20 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
             emojis: [emoji],
             emojiCount: 10,
             physics: {
-              gravity: -0.45,
+              gravity: -0.35,
               framerate: 40,
               opacityDecay: 22,
               initialVelocities: {
                 y: {
                   max: 1,
-                  min: -30,
+                  min: -5,
                 },
                 x: {
                   max: 1,
-                  min: -20,
+                  min: -25,
                 },
                 rotation: {
-                  max: 0,
+                  max: 10,
                   min: 0,
                 },
               },
@@ -314,7 +314,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
         return curr;
       });
     },
-    [groupMembers]
+    [groupMembers, deviceConnected]
   );
 
   async function startDab(data: GroupHeatBegin) {
@@ -485,7 +485,6 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       gateway.on("group_user_left", groupMemberLeft);
       gateway.on("group_user_kicked", groupUserKicked);
       gateway.on("group_user_away_state", groupUserAwayState);
-      gateway.on("group_reaction", groupReaction);
       if (gateway.ws.readyState == gateway.ws.OPEN)
         gateway.send(Op.Join, { group_id: initGroup.group_id });
       else
@@ -519,7 +518,6 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
         gateway.removeListener("group_user_left", groupMemberLeft);
         gateway.removeListener("group_user_kicked", groupUserKicked);
         gateway.removeListener("group_user_away_state", groupUserAwayState);
-        gateway.removeListener("group_reaction", groupReaction);
       };
     }
   }, [initGroup]);
@@ -544,6 +542,13 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       gateway.removeListener("group_delete", deletedGroup);
     };
   }, [deletedGroup]);
+
+  useEffect(() => {
+    gateway.on("group_reaction", groupReaction);
+    return () => {
+      gateway.removeListener("group_reaction", groupReaction);
+    };
+  }, [groupReaction]);
 
   const connectToDevice = useCallback(async () => {
     try {
