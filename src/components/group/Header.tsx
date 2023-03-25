@@ -36,7 +36,7 @@ export function GroupHeader({
           content={`State: ${group.state}`}
           placement="right"
         >
-          <span className="bg-neutral-400 dark:bg-neutral-800 p-1 rounded-md">
+          <span className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 h-fit m-1 drop-shadow-xl">
             {group.state == GroupState.Chilling ? (
               <Snowflake />
             ) : group.state == GroupState.Awaiting ? (
