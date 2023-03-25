@@ -298,9 +298,7 @@ export function GroupMember(props: GroupMemberProps) {
                     <p className="opacity-70">#{leaderboardPos}</p>
                   </div>
                 </Tippy>
-                {props.us ? (
-                  props.strain
-                ) : props.member?.strain ? (
+                {(props.us ? props.strain : props.member?.strain) ? (
                   <Tippy
                     content={props.us ? props.strain : props.member?.strain}
                     placement="top-start"
