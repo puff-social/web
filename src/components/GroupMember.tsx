@@ -298,14 +298,20 @@ export function GroupMember(props: GroupMemberProps) {
                     <p className="opacity-70">#{leaderboardPos}</p>
                   </div>
                 </Tippy>
-                <Tippy
-                  content={props.us ? props.strain : props.member?.strain}
-                  placement="top-start"
-                >
-                  <div className="flex items-center">
-                    <Leaf className="text-green-600" />
-                  </div>
-                </Tippy>
+                {props.us ? (
+                  props.strain
+                ) : props.member?.strain ? (
+                  <Tippy
+                    content={props.us ? props.strain : props.member?.strain}
+                    placement="top-start"
+                  >
+                    <div className="flex items-center">
+                      <Leaf className="text-green-600" />
+                    </div>
+                  </Tippy>
+                ) : (
+                  <></>
+                )}
                 {(props.us ? props.away : props.member.away) ? (
                   <Tippy content="Away" placement="top-start">
                     <div className="flex items-center">
