@@ -249,7 +249,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
           const element = children.namedItem(author_session_id);
 
           emojisplosion({
-            emojis: [(<Smoke />) as unknown as string],
+            emojis: [emoji],
             emojiCount: 10,
             physics: {
               gravity: -0.35,
