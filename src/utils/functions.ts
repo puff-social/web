@@ -1,11 +1,5 @@
 import EventEmitter from "events";
 
-export function secondsToMinutesSeconds(seconds: number) {
-    const minutes = ~~(seconds / 60);
-    const extraSeconds = seconds % 60;
-    return `${minutes}:${extraSeconds.toString().padStart(2, '0')}`;
-}
-
 export function millisToMinutesAndSeconds(millis: number) {
     var minutes = Math.floor(millis / 60000);
     var seconds = Number(((millis % 60000) / 1000).toFixed(0));

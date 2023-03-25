@@ -28,7 +28,7 @@ export function UserSettingsModal({ modalOpen, setModalOpen }: any) {
     localStorage.setItem("puff-social-name", ourName);
     localStorage.setItem("puff-default-visbility", defaultVisibility);
     toast("Updated user settings", {
-      position: "bottom-right",
+      position: "top-right",
     });
     closeModal();
   }, [ourName, defaultVisibility]);

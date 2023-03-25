@@ -1,7 +1,13 @@
 import { emojisplosion } from "emojisplosion";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
-import { useCallback, useEffect, useState } from "react";
+import React, {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Tippy } from "../components/Tippy";
 
 import {
@@ -58,6 +64,9 @@ import { GroupMembersModal } from "../components/modals/GroupMembers";
 
 export default function Group({ group: initGroup }: { group: APIGroup }) {
   const router = useRouter();
+
+  const membersList = useRef<HTMLDivElement>();
+
   const [deviceConnected, setDeviceConnected] = useState(false);
   const [groupConnected, setGroupConnected] = useState(false);
   const [group, setGroup] = useState<GatewayGroup>();
@@ -120,7 +129,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   const deletedGroup = useCallback(() => {
     if (group.owner_session_id != gateway.session_id)
       toast("The group you were in was deleted", {
-        position: "bottom-right",
+        position: "top-right",
         duration: 5000,
         icon: "🗑",
       });
@@ -199,7 +208,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
 
   function groupMemberJoin({ session_id, name, away }: GroupUserJoin) {
     toast(`${name} joined`, {
-      position: "bottom-right",
+      position: "top-right",
     });
     setGroupMembers((curr) => [...curr, { session_id, name, away }]);
   }
@@ -209,7 +218,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       const member = curr.find((mem) => mem.session_id == session_id);
       if (member)
         toast(`${member.name} left`, {
-          position: "bottom-right",
+          position: "top-right",
         });
       return [...curr.filter((mem) => mem.session_id != session_id)];
     });
@@ -217,7 +226,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
 
   function groupUserKicked() {
     toast(`You were kicked from this group`, {
-      position: "bottom-right",
+      position: "top-right",
       icon: <Kick />,
     });
     router.push("/");
@@ -227,44 +236,77 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     async ({ emoji, author_session_id }: GroupReaction) => {
       setGroupMembers((curr) => {
         const member = curr.find((mem) => mem.session_id == author_session_id);
+        if (member && validState(member.device_state)) {
+          const children = membersList.current.children;
+          const element = children.namedItem(author_session_id);
 
-        emojisplosion({
-          emojis: [emoji],
-          emojiCount: 20,
-          physics: {
-            gravity: -0.45,
-            framerate: 40,
-            opacityDecay: 22,
-            initialVelocities: {
-              y: {
-                max: 1,
-                min: -30,
-              },
-              x: {
-                max: 1,
-                min: -20,
-              },
-              rotation: {
-                max: 0,
-                min: 0,
+          emojisplosion({
+            emojis: [emoji],
+            emojiCount: 10,
+            physics: {
+              gravity: -0.45,
+              framerate: 40,
+              opacityDecay: 22,
+              initialVelocities: {
+                y: {
+                  max: 1,
+                  min: -30,
+                },
+                x: {
+                  max: 1,
+                  min: -20,
+                },
+                rotation: {
+                  max: 0,
+                  min: 0,
+                },
               },
             },
-          },
-          position: {
-            x: window.innerWidth - 20,
-            y: window.innerHeight - 10,
-          },
-        });
+            position: {
+              x: element.getBoundingClientRect().x + element.clientWidth,
+              y: element.getBoundingClientRect().y + element.clientHeight,
+            },
+          });
+        } else {
+          emojisplosion({
+            emojis: [emoji],
+            emojiCount: 10,
+            physics: {
+              gravity: -0.45,
+              framerate: 40,
+              opacityDecay: 22,
+              initialVelocities: {
+                y: {
+                  max: 0,
+                  min: 50,
+                },
+                x: {
+                  max: 1,
+                  min: -20,
+                },
+                rotation: {
+                  max: 0,
+                  min: 0,
+                },
+              },
+            },
+            position: {
+              x: window.innerWidth,
+              y: 0,
+            },
+          });
 
-        toast(
-          `${
-            author_session_id == gateway.session_id ? ourName : member.name
-          }: ${emoji}`,
-          {
-            position: "bottom-right",
-            duration: 2000,
-          }
-        );
+          toast(
+            `${
+              author_session_id == gateway.session_id ? ourName : member.name
+            }: ${emoji}`,
+            {
+              position: "top-right",
+              duration: 1000,
+            }
+          );
+        }
+
         return curr;
       });
     },
@@ -272,12 +314,12 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   );
 
   async function startDab(data: GroupHeatBegin) {
-    toast("3...", { duration: 1000, position: "bottom-right" });
+    toast("3...", { duration: 1000, position: "top-right" });
     setTimeout(() => {
-      toast("2...", { duration: 1000, position: "bottom-right" });
+      toast("2...", { duration: 1000, position: "top-right" });
       setTimeout(() => {
-        toast("1...", { duration: 900, position: "bottom-right" });
-        toast("Dab", { duration: 1000, position: "bottom-right" });
+        toast("1...", { duration: 900, position: "top-right" });
+        toast("Dab", { duration: 1000, position: "top-right" });
 
         if (!data.away && !data.watcher && !data.excluded)
           sendCommand(DeviceCommand.HEAT_CYCLE_BEGIN);
@@ -295,7 +337,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
           `${
             data.session_id == gateway.session_id ? ourName : initiator.name
           } wants to start`,
-          { icon: "🔥", duration: 5000, position: "bottom-right" }
+          { icon: "🔥", duration: 5000, position: "top-right" }
         );
 
         if (!data.away && !data.watcher && !data.excluded) {
@@ -304,7 +346,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
           toast(`Confirm by pressing your button`, {
             icon: "🔘",
             duration: 8000,
-            position: "bottom-right",
+            position: "top-right",
           });
         }
 
@@ -329,7 +371,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
           `${
             data.session_id == gateway.session_id ? ourName : initiator.name
           } is ready`,
-          { icon: "✅", duration: 5000, position: "bottom-right" }
+          { icon: "✅", duration: 5000, position: "top-right" }
         );
         return groupMembers;
       });
@@ -353,7 +395,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
             `${
               data.session_id == gateway.session_id ? ourName : initiator.name
             } is no longer ready`,
-            { icon: "🚫", duration: 5000, position: "bottom-right" }
+            { icon: "🚫", duration: 5000, position: "top-right" }
           );
         return groupMembers;
       });
@@ -384,7 +426,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
           {
             icon: data.visibility == "public" ? "🌍" : "🔒",
             duration: 5000,
-            position: "bottom-right",
+            position: "top-right",
           }
         );
         return groupMembers;
@@ -504,7 +546,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       const { device, profiles } = await startConnection();
       toast(`Connected to ${device.name}`, {
         icon: <BluetoothConnected />,
-        position: "bottom-right",
+        position: "top-right",
       });
       setDeviceProfiles(profiles);
       const { poller, initState, deviceInfo } = await startPolling(device);
@@ -542,7 +584,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
         gateway.send(Op.DisconnectDevice);
         toast(`Disconnected from ${device.name}`, {
           icon: <BluetoothDisabled />,
-          position: "bottom-right",
+          position: "top-right",
         });
       };
     } catch (error) {
@@ -681,7 +723,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
             )}
           </div>
 
-          <div className="flex flex-row flex-wrap">
+          <div className="flex flex-row flex-wrap" ref={membersList}>
             <>
               <GroupMember
                 device={myDevice}

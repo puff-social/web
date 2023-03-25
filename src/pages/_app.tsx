@@ -16,7 +16,7 @@ export default function App({ Component, pageProps }) {
 
   function groupCreated(group: GatewayGroupCreate) {
     toast(`Group ${group.name} (${group.group_id}) created`, {
-      position: "bottom-right",
+      position: "top-right",
     });
     connectGroup(group);
   }
@@ -25,7 +25,7 @@ export default function App({ Component, pageProps }) {
     switch (error.code) {
       case "INVALID_GROUP_NAME": {
         toast("Too long or invalid group name (max 32 characters)", {
-          position: "bottom-right",
+          position: "top-right",
         });
         break;
       }
@@ -36,7 +36,7 @@ export default function App({ Component, pageProps }) {
     switch (error.code) {
       case "INVALID_NAME": {
         toast("Too long or invalid name (max 32 characters)", {
-          position: "bottom-right",
+          position: "top-right",
         });
         break;
       }
@@ -85,7 +85,7 @@ export default function App({ Component, pageProps }) {
           <Transition
             appear
             show={t.visible}
-            className="transform flex justify-center items-center rounded-md p-2 bg-white text-black dark:bg-neutral-800 dark:text-white drop-shadow-xl w-96"
+            className="transform flex justify-center items-center rounded-md p-2 bg-white text-black dark:bg-neutral-800 dark:text-white drop-shadow-xl max-w-96"
             enter="transition-all duration-150"
             enterFrom="opacity-0 scale-50"
             enterTo="opacity-100 scale-100"

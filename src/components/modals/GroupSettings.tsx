@@ -34,14 +34,14 @@ export function GroupSettingsModal({
       name: groupName,
       visibility: groupVisibility,
     });
-    toast("Updated group", { position: "bottom-right", duration: 3000 });
+    toast("Updated group", { position: "top-right", duration: 3000 });
     closeModal();
   }, [groupName, groupVisibility]);
 
   const deleteGroup = useCallback(() => {
     gateway.send(Op.DeleteGroup);
     toast("Group deleted", {
-      position: "bottom-right",
+      position: "top-right",
       duration: 3000,
       icon: "🗑",
     });

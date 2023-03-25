@@ -2,7 +2,7 @@ import { createHash } from "crypto";
 import { EventEmitter } from "events";
 import { unpack, pack } from 'byte-data';
 import { GatewayMemberDeviceState } from "../types/gateway";
-import { convertFromHex, convertHexStringToNumArray, secondsToMinutesSeconds, decimalToHexString, flipHexString, gattPoller, getValue, hexToFloat } from "./functions";
+import { convertFromHex, convertHexStringToNumArray, millisToMinutesAndSeconds, decimalToHexString, flipHexString, gattPoller, getValue, hexToFloat } from "./functions";
 import { DeviceInformation, DiagData } from "../types/api";
 import { trackDiags } from "./analytics";
 import { PuffcoProfile } from "../types/puffco";
@@ -177,7 +177,7 @@ export async function loopProfiles() {
     const time = Number(hexToFloat(timeCall).toFixed(0));
 
     console.log(`Profile #${key + 1} - ${name} - ${temp} - ${time}`);
-    profiles[key + 1] = { name, temp, time: secondsToMinutesSeconds(time) };
+    profiles[key + 1] = { name, temp, time: millisToMinutesAndSeconds(time * 1000) };
   }
 
   return profiles;

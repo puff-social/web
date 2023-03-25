@@ -20,7 +20,6 @@ import { PuffcoContainer } from "./puffco";
 import { Tippy } from "./Tippy";
 import { Bluetooth } from "./icons/Bluetooth";
 import { Crown } from "./icons/Crown";
-import { secondsToMinutesSeconds } from "../utils/functions";
 import { Icon3D } from "./icons/3DIcon";
 import { Dots } from "./icons/Dots";
 import { Kick } from "./icons/Kick";
@@ -28,6 +27,7 @@ import { Op, gateway } from "../utils/gateway";
 import { getLeaderboardDevice } from "../utils/analytics";
 import { ShareIcon } from "./icons/Share";
 import { Away, UnAway } from "./icons/Away";
+import { millisToMinutesAndSeconds } from "../utils/functions";
 
 interface GroupMemberProps {
   name?: string;
@@ -116,7 +116,7 @@ export function GroupMember(props: GroupMemberProps) {
               toast("Copied group URL to clipboard", {
                 icon: "📋",
                 duration: 2500,
-                position: "bottom-right",
+                position: "top-right",
               });
             }}
           >
@@ -135,6 +135,7 @@ export function GroupMember(props: GroupMemberProps) {
       }`}
       onMouseEnter={() => setHoveringCard(true)}
       onMouseLeave={() => setHoveringCard(false)}
+      id={props.us ? gateway.session_id : props.member?.session_id}
     >
       {(props.us && !!props.device) || props.device ? (
         <div className="flex flex-col justify-center w-full overflow-hidden">
@@ -157,7 +158,7 @@ export function GroupMember(props: GroupMemberProps) {
                               : "away"
                           }`,
                           {
-                            position: "bottom-right",
+                            position: "top-right",
                             duration: 2500,
                             icon: (
                               props.us ? props.away : props.member.away
@@ -194,7 +195,7 @@ export function GroupMember(props: GroupMemberProps) {
                       toast(
                         `Copied share card for ${props.device.deviceName}`,
                         {
-                          position: "bottom-right",
+                          position: "top-right",
                           duration: 2500,
                           icon: "📋",
                         }
@@ -342,7 +343,7 @@ export function GroupMember(props: GroupMemberProps) {
                       ? "Ready"
                       : PuffcoOperatingMap[props.device.state]}
                     {[7, 8].includes(props.device.state)
-                      ? ` - ${secondsToMinutesSeconds(stateTimer)}`
+                      ? ` - ${millisToMinutesAndSeconds(stateTimer * 1000)}`
                       : ""}
                   </h3>
                   {props.ready ? (
@@ -403,7 +404,7 @@ export function GroupMember(props: GroupMemberProps) {
               toast("Copied group URL to clipboard", {
                 icon: "📋",
                 duration: 2500,
-                position: "bottom-right",
+                position: "top-right",
               });
             }}
           >

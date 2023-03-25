@@ -18,7 +18,7 @@ export function FeedbackModal({ modalOpen, setModalOpen }: any) {
     toast("Feedback sent", {
       icon: "✅",
       duration: 2000,
-      position: "bottom-right",
+      position: "top-right",
     });
     closeModal();
   }, [message]);
