@@ -236,7 +236,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     async ({ emoji, author_session_id }: GroupReaction) => {
       setGroupMembers((curr) => {
         const member = curr.find((mem) => mem.session_id == author_session_id);
-        if (member && validState(member.device_state)) {
+        if (member && validState(member.device_state || myDevice)) {
           const children = membersList.current.children;
           const element = children.namedItem(author_session_id);
 
