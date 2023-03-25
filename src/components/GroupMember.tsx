@@ -338,7 +338,15 @@ export function GroupMember(props: GroupMemberProps) {
                 <div className="flex space-x-2">
                   <span className="flex flex-row justify-center items-center">
                     <Tippy content="Total Dabs" placement="right">
-                      <div className="flex justify-center">
+                      <div
+                        className={`flex justify-center ${
+                          [420, 710, 1620, 1910].includes(
+                            props.device.totalDabs
+                          )
+                            ? "rainbow"
+                            : ""
+                        }`}
+                      >
                         <Counter className="m-1 ml-0" />
                         <p className="m-0 p-1 text-lg">
                           {props.device.totalDabs.toLocaleString()}
