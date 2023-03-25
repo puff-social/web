@@ -61,6 +61,7 @@ export interface GatewayError {
 export interface GroupUserJoin {
   group_id: string;
   session_id: string;
+  strain: string;
   name: string;
   away: boolean;
 }
@@ -79,6 +80,7 @@ export enum GroupState {
 export interface GatewayGroup {
   group_id: string;
   members: GatewayGroupMember[];
+  ready_members: string[];
   name: string;
   state: GroupState;
   visibility: string;
@@ -94,6 +96,7 @@ export interface GatewayGroupMember {
   device_state?: GatewayMemberDeviceState;
   name: string;
   session_id: string;
+  strain?: string;
   away?: boolean;
 }
 
@@ -119,7 +122,8 @@ export interface GatewayMemberDeviceState {
 
 export interface GroupUserUpdate {
   session_id: string;
-  name: string;
+  strain?: string;
+  name?: string;
 }
 
 export interface GroupUserDeviceUpdate {

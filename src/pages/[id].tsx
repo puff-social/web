@@ -61,6 +61,8 @@ import { ChatBox } from "../components/Chat";
 import { ChatIcon } from "../components/icons/Chat";
 import { GroupHeader } from "../components/group/Header";
 import { GroupMembersModal } from "../components/modals/GroupMembers";
+import { Smoke } from "../components/icons/Smoke";
+import { GroupStrainModal } from "../components/modals/GroupStrain";
 
 export default function Group({ group: initGroup }: { group: APIGroup }) {
   const router = useRouter();
@@ -79,6 +81,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   const [ourLeaderboardPosition, setOurLeaderboardPosition] =
     useState<number>(0);
   const [usAway, setUsAway] = useState(false);
+  const [ourStrain, setOurStrain] = useState<string>();
   const [ourName, setOurName] = useState(() =>
     typeof localStorage != "undefined"
       ? localStorage.getItem("puff-social-name") || "Unnamed"
@@ -96,6 +99,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [groupMembersModalOpen, setGroupMembersModalOpen] = useState(false);
   const [userSettingsModalOpen, setUserSettingsModalOpen] = useState(false);
+  const [strainSetModalOpen, setStrainSetModalOpen] = useState(false);
   const [deviceSettingsModalOpen, setDeviceSettingsModalOpen] = useState(false);
   const [groupSettingsModalOpen, setGroupSettingsModalOpen] = useState(false);
 
@@ -119,11 +123,12 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     return true;
   }
 
-  function joinedGroup(group: GatewayGroup) {
+  async function joinedGroup(group: GatewayGroup) {
     setGroupJoinErrorMessage("");
     setGroupConnected(true);
     setGroup(group);
     setGroupMembers(group.members);
+    setReadyMembers(group.ready_members);
   }
 
   const deletedGroup = useCallback(() => {
@@ -154,11 +159,10 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   );
 
   function groupMemberUpdated(member: GatewayGroupMember) {
-    if (
-      member.session_id == gateway.session_id &&
-      typeof member.name != "undefined"
-    )
-      setOurName(member.name);
+    if (member.session_id == gateway.session_id) {
+      if (typeof member.name != "undefined") setOurName(member.name);
+      if (typeof member.strain != "undefined") setOurStrain(member.strain);
+    }
 
     setGroupMembers((curr) => {
       const existing = curr.find((mem) => mem.session_id == member.session_id);
@@ -245,7 +249,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
           const element = children.namedItem(author_session_id);
 
           emojisplosion({
-            emojis: [emoji],
+            emojis: [(<Smoke />) as unknown as string],
             emojiCount: 10,
             physics: {
               gravity: -0.35,
@@ -492,6 +496,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
           gateway.send(Op.Join, { group_id: initGroup.group_id })
         );
       return () => {
+        setReadyMembers([]);
         gateway.send(Op.LeaveGroup);
         disconnect();
         gateway.removeListener("joined_group", joinedGroup);
@@ -558,6 +563,14 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
         position: "top-right",
       });
       setDeviceProfiles(profiles);
+
+      if (group.state == GroupState.Awaiting) {
+        await setLightMode(PuffLightMode.QueryReady);
+        await sendCommand(DeviceCommand.BONDING);
+      } else {
+        await setLightMode(PuffLightMode.Default);
+      }
+
       const { poller, initState, deviceInfo } = await startPolling(device);
       const tracked = await trackDevice(deviceInfo, ourName);
       setOurLeaderboardPosition(tracked.data.position);
@@ -652,6 +665,11 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
         modalOpen={userSettingsModalOpen}
         setModalOpen={setUserSettingsModalOpen}
       />
+      <GroupStrainModal
+        modalOpen={strainSetModalOpen}
+        setModalOpen={setStrainSetModalOpen}
+        strain={ourStrain}
+      />
       {deviceConnected ? (
         <DeviceSettingsModal
           device={myDevice}
@@ -737,11 +755,13 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
               <GroupMember
                 device={myDevice}
                 name={ourName}
+                strain={ourStrain}
                 leaderboardPosition={ourLeaderboardPosition}
                 ready={readyMembers.includes(gateway.session_id)}
                 connectToDevice={connectToDevice}
                 nobody={seshers == 0}
                 owner={group.owner_session_id == gateway.session_id}
+                setStrainModalOpen={setStrainSetModalOpen}
                 group={group}
                 away={usAway}
                 us

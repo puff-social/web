@@ -23,6 +23,7 @@ export enum Op {
   TransferOwnership,
   KickFromGroup,
   AwayState,
+  GroupStrain,
   Heartbeat = 420
 }
 
@@ -158,12 +159,12 @@ export class Gateway extends EventEmitter {
     this.connectionAttempt++;
     this.connectionTimeout = setTimeout(
       () => this.init(),
-      this.connectionAttempt == 1
-        ? 1000 * 3
-        : this.connectionAttempt == 2
+      this.connectionAttempt == 0
+        ? 1000 * 2
+        : this.connectionAttempt == 1
           ? 1000 * 10
-          : this.connectionAttempt == 3
-            ? 1000 * 30 * 1
+          : this.connectionAttempt == 2
+            ? 1000 * 30
             : 1000 * 30 * 5
     );
   }

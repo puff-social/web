@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import toast from "react-hot-toast";
 import {
   GatewayGroup,
@@ -28,9 +35,11 @@ import { getLeaderboardDevice } from "../utils/analytics";
 import { ShareIcon } from "./icons/Share";
 import { Away, UnAway } from "./icons/Away";
 import { millisToMinutesAndSeconds } from "../utils/functions";
+import { Leaf } from "./icons/Leaf";
 
 interface GroupMemberProps {
   name?: string;
+  strain?: string;
   group?: GatewayGroup;
   device?: GatewayMemberDeviceState;
   member?: GatewayGroupMember;
@@ -43,6 +52,7 @@ interface GroupMemberProps {
   nobodyelse?: boolean;
   nobody?: boolean;
   connectToDevice?: Function;
+  setStrainModalOpen?: Dispatch<SetStateAction<boolean>>;
 }
 
 export function GroupMember(props: GroupMemberProps) {
@@ -148,44 +158,55 @@ export function GroupMember(props: GroupMemberProps) {
               content={
                 <div className="flex flex-col bg-neutral-300 dark:bg-neutral-900 rounded-lg drop-shadow-xl p-4 space-y-2 w-72">
                   {props.us ? (
-                    <span
-                      className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between"
-                      onClick={() => {
-                        toast(
-                          `Marked you as ${
-                            (props.us ? props.away : props.member.away)
-                              ? "no longer away"
-                              : "away"
-                          }`,
-                          {
-                            position: "top-right",
-                            duration: 2500,
-                            icon: (
-                              props.us ? props.away : props.member.away
-                            ) ? (
-                              <UnAway />
-                            ) : (
-                              <Away />
-                            ),
-                          }
-                        );
-                        gateway.send(Op.AwayState, {
-                          state: props.us ? !props.away : !props.member.away,
-                        });
-                      }}
-                    >
-                      {(props.us ? props.away : props.member.away) ? (
-                        <>
-                          <p>Unset away state</p>
-                          <UnAway />
-                        </>
-                      ) : (
-                        <>
-                          <p>Set away state</p>
-                          <Away />
-                        </>
-                      )}
-                    </span>
+                    <>
+                      <span
+                        className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between"
+                        onClick={() => {
+                          props.setStrainModalOpen(true);
+                        }}
+                      >
+                        <p>Set strain</p>
+                        <Leaf />
+                      </span>
+                      <span
+                        className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between"
+                        onClick={() => {
+                          toast(
+                            `Marked you as ${
+                              (props.us ? props.away : props.member.away)
+                                ? "no longer away"
+                                : "away"
+                            }`,
+                            {
+                              position: "top-right",
+                              duration: 2500,
+                              icon: (
+                                props.us ? props.away : props.member.away
+                              ) ? (
+                                <UnAway />
+                              ) : (
+                                <Away />
+                              ),
+                            }
+                          );
+                          gateway.send(Op.AwayState, {
+                            state: props.us ? !props.away : !props.member.away,
+                          });
+                        }}
+                      >
+                        {(props.us ? props.away : props.member.away) ? (
+                          <>
+                            <p>Unset away state</p>
+                            <UnAway />
+                          </>
+                        ) : (
+                          <>
+                            <p>Set away state</p>
+                            <Away />
+                          </>
+                        )}
+                      </span>
+                    </>
                   ) : (
                     <></>
                   )}
@@ -212,7 +233,7 @@ export function GroupMember(props: GroupMemberProps) {
                   props.group.owner_session_id == gateway.session_id ? (
                     <>
                       <span
-                        className="flex p-2 rounded-md text-green-700 bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
+                        className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
                         onClick={() =>
                           gateway.send(Op.TransferOwnership, {
                             session_id: props.member.session_id,
@@ -220,10 +241,10 @@ export function GroupMember(props: GroupMemberProps) {
                         }
                       >
                         <p>Make owner</p>
-                        <Crown />
+                        <Crown className="text-green-700" />
                       </span>
                       <span
-                        className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between text-red-600 dark:text-red-300 transition-all"
+                        className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
                         onClick={() =>
                           gateway.send(Op.KickFromGroup, {
                             session_id: props.member.session_id,
@@ -231,7 +252,7 @@ export function GroupMember(props: GroupMemberProps) {
                         }
                       >
                         <p>Kick from group</p>
-                        <Kick />
+                        <Kick className="text-red-600 dark:text-red-300" />
                       </span>
                     </>
                   ) : (
@@ -275,6 +296,14 @@ export function GroupMember(props: GroupMemberProps) {
                 <Tippy content="Leaderboard Position" placement="top-start">
                   <div className="flex items-center rounded-md px-1 bg-white dark:bg-neutral-700 drop-shadow-xl text-black dark:text-white">
                     <p className="opacity-70">#{leaderboardPos}</p>
+                  </div>
+                </Tippy>
+                <Tippy
+                  content={props.us ? props.strain : props.member?.strain}
+                  placement="top-start"
+                >
+                  <div className="flex items-center">
+                    <Leaf className="text-green-600" />
                   </div>
                 </Tippy>
                 {(props.us ? props.away : props.member.away) ? (

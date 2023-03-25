@@ -195,6 +195,7 @@ export function GroupActions({
           <Tippy content="Group Reactions" placement="bottom">
             <div>
               <Tippy
+                arrow={false}
                 content={
                   <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-72">
                     <p className="text-lg font-bold">Reactions</p>
