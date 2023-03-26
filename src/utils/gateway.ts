@@ -134,6 +134,13 @@ export class Gateway extends EventEmitter {
     // Socket open handler
     this.ws.addEventListener("open", () => this.opened());
 
+    if (typeof window != 'undefined') {
+      window.addEventListener('beforeunload', () => {
+        this.send(Op.LeaveGroup);
+        this.ws.close();
+      });
+    }
+
     // Message listener
     this.ws.addEventListener("message", (e) => {
       const message =
