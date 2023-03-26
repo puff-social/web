@@ -106,6 +106,7 @@ export interface Gateway {
   on(event: "group_user_kicked", listener: (group: GatewayGroupAction) => void): this;
   on(event: "group_user_away_state", listener: (group: GatewayGroupUserAwayState) => void): this;
   on(event: "rate_limited", listener: () => void): this;
+  on(event: "session_resumed", listener: () => void): this;
   on(event: "user_update_error", listener: (error: GatewayError) => void): this;
 }
 export class Gateway extends EventEmitter {
@@ -166,11 +167,11 @@ export class Gateway extends EventEmitter {
     this.connectionAttempt++;
     this.connectionTimeout = setTimeout(
       () => this.init(),
-      this.connectionAttempt == 0
+      this.connectionAttempt == 1
         ? 1000 * 2
-        : this.connectionAttempt == 1
+        : this.connectionAttempt == 2
           ? 1000 * 10
-          : this.connectionAttempt == 2
+          : this.connectionAttempt == 3
             ? 1000 * 30
             : 1000 * 30 * 5
     );

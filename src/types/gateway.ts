@@ -97,6 +97,7 @@ export interface GatewayGroupMember {
   name: string;
   session_id: string;
   strain?: string;
+  disconnected?: boolean;
   away?: boolean;
 }
 

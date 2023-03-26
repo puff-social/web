@@ -36,6 +36,7 @@ import { ShareIcon } from "./icons/Share";
 import { Away, UnAway } from "./icons/Away";
 import { millisToMinutesAndSeconds } from "../utils/functions";
 import { Leaf } from "./icons/Leaf";
+import { PlugDisconnected } from "./icons/Plug";
 
 interface GroupMemberProps {
   name?: string;
@@ -305,6 +306,15 @@ export function GroupMember(props: GroupMemberProps) {
                   >
                     <div className="flex items-center">
                       <Leaf className="text-green-600" />
+                    </div>
+                  </Tippy>
+                ) : (
+                  <></>
+                )}
+                {!props.us && props.member?.disconnected ? (
+                  <Tippy content="User reconnecting..." placement="top-start">
+                    <div className="flex items-center">
+                      <PlugDisconnected className="text-yellow-600" />
                     </div>
                   </Tippy>
                 ) : (

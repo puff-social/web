@@ -63,6 +63,7 @@ import { GroupHeader } from "../components/group/Header";
 import { GroupMembersModal } from "../components/modals/GroupMembers";
 import { Smoke } from "../components/icons/Smoke";
 import { GroupStrainModal } from "../components/modals/GroupStrain";
+import { PlugConnected } from "../components/icons/Plug";
 
 export default function Group({ group: initGroup }: { group: APIGroup }) {
   const router = useRouter();
@@ -157,6 +158,24 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     },
     [readyMembers, group, deviceConnected, myDevice]
   );
+
+  const sessionResumed = useCallback(async () => {
+    toast("Socket reconnected", {
+      position: "top-right",
+      duration: 1500,
+      icon: <PlugConnected />,
+    });
+
+    if (group.state == GroupState.Awaiting) {
+      await setLightMode(PuffLightMode.QueryReady);
+    } else {
+      await setLightMode(PuffLightMode.Default);
+    }
+
+    setReadyMembers((curr) => [
+      ...curr.filter((item) => item != gateway.session_id),
+    ]);
+  }, [group]);
 
   function groupMemberUpdated(member: GatewayGroupMember) {
     if (member.session_id == gateway.session_id) {
@@ -526,6 +545,13 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       };
     }
   }, [initGroup]);
+
+  useEffect(() => {
+    gateway.on("session_resumed", sessionResumed);
+    return () => {
+      gateway.removeListener("session_resumed", sessionResumed);
+    };
+  }, [sessionResumed]);
 
   useEffect(() => {
     gateway.on("group_update", updatedGroup);
