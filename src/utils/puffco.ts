@@ -427,7 +427,7 @@ export async function startPolling(device?: BluetoothDevice) {
   initState.profile = {
     name: decoder.decode(initProfileName),
     temp,
-    time
+    time: millisToMinutesAndSeconds(time * 1000)
   };
 
   const [, initDeviceBirthday] = await getValue(service, Characteristic.DEVICE_BIRTHDAY);

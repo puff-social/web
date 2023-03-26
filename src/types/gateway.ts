@@ -104,7 +104,7 @@ export interface GatewayGroupMember {
 export interface GatewayDeviceProfile {
   name: string;
   temp: number;
-  time: number;
+  time: string;
 }
 
 export interface GatewayMemberDeviceState {
