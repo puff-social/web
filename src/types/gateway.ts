@@ -158,6 +158,7 @@ export interface GroupHeatBegin {
   away: boolean;
   watcher: boolean;
   excluded: boolean;
+  ready: boolean;
 }
 
 export interface ChatMessageData {
