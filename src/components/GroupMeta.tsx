@@ -26,7 +26,7 @@ export function GroupMeta({
       <meta
         name="url"
         content={
-          group
+          initGroup
             ? `https://puff.social/${initGroup.group_id}`
             : "https://puff.social"
         }
@@ -49,7 +49,7 @@ export function GroupMeta({
       <meta
         name="twitter:image"
         content={`https://puff.social/api/group/${
-          group
+          initGroup
             ? `${initGroup.group_id}?name=${initGroup.name}&seshers=${initGroup.sesher_count}&watchers=${initGroup.watcher_count}&seshCount=${initGroup.sesh_counter}`
             : "not_found"
         }`}
@@ -57,7 +57,7 @@ export function GroupMeta({
       <meta
         property="og:image"
         content={`https://puff.social/api/group/${
-          group
+          initGroup
             ? `${initGroup.group_id}?name=${initGroup.name}&seshers=${initGroup.sesher_count}&watchers=${initGroup.watcher_count}&seshCount=${initGroup.sesh_counter}`
             : "not_found"
         }`}
