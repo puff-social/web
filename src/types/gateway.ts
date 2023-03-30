@@ -1,4 +1,5 @@
 import { ChamberType, ChargeSource } from "../utils/puffco";
+import { User } from "./api";
 
 export interface Colors {
   r: number;
@@ -99,6 +100,7 @@ export interface GatewayGroupMember {
   strain?: string;
   disconnected?: boolean;
   away?: boolean;
+  user?: User;
 }
 
 export interface GatewayDeviceProfile {

@@ -31,12 +31,13 @@ import { Icon3D } from "./icons/3DIcon";
 import { Dots } from "./icons/Dots";
 import { Kick } from "./icons/Kick";
 import { Op, gateway } from "../utils/gateway";
-import { getLeaderboardDevice } from "../utils/analytics";
+import { getLeaderboardDevice } from "../utils/hash";
 import { ShareIcon } from "./icons/Share";
 import { Away, UnAway } from "./icons/Away";
 import { millisToMinutesAndSeconds } from "../utils/functions";
 import { Leaf } from "./icons/Leaf";
 import { PlugDisconnected } from "./icons/Plug";
+import { User } from "../types/api";
 
 interface GroupMemberProps {
   name?: string;
@@ -48,11 +49,13 @@ interface GroupMemberProps {
   ready?: boolean;
   away?: boolean;
   connected?: boolean;
+  disconnected?: boolean;
   owner?: boolean;
   us?: boolean;
   nobodyelse?: boolean;
   nobody?: boolean;
   connectToDevice?: Function;
+  user?: User;
   setStrainModalOpen?: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -311,7 +314,9 @@ export function GroupMember(props: GroupMemberProps) {
                 ) : (
                   <></>
                 )}
-                {!props.us && props.member?.disconnected ? (
+                {props.us ? (
+                  props.disconnected
+                ) : props.member?.disconnected ? (
                   <Tippy content="User reconnecting..." placement="top-start">
                     <div className="flex items-center">
                       <PlugDisconnected className="text-yellow-600" />
@@ -339,11 +344,30 @@ export function GroupMember(props: GroupMemberProps) {
                   <></>
                 )}
               </span>
-              <Tippy content={props.device.deviceName} placement="bottom-start">
-                <h1 className="m-0 text-xl font-bold truncate">
-                  {props.us ? props.name : props.member.name}
-                </h1>
-              </Tippy>
+              <span className="space-x-2 flex flex-row items-center">
+                <img
+                  className="rounded-full p-0.5 w-7 h-7"
+                  src={`https://cdn.puff.social/avatars/${
+                    (props.us ? props : props.member).user.id
+                  }/${(props.us ? props : props.member).user.image}.${
+                    (props.us ? props : props.member).user.image.startsWith(
+                      "a_"
+                    )
+                      ? "gif"
+                      : "png"
+                  }`}
+                />
+                <Tippy
+                  content={props.device.deviceName}
+                  placement="bottom-start"
+                >
+                  <h1 className="m-0 text-xl font-bold truncate">
+                    {props.us
+                      ? props.user.name || props.name
+                      : props.member.user.name || props.member.name}
+                  </h1>
+                </Tippy>
+              </span>
               {props.device && (
                 <div className="flex space-x-2">
                   <span className="flex flex-row justify-center items-center">

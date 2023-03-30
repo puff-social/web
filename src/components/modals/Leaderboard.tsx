@@ -2,7 +2,7 @@ import Modal from "react-modal";
 import { useCallback, useEffect, useState } from "react";
 
 import { Cross } from "../icons/Cross";
-import { getLeaderboard } from "../../utils/analytics";
+import { getLeaderboard } from "../../utils/hash";
 import { DeviceLeaderboard } from "../../types/api";
 import { automaticRelativeDifference } from "../../utils/time";
 import { Tippy } from "../Tippy";

@@ -37,11 +37,11 @@ import {
 } from "../utils/puffco";
 import { gateway, Op } from "../utils/gateway";
 import { UserSettingsModal } from "../components/modals/UserSettings";
-import { trackDevice } from "../utils/analytics";
+import { trackDevice } from "../utils/hash";
 import { GroupMeta } from "../components/GroupMeta";
 import { NextPageContext } from "next";
 import { getGroupById } from "../utils/api";
-import { APIGroup } from "../types/api";
+import { APIGroup, User } from "../types/api";
 import { GroupMember } from "../components/GroupMember";
 import { LeaderboardModal } from "../components/modals/Leaderboard";
 import { FeedbackModal } from "../components/modals/Feedback";
@@ -61,9 +61,10 @@ import { ChatBox } from "../components/Chat";
 import { ChatIcon } from "../components/icons/Chat";
 import { GroupHeader } from "../components/group/Header";
 import { GroupMembersModal } from "../components/modals/GroupMembers";
-import { Smoke } from "../components/icons/Smoke";
 import { GroupStrainModal } from "../components/modals/GroupStrain";
 import { PlugConnected } from "../components/icons/Plug";
+import { useSelector } from "react-redux";
+import { selectSessionState } from "../state/slices/session";
 
 export default function Group({ group: initGroup }: { group: APIGroup }) {
   const router = useRouter();
@@ -76,6 +77,8 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   const [groupJoinErrorMessage, setGroupJoinErrorMessage] = useState<string>();
   const [groupMembers, setGroupMembers] = useState<GatewayGroupMember[]>([]);
 
+  const session = useSelector(selectSessionState);
+
   const [chatBoxOpen, setChatBoxOpen] = useState(false);
   const [chatUnread, setChatUnread] = useState(false);
 
@@ -83,6 +86,8 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     useState<number>(0);
   const [usAway, setUsAway] = useState(false);
   const [ourStrain, setOurStrain] = useState<string>();
+  const [ourUser, setOurUser] = useState<User>();
+  const [usDisconnected, setUsDisconnected] = useState<boolean>(false);
   const [ourName, setOurName] = useState(() =>
     typeof localStorage != "undefined"
       ? localStorage.getItem("puff-social-name") || "Unnamed"
@@ -181,6 +186,9 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     if (member.session_id == gateway.session_id) {
       if (typeof member.name != "undefined") setOurName(member.name);
       if (typeof member.strain != "undefined") setOurStrain(member.strain);
+      if (typeof member.user != "undefined") setOurUser(member.user);
+      if (typeof member.disconnected != "undefined")
+        setUsDisconnected(member.disconnected);
     }
 
     setGroupMembers((curr) => {
@@ -508,12 +516,22 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       gateway.on("group_user_left", groupMemberLeft);
       gateway.on("group_user_kicked", groupUserKicked);
       gateway.on("group_user_away_state", groupUserAwayState);
-      if (gateway.ws.readyState == gateway.ws.OPEN)
+
+      if (gateway.ws.readyState == gateway.ws.OPEN) {
         gateway.send(Op.Join, { group_id: initGroup.group_id });
-      else
-        gateway.once("init", () =>
-          gateway.send(Op.Join, { group_id: initGroup.group_id })
-        );
+        if (localStorage.getItem("puff-social-auth"))
+          gateway.send(Op.LinkUser, {
+            token: localStorage.getItem("puff-social-auth"),
+          });
+      } else {
+        gateway.once("init", () => {
+          gateway.send(Op.Join, { group_id: initGroup.group_id });
+          if (localStorage.getItem("puff-social-auth"))
+            gateway.send(Op.LinkUser, {
+              token: localStorage.getItem("puff-social-auth"),
+            });
+        });
+      }
       return () => {
         setReadyMembers([]);
         gateway.send(Op.LeaveGroup);
@@ -721,6 +739,8 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
               session_id: gateway.session_id,
               away: usAway,
               device_state: myDevice,
+              disconnected: usDisconnected,
+              user: ourUser,
             },
           ]}
         />
@@ -790,6 +810,8 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                 setStrainModalOpen={setStrainSetModalOpen}
                 group={group}
                 away={usAway}
+                user={ourUser}
+                disconnected={usDisconnected}
                 us
               />
               {groupMembers

@@ -1,18 +1,23 @@
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Transition } from "@headlessui/react";
 import { Toaster, ToastIcon, toast, resolveValue } from "react-hot-toast";
 
 import "tippy.js/dist/tippy.css";
 import "../assets/app.css";
+
 import { gateway } from "../utils/gateway";
-
-import { APIGroup } from "../types/api";
-import { GatewayError, GatewayGroupCreate } from "../types/gateway";
+import { APIGroup, User } from "../types/api";
 import PlausibleProvider from "next-plausible";
+import { getCurrentUser } from "../utils/hash";
+import { GatewayError, GatewayGroupCreate } from "../types/gateway";
+import { wrapper } from "../state/store";
+import { useDispatch } from "react-redux";
+import { setSessionState } from "../state/slices/session";
 
-export default function App({ Component, pageProps }) {
+function App({ Component, pageProps }) {
   const router = useRouter();
+  const dispatch = useDispatch();
 
   function groupCreated(group: GatewayGroupCreate) {
     toast(`Group ${group.name} (${group.group_id}) created`, {
@@ -43,7 +48,17 @@ export default function App({ Component, pageProps }) {
     }
   }
 
+  async function getAndCheckAuth() {
+    const auth = localStorage.getItem("puff-social-auth");
+    if (auth) {
+      const usr = await getCurrentUser();
+      dispatch(setSessionState({ user: usr.data.user }));
+    }
+  }
+
   useEffect(() => {
+    getAndCheckAuth();
+
     if (typeof localStorage != "undefined")
       localStorage.setItem("puff-social-first-visit", "false");
 
@@ -102,3 +117,5 @@ export default function App({ Component, pageProps }) {
     </PlausibleProvider>
   );
 }
+
+export default wrapper.withRedux(App);

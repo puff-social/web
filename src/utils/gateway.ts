@@ -24,6 +24,7 @@ export enum Op {
   KickFromGroup,
   AwayState,
   GroupStrain,
+  LinkUser,
   Heartbeat = 420
 }
 
@@ -51,6 +52,7 @@ enum Event {
   GroupMessage = "GROUP_MESSAGE",
   GroupUserKicked = "GROUP_USER_KICKED",
   GroupUserAwayState = "GROUP_USER_AWAY_STATE",
+  UserLinkError = "USER_LINK_ERROR",
   RateLimited = "RATE_LIMITED",
   SessionResumed = "SESSION_RESUMED"
 }
@@ -155,7 +157,7 @@ export class Gateway extends EventEmitter {
     });
 
     // Close event for websocket
-    this.ws.addEventListener("close", () => this.closed());
+    this.ws.addEventListener("close", (event) => this.closed(event.code));
   }
 
   private resetConnectionThrottle(): void {
@@ -334,9 +336,9 @@ export class Gateway extends EventEmitter {
     this.resetConnectionThrottle();
   }
 
-  private closed(): void {
+  private closed(code: number): void {
     console.log(
-      `%c${SOCKET_URL.includes('puff.social') ? SOCKET_URL.split('.')[0].split('//')[1] : 'Local'}%c Socket connection closed`,
+      `%c${SOCKET_URL.includes('puff.social') ? SOCKET_URL.split('.')[0].split('//')[1] : 'Local'}%c Socket connection closed ${code}`,
       "padding: 10px; text-transform: capitalize; font-size: 1em; line-height: 1.4em; color: white; background: #151515; border-radius: 15px;",
       "font-size: 1em;"
     );

@@ -74,7 +74,7 @@ export function GroupMembersModal({
             .map((member) => (
               <span className="flex flex-row justify-between items-center bg-gray-200/50 dark:bg-neutral-600/50 rounded-md p-1">
                 <span className="flex flex-col">
-                  <p className="text-sm">{member.name}</p>
+                  <p className="text-sm">{member.user?.name || member.name}</p>
                   <p className="text-xs opacity-40">
                     {typeof member.device_state == "object" &&
                     Object.keys(member.device_state || {}).length > 0

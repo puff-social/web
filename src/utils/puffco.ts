@@ -4,7 +4,7 @@ import { unpack, pack } from 'byte-data';
 import { GatewayMemberDeviceState } from "../types/gateway";
 import { convertFromHex, convertHexStringToNumArray, millisToMinutesAndSeconds, decimalToHexString, flipHexString, gattPoller, getValue, hexToFloat } from "./functions";
 import { DeviceInformation, DiagData } from "../types/api";
-import { trackDiags } from "./analytics";
+import { trackDiags } from "./hash";
 import { PuffcoProfile } from "../types/puffco";
 import { gateway } from "./gateway";
 

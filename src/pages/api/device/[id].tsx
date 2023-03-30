@@ -1,6 +1,6 @@
 import { ImageResponse } from "@vercel/og";
 import { NextRequest } from "next/server";
-import { getLeaderboardDevice } from "../../../utils/analytics";
+import { getLeaderboardDevice } from "../../../utils/hash";
 import { ProductModelMap } from "../../../utils/constants";
 import { Crown } from "../../../components/icons/Crown";
 import { Counter } from "../../../components/icons/Counter";

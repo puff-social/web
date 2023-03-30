@@ -1,4 +1,11 @@
-import { Dispatch, SetStateAction, useEffect, useRef } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { BluetoothDisabled } from "./icons/Bluetooth";
 import { Edit } from "./icons/Edit";
 import { Info } from "./icons/Info";
@@ -20,6 +27,11 @@ import { PuffcoProfile } from "../types/puffco";
 import toast from "react-hot-toast";
 import { GiftBox } from "./icons/GiftBox";
 import { DeviceSettings } from "./icons/DeviceSettings";
+import { Account } from "./icons/Account";
+import { Discord } from "./icons/Discord";
+import { callbackDiscordOAuth, getDiscordOAuth } from "../utils/hash";
+import { useDispatch, useSelector } from "react-redux";
+import { selectSessionState, setSessionState } from "../state/slices/session";
 
 interface ActionsProps {
   group?: GatewayGroup;
@@ -52,7 +64,63 @@ export function GroupActions({
 }: ActionsProps) {
   const reactionButton = useRef<HTMLDivElement>();
 
+  const session = useSelector(selectSessionState);
+  const dispatch = useDispatch();
+
   const router = useRouter();
+
+  const startDiscordOAuth = useCallback(async () => {
+    const oauth = await getDiscordOAuth();
+    const child = window.open(
+      oauth.data.url,
+      "Login with Discord",
+      "width=480,height=820"
+    );
+
+    const int = setInterval(async () => {
+      try {
+        const search = new URLSearchParams(child.location.search);
+
+        if (child.closed) {
+          toast("Login canceled", {
+            position: "top-right",
+            duration: 2000,
+            icon: "❌",
+          });
+          clearInterval(int);
+        }
+
+        if (search.get("code")) {
+          const authed = await callbackDiscordOAuth(
+            search.get("code"),
+            search.get("state")
+          );
+
+          localStorage.setItem("puff-social-auth", authed.data.token);
+          toast("Logged in", {
+            position: "top-right",
+            duration: 2000,
+            icon: <Discord />,
+          });
+
+          dispatch(setSessionState({ user: authed.data.user }));
+
+          clearInterval(int);
+          if (!child.closed) child.close();
+        }
+      } catch (error) {}
+    }, 500);
+  }, []);
+
+  async function logoutUser() {
+    localStorage.removeItem("puff-social-auth");
+    toast("Logged out", {
+      position: "top-right",
+      duration: 2000,
+      icon: <Leave />,
+    });
+    dispatch(setSessionState({ user: null }));
+  }
 
   return (
     <div
@@ -287,6 +355,47 @@ export function GroupActions({
           <LeaderboardIcon />
         </div>
       </Tippy>
+      <span className="pl-3 flex flex-row">
+        <Tippy
+          arrow={false}
+          interactive
+          content={
+            <span className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-72">
+              {session.user ? (
+                <span
+                  className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
+                  onClick={() => logoutUser()}
+                >
+                  <p>Logout</p>
+                  <Leave className="text-red-400" />
+                </span>
+              ) : (
+                <span
+                  className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
+                  onClick={() => startDiscordOAuth()}
+                >
+                  <p>Login with Discord</p>
+                  <Discord />
+                </span>
+              )}
+            </span>
+          }
+          placement="bottom-start"
+        >
+          <div className="flex items-center justify-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl">
+            {session.user ? (
+              <img
+                className="rounded-full p-0.5 w-7 h-7"
+                src={`https://cdn.puff.social/avatars/${session.user.id}/${
+                  session.user.image
+                }.${session.user.image.startsWith("a_") ? "gif" : "png"}`}
+              />
+            ) : (
+              <Account />
+            )}
+          </div>
+        </Tippy>
+      </span>
     </div>
   );
 }

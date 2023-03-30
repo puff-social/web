@@ -1,17 +1,17 @@
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
 
+import NoSSR from "../components/NoSSR";
 import { APIGroup } from "../types/api";
 import { getGroups } from "../utils/api";
 import { gateway, Op } from "../utils/gateway";
-import { UserSettingsModal } from "../components/modals/UserSettings";
-import { FeedbackModal } from "../components/modals/Feedback";
-import { LeaderboardModal } from "../components/modals/Leaderboard";
-import { Checkmark } from "../components/icons/Checkmark";
-import NoSSR from "../components/NoSSR";
-import { GroupActions } from "../components/GroupActions";
 import { MainMeta } from "../components/MainMeta";
 import { Unlock, Lock } from "../components/icons/Lock";
+import { Checkmark } from "../components/icons/Checkmark";
+import { GroupActions } from "../components/GroupActions";
+import { FeedbackModal } from "../components/modals/Feedback";
+import { LeaderboardModal } from "../components/modals/Leaderboard";
+import { UserSettingsModal } from "../components/modals/UserSettings";
 
 export default function Home() {
   const router = useRouter();

@@ -1,5 +1,5 @@
 import { createCipheriv, createHash } from "crypto";
-import { APIResponse, DeviceLeaderboard, DiagData } from "../types/api";
+import { APIResponse, DeviceLeaderboard, DiagData, User } from "../types/api";
 import { DeviceInformation } from "../types/api";
 
 export const API_URL = ((typeof location != 'undefined' && ['localhost', 'dev.puff.social'].includes(location.hostname)) || process.env.DEV == "1") ? (typeof location != 'undefined' && location.hostname == 'dev.puff.social' ? 'https://kief.puff.social' : 'http://127.0.0.1:8000') : 'https://hash.puff.social';
@@ -39,4 +39,22 @@ export async function getLeaderboardDevice(id: string) {
   const req = await fetch(`${API_URL}/v1/device/${id.startsWith('device') ? id : `device_${id}`}`);
   if (req.status != 200) throw { code: 'device_not_found' };
   return (await req.json()) as APIResponse<{ device: DeviceLeaderboard, position: number }>
+}
+
+export async function getDiscordOAuth() {
+  const req = await fetch(`${API_URL}/v1/oauth/discord`);
+  if (req.status != 200) throw { code: 'invalid_oauth' };
+  return (await req.json()) as APIResponse<{ url: string }>
+}
+
+export async function callbackDiscordOAuth(code: string, state: string) {
+  const req = await fetch(`${API_URL}/v1/oauth/discord?code=${code}&state=${state}`, { method: 'POST' });
+  if (req.status != 200) throw { code: 'invalid_oauth_state' };
+  return (await req.json()) as APIResponse<{ user: User, token: string }>
+}
+
+export async function getCurrentUser() {
+  const req = await fetch(`${API_URL}/v1/user`, { headers: { authorization: localStorage.getItem('puff-social-auth') } });
+  if (req.status != 200) throw { code: 'invalid_authentication' };
+  return (await req.json()) as APIResponse<{ user: User }>
 }

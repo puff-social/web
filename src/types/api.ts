@@ -71,3 +71,10 @@ export interface DeviceLeaderboard {
   total_dabs: number;
   last_active: string;
 }
+
+export interface User {
+  id: string;
+  name: string;
+  image: string;
+  flags: number;
+}

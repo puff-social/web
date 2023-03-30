@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 
 import { MainMeta } from "../components/MainMeta";
 
-export default function Info() {
+export default function Info(props) {
   const router = useRouter();
 
   const [firstVisit] = useState(() =>

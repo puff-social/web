@@ -21,7 +21,7 @@ import {
 } from "../../utils/puffco";
 import { ProductModelMap } from "../../utils/constants";
 import toast from "react-hot-toast";
-import { trackDevice } from "../../utils/analytics";
+import { trackDevice } from "../../utils/hash";
 
 interface Props {
   device: GatewayMemberDeviceState;

@@ -3,7 +3,7 @@ import { toast } from "react-hot-toast";
 import { useCallback, useState } from "react";
 
 import { Cross } from "../icons/Cross";
-import { sendFeedback } from "../../utils/analytics";
+import { sendFeedback } from "../../utils/hash";
 
 export function FeedbackModal({ modalOpen, setModalOpen }: any) {
   const [message, setMessage] = useState<string>("");
