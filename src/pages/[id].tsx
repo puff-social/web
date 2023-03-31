@@ -237,18 +237,28 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     });
   }
 
-  function groupMemberJoin({ session_id, name, away }: GroupUserJoin) {
-    toast(`${name} joined`, {
+  function groupMemberJoin({
+    session_id,
+    name,
+    user,
+    strain,
+    away,
+    group_joined,
+  }: GroupUserJoin) {
+    toast(`${user?.name || name} joined`, {
       position: "top-right",
     });
-    setGroupMembers((curr) => [...curr, { session_id, name, away }]);
+    setGroupMembers((curr) => [
+      ...curr,
+      { session_id, name, user, strain, away, group_joined },
+    ]);
   }
 
   function groupMemberLeft({ session_id }: GroupUserLeft) {
     setGroupMembers((curr) => {
       const member = curr.find((mem) => mem.session_id == session_id);
       if (member)
-        toast(`${member.name} left`, {
+        toast(`${member.user?.name || member.name} left`, {
           position: "top-right",
         });
       return [...curr.filter((mem) => mem.session_id != session_id)];
@@ -333,7 +343,9 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
 
           toast(
             `${
-              author_session_id == gateway.session_id ? ourName : member.name
+              author_session_id == gateway.session_id
+                ? ourUser?.name || ourName
+                : member.user?.name || member.name
             }: ${emoji}`,
             {
               position: "top-right",
@@ -370,7 +382,9 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
         );
         toast(
           `${
-            data.session_id == gateway.session_id ? ourName : initiator.name
+            data.session_id == gateway.session_id
+              ? ourUser?.name || ourName
+              : initiator.user?.name || initiator.name
           } wants to start`,
           { icon: "🔥", duration: 5000, position: "top-right" }
         );
@@ -404,7 +418,9 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
 
         toast(
           `${
-            data.session_id == gateway.session_id ? ourName : initiator.name
+            data.session_id == gateway.session_id
+              ? ourUser?.name || ourName
+              : initiator.user?.name || initiator.name
           } is ready`,
           { icon: "✅", duration: 5000, position: "top-right" }
         );
@@ -428,7 +444,9 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
         if (initiator)
           toast(
             `${
-              data.session_id == gateway.session_id ? ourName : initiator.name
+              data.session_id == gateway.session_id
+                ? ourUser?.name || ourName
+                : initiator.user?.name || initiator.name
             } is no longer ready`,
             { icon: "🚫", duration: 5000, position: "top-right" }
           );
@@ -456,7 +474,9 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
 
         toast(
           `${
-            data.session_id == gateway.session_id ? ourName : initiator.name
+            data.session_id == gateway.session_id
+              ? ourUser?.name || ourName
+              : initiator.user?.name || initiator.name
           } made the group ${data.visibility}`,
           {
             icon: data.visibility == "public" ? "🌍" : "🔒",
@@ -839,7 +859,8 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                   chatBoxOpen={chatBoxOpen}
                   group={group}
                   ourName={ourName}
-                  members={groupMembers}
+                  user={ourUser}
+                  members={[...groupMembers]}
                 />
               }
               visible={chatBoxOpen}

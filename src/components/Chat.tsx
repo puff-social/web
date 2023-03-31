@@ -7,12 +7,14 @@ import {
 import { ChatEmojiIcon, ChatSendIcon } from "./icons/Chat";
 import { Op, gateway } from "../utils/gateway";
 import toast from "react-hot-toast";
+import { User } from "../types/api";
 
 interface Props {
   ourName: string;
   group: GatewayGroup;
   members: GatewayGroupMember[];
   chatBoxOpen: boolean;
+  user?: User;
 }
 
 export function ChatBox(props: Props) {
@@ -80,12 +82,14 @@ export function ChatBox(props: Props) {
             <div className="flex flex-col" key={message.message.timestamp}>
               <div className="flex justify-between">
                 <span>
-                  {message.author_session_id == gateway.session_id
-                    ? props.ourName
-                    : props.members.find(
-                        (mem) => mem.session_id == message.author_session_id
-                      )?.name || "User Left"}
-                  :
+                  {props.members.find(
+                    (mem) => mem.session_id == message.author_session_id
+                  )?.user?.name ||
+                    props.members.find(
+                      (mem) => mem.session_id == message.author_session_id
+                    )?.name ||
+                    props.user?.name ||
+                    "Unknown User"}
                 </span>
                 <span>
                   {new Date(message.message.timestamp).toLocaleTimeString(

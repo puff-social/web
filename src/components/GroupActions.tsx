@@ -103,6 +103,11 @@ export function GroupActions({
             icon: <Discord />,
           });
 
+          if (localStorage.getItem("puff-social-auth"))
+            gateway.send(Op.LinkUser, {
+              token: authed.data.token,
+            });
+
           dispatch(setSessionState({ user: authed.data.user }));
 
           clearInterval(int);

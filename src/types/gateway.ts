@@ -65,6 +65,8 @@ export interface GroupUserJoin {
   strain: string;
   name: string;
   away: boolean;
+  user: User;
+  group_joined: string;
 }
 
 export interface GroupUserLeft {
@@ -97,6 +99,7 @@ export interface GatewayGroupMember {
   device_state?: GatewayMemberDeviceState;
   name: string;
   session_id: string;
+  group_joined?: string;
   strain?: string;
   disconnected?: boolean;
   away?: boolean;
