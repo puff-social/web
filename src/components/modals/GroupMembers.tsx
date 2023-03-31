@@ -1,5 +1,5 @@
 import Modal from "react-modal";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { GatewayGroup, GatewayGroupMember } from "../../types/gateway";
 import { Kick } from "../icons/Kick";
@@ -21,6 +21,98 @@ const formatter = new Intl.RelativeTimeFormat("en", {
   style: "short",
   numeric: "always",
 });
+
+function GroupListMember({
+  member,
+  group,
+}: {
+  member: GatewayGroupMember;
+  group: GatewayGroup;
+}) {
+  const [joinTime, setJoinTime] = useState(
+    automaticRelativeDifference(new Date(member.group_joined))
+  );
+
+  useEffect(() => {
+    const int = setInterval(() => {
+      setJoinTime(automaticRelativeDifference(new Date(member.group_joined)));
+    }, 1000);
+
+    return () => {
+      clearInterval(int);
+    };
+  }, []);
+
+  return (
+    <span className="flex flex-row justify-between items-center bg-gray-200/50 dark:bg-neutral-600/50 rounded-md p-1">
+      <span className="flex flex-col">
+        <span className="flex flex-row items-center space-x-2">
+          <p className="text-sm">{member.user?.name || member.name}</p>
+          <p className="text-xs opacity-30">
+            {formatter.format(joinTime.duration, joinTime.unit)}
+          </p>
+        </span>
+        <p className="text-xs opacity-40">
+          {typeof member.device_state == "object" &&
+          Object.keys(member.device_state || {}).length > 0
+            ? "Sesher"
+            : "Watcher"}
+        </p>
+      </span>
+      <span className="flex flex-row space-x-1 items-center">
+        {gateway.session_id == group.owner_session_id &&
+        member.session_id != gateway.session_id ? (
+          <>
+            <Tippy content="Transfer ownership" placement="bottom-start">
+              <span
+                className="bg-gray-300 dark:bg-neutral-600 text-green-700 hover:text-green-600 rounded-md p-1 cursor-pointer"
+                onClick={() =>
+                  gateway.send(Op.TransferOwnership, {
+                    session_id: member.session_id,
+                  })
+                }
+              >
+                <Crown className="w-5 h-5" />
+              </span>
+            </Tippy>
+            <Tippy content="Kick member" placement="bottom-start">
+              <span
+                className="bg-gray-300 dark:bg-neutral-600 text-red-400 hover:text-red-300 rounded-md p-1 cursor-pointer"
+                onClick={() =>
+                  gateway.send(Op.KickFromGroup, {
+                    session_id: member.session_id,
+                  })
+                }
+              >
+                <Kick className="w-5 h-5" />
+              </span>
+            </Tippy>
+          </>
+        ) : (
+          <></>
+        )}
+        {member.session_id == gateway.session_id ? (
+          <Tippy content="You" placement="left-end">
+            <span className="text-gray-400 dark:text-gray-400 hover:text-green-600 rounded-md p-1">
+              <Person className="w-4 h-4" />
+            </span>
+          </Tippy>
+        ) : (
+          <></>
+        )}
+        {member.session_id == group.owner_session_id ? (
+          <Tippy content="Group owner" placement="left-end">
+            <span className="text-green-700 hover:text-green-600 rounded-md p-1">
+              <Crown className="w-4 h-4" />
+            </span>
+          </Tippy>
+        ) : (
+          <></>
+        )}
+      </span>
+    </span>
+  );
+}
 
 export function GroupMembersModal({
   modalOpen,
@@ -77,85 +169,9 @@ export function GroupMembersModal({
             .sort((member) =>
               member.session_id == group.owner_session_id ? -1 : 1
             )
-            .map((member) => {
-              const joined = automaticRelativeDifference(
-                new Date(member.group_joined)
-              );
-              return (
-                <span className="flex flex-row justify-between items-center bg-gray-200/50 dark:bg-neutral-600/50 rounded-md p-1">
-                  <span className="flex flex-col">
-                    <span className="flex flex-row items-center space-x-2">
-                      <p className="text-sm">
-                        {member.user?.name || member.name}
-                      </p>
-                      <p className="text-xs opacity-30">
-                        {formatter.format(joined.duration, joined.unit)}
-                      </p>
-                    </span>
-                    <p className="text-xs opacity-40">
-                      {typeof member.device_state == "object" &&
-                      Object.keys(member.device_state || {}).length > 0
-                        ? "Sesher"
-                        : "Watcher"}
-                    </p>
-                  </span>
-                  <span className="flex flex-row space-x-1 items-center">
-                    {gateway.session_id == group.owner_session_id &&
-                    member.session_id != gateway.session_id ? (
-                      <>
-                        <Tippy
-                          content="Transfer ownership"
-                          placement="bottom-start"
-                        >
-                          <span
-                            className="bg-gray-300 dark:bg-neutral-600 text-green-700 hover:text-green-600 rounded-md p-1 cursor-pointer"
-                            onClick={() =>
-                              gateway.send(Op.TransferOwnership, {
-                                session_id: member.session_id,
-                              })
-                            }
-                          >
-                            <Crown className="w-5 h-5" />
-                          </span>
-                        </Tippy>
-                        <Tippy content="Kick member" placement="bottom-start">
-                          <span
-                            className="bg-gray-300 dark:bg-neutral-600 text-red-400 hover:text-red-300 rounded-md p-1 cursor-pointer"
-                            onClick={() =>
-                              gateway.send(Op.KickFromGroup, {
-                                session_id: member.session_id,
-                              })
-                            }
-                          >
-                            <Kick className="w-5 h-5" />
-                          </span>
-                        </Tippy>
-                      </>
-                    ) : (
-                      <></>
-                    )}
-                    {member.session_id == gateway.session_id ? (
-                      <Tippy content="You" placement="left-end">
-                        <span className="text-gray-400 dark:text-gray-400 hover:text-green-600 rounded-md p-1">
-                          <Person className="w-4 h-4" />
-                        </span>
-                      </Tippy>
-                    ) : (
-                      <></>
-                    )}
-                    {member.session_id == group.owner_session_id ? (
-                      <Tippy content="Group owner" placement="left-end">
-                        <span className="text-green-700 hover:text-green-600 rounded-md p-1">
-                          <Crown className="w-4 h-4" />
-                        </span>
-                      </Tippy>
-                    ) : (
-                      <></>
-                    )}
-                  </span>
-                </span>
-              );
-            })}
+            .map((member) => (
+              <GroupListMember member={member} group={group} />
+            ))}
         </div>
       </div>
     </Modal>

@@ -203,6 +203,11 @@ export class Gateway extends EventEmitter {
         if (typeof localStorage != 'undefined')
           this.send(Op.UpdateUser, { name: localStorage.getItem('puff-social-name') || 'Unnamed' });
 
+        if (typeof localStorage != 'undefined' && localStorage.getItem("puff-social-auth"))
+          gateway.send(Op.LinkUser, {
+            token: localStorage.getItem("puff-social-auth"),
+          });
+
         if (this.session_token && this.session_id)
           this.send(Op.ResumeSession, { session_id: this.session_id, session_token: this.session_token });
         else {

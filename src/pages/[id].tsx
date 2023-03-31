@@ -133,6 +133,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     setGroupJoinErrorMessage("");
     setGroupConnected(true);
     setGroup(group);
+    console.log(group.members);
     setGroupMembers(group.members);
     setReadyMembers(group.ready_members);
   }
@@ -341,17 +342,10 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
             },
           });
 
-          toast(
-            `${
-              author_session_id == gateway.session_id
-                ? ourUser?.name || ourName
-                : member.user?.name || member.name
-            }: ${emoji}`,
-            {
-              position: "top-right",
-              duration: 1000,
-            }
-          );
+          toast(`${member.user?.name || member.name}: ${emoji}`, {
+            position: "top-right",
+            duration: 1000,
+          });
         }
 
         return curr;
@@ -416,14 +410,11 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
           curr.includes(data.session_id) ? curr : [...curr, data.session_id]
         );
 
-        toast(
-          `${
-            data.session_id == gateway.session_id
-              ? ourUser?.name || ourName
-              : initiator.user?.name || initiator.name
-          } is ready`,
-          { icon: "✅", duration: 5000, position: "top-right" }
-        );
+        toast(`${initiator.user?.name || initiator.name} is ready`, {
+          icon: "✅",
+          duration: 5000,
+          position: "top-right",
+        });
         return groupMembers;
       });
     },
@@ -443,11 +434,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
 
         if (initiator)
           toast(
-            `${
-              data.session_id == gateway.session_id
-                ? ourUser?.name || ourName
-                : initiator.user?.name || initiator.name
-            } is no longer ready`,
+            `${initiator.user?.name || initiator.name} is no longer ready`,
             { icon: "🚫", duration: 5000, position: "top-right" }
           );
         return groupMembers;
@@ -537,21 +524,13 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       gateway.on("group_user_kicked", groupUserKicked);
       gateway.on("group_user_away_state", groupUserAwayState);
 
-      if (gateway.ws.readyState == gateway.ws.OPEN) {
+      if (gateway.ws.readyState == gateway.ws.OPEN)
         gateway.send(Op.Join, { group_id: initGroup.group_id });
-        if (localStorage.getItem("puff-social-auth"))
-          gateway.send(Op.LinkUser, {
-            token: localStorage.getItem("puff-social-auth"),
-          });
-      } else {
+      else
         gateway.once("init", () => {
           gateway.send(Op.Join, { group_id: initGroup.group_id });
-          if (localStorage.getItem("puff-social-auth"))
-            gateway.send(Op.LinkUser, {
-              token: localStorage.getItem("puff-social-auth"),
-            });
         });
-      }
+
       return () => {
         setReadyMembers([]);
         gateway.send(Op.LeaveGroup);
@@ -689,8 +668,8 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       (mem) => !validState(mem.device_state)
     ).length;
 
-    setSeshers(currentSeshers + (deviceConnected ? 1 : 0));
-    setWatchers(currentWatchers + (!deviceConnected ? 1 : 0));
+    setSeshers(currentSeshers);
+    setWatchers(currentWatchers);
   }, [groupMembers, deviceConnected]);
 
   function closeChatBox(event: KeyboardEvent) {
@@ -752,17 +731,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
           modalOpen={groupMembersModalOpen}
           setModalOpen={setGroupMembersModalOpen}
           group={group}
-          members={[
-            ...groupMembers,
-            {
-              name: ourName,
-              session_id: gateway.session_id,
-              away: usAway,
-              device_state: myDevice,
-              disconnected: usDisconnected,
-              user: ourUser,
-            },
-          ]}
+          members={groupMembers}
         />
       ) : (
         <></>
@@ -791,15 +760,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                 <GroupActions
                   group={group}
                   seshers={seshers}
-                  members={[
-                    ...groupMembers,
-                    {
-                      name: ourName,
-                      session_id: gateway.session_id,
-                      away: usAway,
-                      device_state: myDevice,
-                    },
-                  ]}
+                  members={groupMembers}
                   readyMembers={readyMembers}
                   deviceConnected={deviceConnected}
                   deviceProfiles={deviceProfiles}
@@ -831,11 +792,18 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                 group={group}
                 away={usAway}
                 user={ourUser}
+                member={groupMembers.find(
+                  (mem) => mem.session_id == gateway.session_id
+                )}
                 disconnected={usDisconnected}
                 us
               />
               {groupMembers
-                .filter((mem) => validState(mem.device_state))
+                .filter(
+                  (mem) =>
+                    validState(mem.device_state) &&
+                    gateway.session_id != mem.session_id
+                )
                 .map((member) => (
                   <GroupMember
                     device={member.device_state}
@@ -860,7 +828,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                   group={group}
                   ourName={ourName}
                   user={ourUser}
-                  members={[...groupMembers]}
+                  members={groupMembers}
                 />
               }
               visible={chatBoxOpen}

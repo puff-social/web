@@ -345,17 +345,13 @@ export function GroupMember(props: GroupMemberProps) {
                 )}
               </span>
               <span className="space-x-2 flex flex-row items-center">
-                {(props.us ? props : props.member).user ? (
+                {props.member.user ? (
                   <img
                     className="rounded-full p-0.5 w-7 h-7"
                     src={`https://cdn.puff.social/avatars/${
-                      (props.us ? props : props.member).user.id
-                    }/${(props.us ? props : props.member).user.image}.${
-                      (props.us ? props : props.member).user.image.startsWith(
-                        "a_"
-                      )
-                        ? "gif"
-                        : "png"
+                      props.member.user.id
+                    }/${props.member.user.image}.${
+                      props.member.user.image.startsWith("a_") ? "gif" : "png"
                     }`}
                   />
                 ) : (
@@ -366,9 +362,9 @@ export function GroupMember(props: GroupMemberProps) {
                   placement="bottom-start"
                 >
                   <h1 className="m-0 text-xl font-bold truncate">
-                    {props.us
-                      ? props.user?.name || props.name
-                      : props.member.user?.name || props.member.name}
+                    {props.member?.user?.name ||
+                      props.member?.name ||
+                      "Unknown"}
                   </h1>
                 </Tippy>
               </span>
