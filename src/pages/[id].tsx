@@ -133,7 +133,6 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     setGroupJoinErrorMessage("");
     setGroupConnected(true);
     setGroup(group);
-    console.log(group.members);
     setGroupMembers(group.members);
     setReadyMembers(group.ready_members);
   }
@@ -164,6 +163,16 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     },
     [readyMembers, group, deviceConnected, myDevice]
   );
+
+  const sessionResumeFailed = useCallback(async () => {
+    toast("Failed to resume socket session", {
+      position: "top-right",
+      duration: 2000,
+      icon: "❌",
+    });
+
+    router.push("/");
+  }, []);
 
   const sessionResumed = useCallback(async () => {
     toast("Socket reconnected", {
@@ -565,8 +574,10 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
 
   useEffect(() => {
     gateway.on("session_resumed", sessionResumed);
+    gateway.on("resume_failed", sessionResumeFailed);
     return () => {
       gateway.removeListener("session_resumed", sessionResumed);
+      gateway.removeListener("resume_failed", sessionResumeFailed);
     };
   }, [sessionResumed]);
 

@@ -2,6 +2,7 @@ import { EventEmitter } from "events";
 import { inflate, deflate } from "pako";
 import { APIGroup } from "../types/api";
 import { GatewayError, GatewayGroup, GatewayGroupCreate, GatewayGroupAction, GroupActionInitiator, GroupReaction, GroupUserDeviceDisconnect, GroupUserDeviceUpdate, GroupUserJoin, GroupUserLeft, GroupUserUpdate, GroupChatMessage, GatewayGroupUserAwayState, GroupHeatBegin, GroupHeatInquire } from "../types/gateway";
+import { toast } from "react-hot-toast";
 
 export enum Op {
   Hello,
@@ -109,6 +110,7 @@ export interface Gateway {
   on(event: "group_user_away_state", listener: (group: GatewayGroupUserAwayState) => void): this;
   on(event: "rate_limited", listener: () => void): this;
   on(event: "session_resumed", listener: () => void): this;
+  on(event: "resume_failed", listener: () => void): this;
   on(event: "user_update_error", listener: (error: GatewayError) => void): this;
 }
 export class Gateway extends EventEmitter {
@@ -203,17 +205,18 @@ export class Gateway extends EventEmitter {
         if (typeof localStorage != 'undefined')
           this.send(Op.UpdateUser, { name: localStorage.getItem('puff-social-name') || 'Unnamed' });
 
+        if (this.session_token && this.session_id) {
+          console.log('resuming');
+          this.send(Op.ResumeSession, { session_id: this.session_id, session_token: this.session_token });
+        } else {
+          this.session_id = data.d.session_id;
+          this.session_token = data.d.session_token;
+        }
+
         if (typeof localStorage != 'undefined' && localStorage.getItem("puff-social-auth"))
           gateway.send(Op.LinkUser, {
             token: localStorage.getItem("puff-social-auth"),
           });
-
-        if (this.session_token && this.session_id)
-          this.send(Op.ResumeSession, { session_id: this.session_id, session_token: this.session_token });
-        else {
-          this.session_id = data.d.session_id;
-          this.session_token = data.d.session_token;
-        }
 
         this.emit("init");
 
@@ -342,6 +345,11 @@ export class Gateway extends EventEmitter {
   }
 
   private closed(code: number): void {
+    if (code == 4001) {
+      this.emit('resume_failed');
+      return
+    }
+
     console.log(
       `%c${SOCKET_URL.includes('puff.social') ? SOCKET_URL.split('.')[0].split('//')[1] : 'Local'}%c Socket connection closed ${code}`,
       "padding: 10px; text-transform: capitalize; font-size: 1em; line-height: 1.4em; color: white; background: #151515; border-radius: 15px;",
