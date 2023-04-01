@@ -109,11 +109,11 @@ export default function Info(props) {
           </p>
 
           <p className="w-[700px]">
-            Join my{" "}
+            Join our{" "}
             <a
               className="text-blue-700 dark:text-blue-400"
               target="_blank"
-              href="https://dstn.to/fnf"
+              href="https://discord.gg/M4uYMyU7bC"
             >
               discord server
             </a>
