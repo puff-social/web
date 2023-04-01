@@ -381,14 +381,11 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
         const initiator = groupMembers.find(
           (mem) => mem.session_id == data.session_id
         );
-        toast(
-          `${
-            data.session_id == gateway.session_id
-              ? ourUser?.name || ourName
-              : initiator.user?.name || initiator.name
-          } wants to start`,
-          { icon: "🔥", duration: 5000, position: "top-right" }
-        );
+        toast(`${initiator.user?.name || initiator.name} wants to start`, {
+          icon: "🔥",
+          duration: 5000,
+          position: "top-right",
+        });
 
         if (!data.away && !data.watcher && !data.excluded) {
           sendCommand(DeviceCommand.BONDING);
