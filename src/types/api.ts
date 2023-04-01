@@ -61,20 +61,24 @@ export interface DiagData {
   device_parameters?: DiagParameters;
 }
 
-export interface DeviceLeaderboard {
-  id: string;
-  device_dob: string;
-  device_id: string;
-  device_name: string;
-  device_model: string;
-  owner_name: string;
-  total_dabs: number;
-  last_active: string;
-}
-
 export interface User {
   id: string;
   name: string;
   image: string;
   flags: number;
+  platform: string;
+  platform_id: string;
+}
+
+export interface LeaderboardEntry {
+  id: string;
+  device_id: string;
+  device_dob: string;
+  device_name: string;
+  total_dabs: number;
+  owner_name: string;
+  last_active: string;
+  device_model: string;
+  user_id?: string;
+  users?: User;
 }

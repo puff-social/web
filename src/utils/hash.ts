@@ -1,5 +1,5 @@
 import { createCipheriv, createHash } from "crypto";
-import { APIResponse, DeviceLeaderboard, DiagData, User } from "../types/api";
+import { APIResponse, LeaderboardEntry, DiagData, User } from "../types/api";
 import { DeviceInformation } from "../types/api";
 
 export const API_URL = ((typeof location != 'undefined' && ['localhost', 'dev.puff.social'].includes(location.hostname)) || process.env.DEV == "1") ? (typeof location != 'undefined' && location.hostname == 'dev.puff.social' ? 'https://kief.puff.social' : 'http://127.0.0.1:8000') : 'https://hash.puff.social';
@@ -21,24 +21,24 @@ export async function sendFeedback(content: string) {
 }
 
 export async function getLeaderboard() {
-  return await fetch(`${API_URL}/v1/leaderboard`).then(r => r.json()) as APIResponse<{ leaderboards: DeviceLeaderboard[] }>;
+  return await fetch(`${API_URL}/v1/leaderboard`).then(r => r.json()) as APIResponse<{ leaderboards: LeaderboardEntry[] }>;
 }
 
 export async function trackDevice(device: Partial<DeviceInformation>, name: string) {
   const [signature, body] = signRequest({ device, name });
-  const req = await fetch(`${API_URL}/v1/track`, { method: 'POST', headers: { 'content-type': 'text/plain', 'x-signature': signature }, body });
-  return (await req.json()) as APIResponse<{ device: DeviceLeaderboard, position: number }>;
+  const req = await fetch(`${API_URL}/v1/track`, { method: 'POST', headers: { 'content-type': 'text/plain', 'x-signature': signature, ...(localStorage.getItem('puff-social-auth') ? { authorization: localStorage.getItem('puff-social-auth') } : {}) }, body });
+  return (await req.json()) as APIResponse<{ device: LeaderboardEntry, position: number }>;
 }
 
 export async function trackDiags(data: DiagData) {
   const [signature, body] = signRequest(data);
-  fetch(`${API_URL}/v1/diag`, { method: 'POST', headers: { 'content-type': 'text/plain', 'x-signature': signature }, body });
+  fetch(`${API_URL}/v1/diag`, { method: 'POST', headers: { 'content-type': 'text/plain', 'x-signature': signature, ...(localStorage.getItem('puff-social-auth') ? { authorization: localStorage.getItem('puff-social-auth') } : {}) }, body });
 }
 
 export async function getLeaderboardDevice(id: string) {
   const req = await fetch(`${API_URL}/v1/device/${id.startsWith('device') ? id : `device_${id}`}`);
   if (req.status != 200) throw { code: 'device_not_found' };
-  return (await req.json()) as APIResponse<{ device: DeviceLeaderboard, position: number }>
+  return (await req.json()) as APIResponse<{ device: LeaderboardEntry, position: number }>
 }
 
 export async function getDiscordOAuth() {

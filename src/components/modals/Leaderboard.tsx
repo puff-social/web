@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { Cross } from "../icons/Cross";
 import { getLeaderboard } from "../../utils/hash";
-import { DeviceLeaderboard } from "../../types/api";
+import { LeaderboardEntry } from "../../types/api";
 import { automaticRelativeDifference } from "../../utils/time";
 import { Tippy } from "../Tippy";
 import { ChargeSource } from "../../utils/puffco";
@@ -41,7 +41,21 @@ function LeaderboardItem({ index, lb, last_active }) {
               />
             </span>
           </Tippy>
-          <p className="opacity-60 italic">{lb.owner_name}</p>
+          <span className="flex flex-row items-center space-x-1">
+            {lb.users && lb.users.image ? (
+              <img
+                className="rounded-full p-0.5 w-6 h-6"
+                src={`https://cdn.puff.social/avatars/${lb.user_id}/${
+                  lb.users.image
+                }.${lb.users.image.startsWith("a_") ? "gif" : "png"}`}
+              />
+            ) : (
+              <></>
+            )}
+            <p className="opacity-60 italic truncate">
+              {lb.users?.name || lb.owner_name}
+            </p>
+          </span>
           <Tippy
             content={`Device DOB: ${
               lb.device_dob == "1970-01-01T00:00:01.000Z"
@@ -76,7 +90,7 @@ function LeaderboardItem({ index, lb, last_active }) {
 }
 
 export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
-  const [leaderboard, setLeaderboard] = useState<DeviceLeaderboard[]>();
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>();
 
   const closeModal = useCallback(() => {
     setModalOpen(false);
@@ -153,9 +167,25 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                                   {lb.device_name}
                                 </p>
                               </Tippy>
-                              <p className="opacity-60 italic truncate">
-                                {lb.owner_name}
-                              </p>
+                              <span className="flex flex-row items-center space-x-1">
+                                {lb.users && lb.users.image ? (
+                                  <img
+                                    className="rounded-full p-0.5 w-6 h-6"
+                                    src={`https://cdn.puff.social/avatars/${
+                                      lb.user_id
+                                    }/${lb.users.image}.${
+                                      lb.users.image.startsWith("a_")
+                                        ? "gif"
+                                        : "png"
+                                    }`}
+                                  />
+                                ) : (
+                                  <></>
+                                )}
+                                <p className="opacity-60 italic truncate">
+                                  {lb.users?.name || lb.owner_name}
+                                </p>
+                              </span>
                               <Tippy
                                 content={`Device DOB: ${
                                   lb.device_dob == "1970-01-01T00:00:01.000Z"
