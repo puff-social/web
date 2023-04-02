@@ -55,6 +55,7 @@ enum Event {
   GroupUserAwayState = "GROUP_USER_AWAY_STATE",
   UserLinkError = "USER_LINK_ERROR",
   RateLimited = "RATE_LIMITED",
+  InternalError = "INTERNAL_ERROR",
   SessionResumed = "SESSION_RESUMED"
 }
 
@@ -108,6 +109,7 @@ export interface Gateway {
   on(event: "group_reaction", listener: (reaction: GroupReaction) => void): this;
   on(event: "group_user_kicked", listener: (group: GatewayGroupAction) => void): this;
   on(event: "group_user_away_state", listener: (group: GatewayGroupUserAwayState) => void): this;
+  on(event: "internal_error", listener: (error: any) => void): this;
   on(event: "rate_limited", listener: () => void): this;
   on(event: "session_resumed", listener: () => void): this;
   on(event: "resume_failed", listener: () => void): this;
@@ -323,6 +325,10 @@ export class Gateway extends EventEmitter {
           }
           case Event.RateLimited: {
             this.emit('rate_limited');
+            break;
+          }
+          case Event.InternalError: {
+            this.emit('internal_error', data.d);
             break;
           }
         }

@@ -667,7 +667,6 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   const [watchers, setWatchers] = useState(0);
 
   useEffect(() => {
-    console.log(groupMembers, "members", "update");
     const currentSeshers = groupMembers.filter((mem) =>
       validState(mem.device_state)
     ).length;

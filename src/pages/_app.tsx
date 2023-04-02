@@ -48,6 +48,12 @@ function App({ Component, pageProps }) {
     }
   }
 
+  function internalError(error: any) {
+    toast("Rosin encountered an internal error, this has been logged", {
+      position: "top-right",
+    });
+  }
+
   async function getAndCheckAuth() {
     const auth = localStorage.getItem("puff-social-auth");
     if (auth) {
@@ -63,10 +69,13 @@ function App({ Component, pageProps }) {
       localStorage.setItem("puff-social-first-visit", "false");
 
     gateway.on("group_create", groupCreated);
+    gateway.on("internal_error", internalError);
     gateway.on("group_create_error", groupCreateError);
     gateway.on("user_update_error", userUpdateError);
     return () => {
       gateway.removeListener("group_create", groupCreated);
+      gateway.removeListener("internal_error", internalError);
+      gateway.removeListener("group_create_error", groupCreateError);
       gateway.removeListener("user_update_error", userUpdateError);
     };
   }, []);
