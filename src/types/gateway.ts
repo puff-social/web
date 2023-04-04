@@ -102,6 +102,7 @@ export interface GatewayGroupMember {
   group_joined?: string;
   strain?: string;
   disconnected?: boolean;
+  mobile?: boolean;
   away?: boolean;
   user?: User;
 }

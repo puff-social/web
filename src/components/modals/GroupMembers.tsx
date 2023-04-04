@@ -9,6 +9,7 @@ import { Cross } from "../icons/Cross";
 import { Op, gateway } from "../../utils/gateway";
 import { Person } from "../icons/Person";
 import { automaticRelativeDifference } from "../../utils/time";
+import { Mobile } from "../icons/Mobile";
 
 export interface ModalProps {
   modalOpen: boolean;
@@ -109,6 +110,15 @@ function GroupListMember({
         ) : (
           <></>
         )}
+        {member.session_id != group.owner_session_id && member.mobile ? (
+          <Tippy content="Mobile" placement="left-end">
+            <span className="text-black dark:text-white opacity-50 rounded-md p-1">
+              <Mobile className="w-4 h-4" />
+            </span>
+          </Tippy>
+        ) : (
+          <></>
+        )}
       </span>
     </span>
   );
@@ -168,6 +178,11 @@ export function GroupMembersModal({
             )
             .sort((member) =>
               member.session_id == group.owner_session_id ? -1 : 1
+            )
+            .sort(
+              (a, b) =>
+                new Date(a.group_joined).getTime() -
+                new Date(b.group_joined).getTime()
             )
             .map((member) => (
               <GroupListMember member={member} group={group} />

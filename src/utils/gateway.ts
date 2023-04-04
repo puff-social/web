@@ -26,6 +26,7 @@ export enum Op {
   AwayState,
   GroupStrain,
   LinkUser,
+  SetMobile,
   Heartbeat = 420
 }
 

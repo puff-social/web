@@ -245,21 +245,11 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
     });
   }
 
-  function groupMemberJoin({
-    session_id,
-    name,
-    user,
-    strain,
-    away,
-    group_joined,
-  }: GroupUserJoin) {
-    toast(`${user?.name || name} joined`, {
+  function groupMemberJoin(member: GroupUserJoin) {
+    toast(`${member.user?.name || member.name} joined`, {
       position: "top-right",
     });
-    setGroupMembers((curr) => [
-      ...curr,
-      { session_id, name, user, strain, away, group_joined },
-    ]);
+    setGroupMembers((curr) => [...curr, member]);
   }
 
   function groupMemberLeft({ session_id }: GroupUserLeft) {

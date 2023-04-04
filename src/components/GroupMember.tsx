@@ -38,6 +38,7 @@ import { millisToMinutesAndSeconds } from "../utils/functions";
 import { Leaf } from "./icons/Leaf";
 import { PlugDisconnected } from "./icons/Plug";
 import { User } from "../types/api";
+import { Mobile } from "./icons/Mobile";
 
 interface GroupMemberProps {
   name?: string;
@@ -329,6 +330,15 @@ export function GroupMember(props: GroupMemberProps) {
                   <Tippy content="Away" placement="top-start">
                     <div className="flex items-center">
                       <Away className="text-yellow-700" />
+                    </div>
+                  </Tippy>
+                ) : (
+                  <></>
+                )}
+                {!props.us && props.member.mobile ? (
+                  <Tippy content="Mobile" placement="top-start">
+                    <div className="flex items-center">
+                      <Mobile className="text-black dark:text-white opacity-50" />
                     </div>
                   </Tippy>
                 ) : (
