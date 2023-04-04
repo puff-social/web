@@ -335,7 +335,7 @@ export function GroupMember(props: GroupMemberProps) {
                 ) : (
                   <></>
                 )}
-                {!props.us && props.member.mobile ? (
+                {props.member.mobile ? (
                   <Tippy content="Mobile" placement="top-start">
                     <div className="flex items-center">
                       <Mobile className="text-black dark:text-white opacity-50" />

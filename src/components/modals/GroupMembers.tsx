@@ -110,7 +110,7 @@ function GroupListMember({
         ) : (
           <></>
         )}
-        {member.session_id != group.owner_session_id && member.mobile ? (
+        {member.mobile ? (
           <Tippy content="Mobile" placement="left-end">
             <span className="text-black dark:text-white opacity-50 rounded-md p-1">
               <Mobile className="w-4 h-4" />
