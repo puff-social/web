@@ -165,8 +165,7 @@ export async function loopProfiles() {
   let profiles: Record<number, PuffcoProfile> = {};
   const startingIndex = DeviceProfileReverse.findIndex(profile => profile.at(2) == profileCurrent.at(2) && profile.at(3) == profileCurrent.at(3)) + 1;
   for await (const idx of [0, 1, 2, 3]) {
-    const index = Number(idx);
-    const key = (index + startingIndex) % DeviceProfileReverse.length;
+    const key = (idx + startingIndex) % DeviceProfileReverse.length;
     await writeValue(Characteristic.PROFILE, new Uint8Array([key, 0, 0, 0]));
     const [, profileName] = await getValue(service, Characteristic.PROFILE_NAME, 0);
     const name = decoder.decode(profileName);

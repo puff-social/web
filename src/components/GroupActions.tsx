@@ -181,41 +181,50 @@ export function GroupActions({
           )}
           {[GroupState.Awaiting, GroupState.Chilling].includes(group.state) &&
           deviceConnected ? (
-            <Tippy
-              content={
-                <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-72">
-                  <p className="text-lg font-bold">Profiles</p>
-                  <span className="flex flex-col flex-wrap">
-                    {Object.keys(deviceProfiles).map((key) => (
-                      <span
-                        className="select-none text-lg flex justify-between items-center rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 m-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
-                        onClick={() => {
-                          switchProfile(Number(key));
-                          toast(
-                            `Switched device profile to ${deviceProfiles[key].name}`
-                          );
-                        }}
-                      >
-                        <p className="">{deviceProfiles[key].name}</p>
-                        <span className="flex items-center space-x-2">
-                          <p className="text-sm">{deviceProfiles[key].time}</p>
-                          <p className="opacity-40 text-sm">@</p>
-                          <p>
-                            {Math.round(deviceProfiles[key].temp * 1.8 + 32)}°
-                          </p>
-                        </span>
+            <Tippy content="Device Profile" placement="bottom">
+              <div>
+                <Tippy
+                  content={
+                    <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-72">
+                      <p className="text-lg font-bold">Profiles</p>
+                      <span className="flex flex-col flex-wrap">
+                        {Object.keys(deviceProfiles).map((key) => (
+                          <span
+                            className="select-none text-lg flex justify-between items-center rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 m-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
+                            onClick={() => {
+                              switchProfile(Number(key));
+                              toast(
+                                `Switched device profile to ${deviceProfiles[key].name}`
+                              );
+                            }}
+                          >
+                            <p className="">{deviceProfiles[key].name}</p>
+                            <span className="flex items-center space-x-2">
+                              <p className="text-sm">
+                                {deviceProfiles[key].time}
+                              </p>
+                              <p className="opacity-40 text-sm">@</p>
+                              <p>
+                                {Math.round(
+                                  deviceProfiles[key].temp * 1.8 + 32
+                                )}
+                                °
+                              </p>
+                            </span>
+                          </span>
+                        ))}
                       </span>
-                    ))}
-                  </span>
-                </div>
-              }
-              interactive
-              zIndex={50000}
-              placement="bottom-start"
-              trigger="click"
-            >
-              <div className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl">
-                <ArrowSwitch />
+                    </div>
+                  }
+                  interactive
+                  zIndex={50000}
+                  placement="bottom-start"
+                  trigger="click"
+                >
+                  <div className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl">
+                    <ArrowSwitch />
+                  </div>
+                </Tippy>
               </div>
             </Tippy>
           ) : (
