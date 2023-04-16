@@ -8,5 +8,13 @@ export const ProductModelMap = {
   '4': 'Guardian',
 }
 
+export const UserFlags = {
+  tester: 1 << 0,
+  supporter: 1 << 1,
+  admin: 1 << 2,
+};
+
+export const EASTER_EGG_CYCLE_COUNTS = [420, 710, 1620, 1910];
+
 export const TEMPERATURE_MAX = 500;
 export const TEMPERATURE_MIN = 0;

@@ -773,7 +773,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
             )}
           </div>
 
-          <div className="flex flex-row flex-wrap" ref={membersList}>
+          <div className="flex flex-row flex-wrap m-4" ref={membersList}>
             <>
               <GroupMember
                 device={myDevice}
