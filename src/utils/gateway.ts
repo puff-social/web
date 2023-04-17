@@ -1,8 +1,23 @@
 import { EventEmitter } from "events";
 import { inflate, deflate } from "pako";
 import { APIGroup } from "../types/api";
-import { GatewayError, GatewayGroup, GatewayGroupCreate, GatewayGroupAction, GroupActionInitiator, GroupReaction, GroupUserDeviceDisconnect, GroupUserDeviceUpdate, GroupUserJoin, GroupUserLeft, GroupUserUpdate, GroupChatMessage, GatewayGroupUserAwayState, GroupHeatBegin, GroupHeatInquire } from "../types/gateway";
-import { toast } from "react-hot-toast";
+import {
+  GatewayError,
+  GatewayGroup,
+  GatewayGroupCreate,
+  GatewayGroupAction,
+  GroupActionInitiator,
+  GroupReaction,
+  GroupUserDeviceDisconnect,
+  GroupUserDeviceUpdate,
+  GroupUserJoin,
+  GroupUserLeft,
+  GroupUserUpdate,
+  GroupChatMessage,
+  GatewayGroupUserAwayState,
+  GroupHeatBegin,
+  GroupHeatInquire,
+} from "../types/gateway";
 
 export enum Op {
   Hello,
@@ -27,19 +42,19 @@ export enum Op {
   GroupStrain,
   LinkUser,
   SetMobile,
-  Heartbeat = 420
+  Heartbeat = 420,
 }
 
 enum Event {
-  JoinedGroup = 'JOINED_GROUP',
-  GroupCreate = 'GROUP_CREATE',
-  GroupDelete = 'GROUP_DELETE',
-  GroupUpdate = 'GROUP_UPDATE',
-  GroupUserJoin = 'GROUP_USER_JOIN',
-  GroupUserLeft = 'GROUP_USER_LEFT',
-  GroupUserUpdate = 'GROUP_USER_UPDATE',
-  GroupUserDeviceUpdate = 'GROUP_USER_DEVICE_UPDATE',
-  GroupJoinError = 'GROUP_JOIN_ERROR',
+  JoinedGroup = "JOINED_GROUP",
+  GroupCreate = "GROUP_CREATE",
+  GroupDelete = "GROUP_DELETE",
+  GroupUpdate = "GROUP_UPDATE",
+  GroupUserJoin = "GROUP_USER_JOIN",
+  GroupUserLeft = "GROUP_USER_LEFT",
+  GroupUserUpdate = "GROUP_USER_UPDATE",
+  GroupUserDeviceUpdate = "GROUP_USER_DEVICE_UPDATE",
+  GroupJoinError = "GROUP_JOIN_ERROR",
   GroupHeatBegin = "GROUP_START_HEATING",
   GroupHeatInquiry = "GROUP_HEAT_INQUIRY",
   GroupUserReady = "GROUP_USER_READY",
@@ -57,7 +72,7 @@ enum Event {
   UserLinkError = "USER_LINK_ERROR",
   RateLimited = "RATE_LIMITED",
   InternalError = "INTERNAL_ERROR",
-  SessionResumed = "SESSION_RESUMED"
+  SessionResumed = "SESSION_RESUMED",
 }
 
 interface SocketData {
@@ -88,28 +103,77 @@ export interface Gateway {
 
   on(event: "connected", listener: () => void): this;
   on(event: "hello", listener: () => void): this;
+  on(event: "close", listener: () => void): this;
   on(event: "joined_group", listener: (group: GatewayGroup) => void): this;
   on(event: "group_join_error", listener: (error: GatewayError) => void): this;
-  on(event: "group_visibility_change", listener: (action: GroupActionInitiator & { visibility: string }) => void): this;
+  on(
+    event: "group_visibility_change",
+    listener: (action: GroupActionInitiator & { visibility: string }) => void
+  ): this;
   on(event: "group_user_join", listener: (group: GroupUserJoin) => void): this;
   on(event: "group_user_left", listener: (group: GroupUserLeft) => void): this;
-  on(event: "group_create", listener: (group: GatewayGroupCreate) => void): this;
+  on(
+    event: "group_create",
+    listener: (group: GatewayGroupCreate) => void
+  ): this;
   on(event: "group_update", listener: (group: GatewayGroup) => void): this;
-  on(event: "group_delete", listener: (group: GatewayGroupAction) => void): this;
-  on(event: "group_user_update", listener: (group: GroupUserUpdate) => void): this;
-  on(event: "group_user_device_update", listener: (group: GroupUserDeviceUpdate) => void): this;
-  on(event: "group_user_device_disconnect", listener: (group: GroupUserDeviceDisconnect) => void): this;
-  on(event: "group_action_error", listener: (error: GatewayError) => void): this;
-  on(event: "group_heat_inquiry", listener: (group: GroupHeatInquire) => void): this;
+  on(
+    event: "group_delete",
+    listener: (group: GatewayGroupAction) => void
+  ): this;
+  on(
+    event: "group_user_update",
+    listener: (group: GroupUserUpdate) => void
+  ): this;
+  on(
+    event: "group_user_device_update",
+    listener: (group: GroupUserDeviceUpdate) => void
+  ): this;
+  on(
+    event: "group_user_device_disconnect",
+    listener: (group: GroupUserDeviceDisconnect) => void
+  ): this;
+  on(
+    event: "group_action_error",
+    listener: (error: GatewayError) => void
+  ): this;
+  on(
+    event: "group_heat_inquiry",
+    listener: (group: GroupHeatInquire) => void
+  ): this;
   on(event: "group_heat_begin", listener: (heat: GroupHeatBegin) => void): this;
-  on(event: "group_user_ready", listener: (action: GroupActionInitiator) => void): this;
-  on(event: "group_user_unready", listener: (action: GroupActionInitiator) => void): this;
-  on(event: "public_groups_update", listener: (groups: APIGroup[]) => void): this;
-  on(event: "group_create_error", listener: (error: GatewayError) => void): this;
-  on(event: "group_message", listener: (message: GroupChatMessage) => void): this;
-  on(event: "group_reaction", listener: (reaction: GroupReaction) => void): this;
-  on(event: "group_user_kicked", listener: (group: GatewayGroupAction) => void): this;
-  on(event: "group_user_away_state", listener: (group: GatewayGroupUserAwayState) => void): this;
+  on(
+    event: "group_user_ready",
+    listener: (action: GroupActionInitiator) => void
+  ): this;
+  on(
+    event: "group_user_unready",
+    listener: (action: GroupActionInitiator) => void
+  ): this;
+  on(
+    event: "public_groups_update",
+    listener: (groups: APIGroup[]) => void
+  ): this;
+  on(
+    event: "group_create_error",
+    listener: (error: GatewayError) => void
+  ): this;
+  on(
+    event: "group_message",
+    listener: (message: GroupChatMessage) => void
+  ): this;
+  on(
+    event: "group_reaction",
+    listener: (reaction: GroupReaction) => void
+  ): this;
+  on(
+    event: "group_user_kicked",
+    listener: (group: GatewayGroupAction) => void
+  ): this;
+  on(
+    event: "group_user_away_state",
+    listener: (group: GatewayGroupUserAwayState) => void
+  ): this;
   on(event: "internal_error", listener: (error: any) => void): this;
   on(event: "rate_limited", listener: () => void): this;
   on(event: "session_resumed", listener: () => void): this;
@@ -142,10 +206,10 @@ export class Gateway extends EventEmitter {
     // Socket open handler
     this.ws.addEventListener("open", () => this.opened());
 
-    if (typeof window != 'undefined') {
-      window.addEventListener('beforeunload', () => {
+    if (typeof window != "undefined") {
+      window.addEventListener("beforeunload", () => {
         this.send(Op.LeaveGroup);
-        this.ws.close();
+        this.ws.close(4006);
       });
     }
 
@@ -158,7 +222,7 @@ export class Gateway extends EventEmitter {
 
       try {
         this.message(message);
-      } catch (error) { }
+      } catch (error) {}
     });
 
     // Close event for websocket
@@ -177,10 +241,10 @@ export class Gateway extends EventEmitter {
       this.connectionAttempt == 1
         ? 1000 * 2
         : this.connectionAttempt == 2
-          ? 1000 * 10
-          : this.connectionAttempt == 3
-            ? 1000 * 30
-            : 1000 * 30 * 5
+        ? 1000 * 10
+        : this.connectionAttempt == 3
+        ? 1000 * 30
+        : 1000 * 30 * 5
     );
   }
 
@@ -205,18 +269,26 @@ export class Gateway extends EventEmitter {
           data.d.heartbeat_interval
         );
 
-        if (typeof localStorage != 'undefined')
-          this.send(Op.UpdateUser, { name: localStorage.getItem('puff-social-name') || 'Unnamed' });
+        if (typeof localStorage != "undefined")
+          this.send(Op.UpdateUser, {
+            name: localStorage.getItem("puff-social-name") || "Unnamed",
+          });
 
         if (this.session_token && this.session_id) {
-          console.log('resuming');
-          this.send(Op.ResumeSession, { session_id: this.session_id, session_token: this.session_token });
+          console.log("resuming");
+          this.send(Op.ResumeSession, {
+            session_id: this.session_id,
+            session_token: this.session_token,
+          });
         } else {
           this.session_id = data.d.session_id;
           this.session_token = data.d.session_token;
         }
 
-        if (typeof localStorage != 'undefined' && localStorage.getItem("puff-social-auth"))
+        if (
+          typeof localStorage != "undefined" &&
+          localStorage.getItem("puff-social-auth")
+        )
           gateway.send(Op.LinkUser, {
             token: localStorage.getItem("puff-social-auth"),
           });
@@ -228,108 +300,108 @@ export class Gateway extends EventEmitter {
       case Op.Event:
         switch (data.t) {
           case Event.JoinedGroup: {
-            this.emit('joined_group', data.d);
+            this.emit("joined_group", data.d);
             break;
           }
           case Event.GroupCreate: {
-            this.emit('group_create', data.d);
+            this.emit("group_create", data.d);
             break;
           }
           case Event.GroupDelete: {
-            this.emit('group_delete', data.d);
+            this.emit("group_delete", data.d);
             break;
           }
           case Event.GroupUpdate: {
-            this.emit('group_update', data.d);
+            this.emit("group_update", data.d);
             break;
           }
           case Event.GroupUserJoin: {
-            this.emit('group_user_join', data.d);
+            this.emit("group_user_join", data.d);
             break;
           }
           case Event.GroupUserLeft: {
-            this.emit('group_user_left', data.d);
+            this.emit("group_user_left", data.d);
             break;
           }
           case Event.GroupUserUpdate: {
-            this.emit('group_user_update', data.d);
+            this.emit("group_user_update", data.d);
             break;
           }
           case Event.GroupUserDeviceUpdate: {
-            this.emit('group_user_device_update', data.d);
+            this.emit("group_user_device_update", data.d);
             break;
           }
           case Event.GroupHeatInquiry: {
-            this.emit('group_heat_inquiry', data.d);
+            this.emit("group_heat_inquiry", data.d);
             break;
           }
           case Event.GroupHeatBegin: {
-            this.emit('group_heat_begin', data.d);
+            this.emit("group_heat_begin", data.d);
             break;
           }
           case Event.GroupUserReady: {
-            this.emit('group_user_ready', data.d);
+            this.emit("group_user_ready", data.d);
             break;
           }
           case Event.GroupJoinError: {
-            this.emit('group_join_error', data.d);
+            this.emit("group_join_error", data.d);
             break;
           }
           case Event.GroupVisibilityChange: {
-            this.emit('group_visibility_change', data.d);
+            this.emit("group_visibility_change", data.d);
             break;
           }
           case Event.PublicGroupsUpdate: {
-            this.emit('public_groups_update', data.d);
+            this.emit("public_groups_update", data.d);
             break;
           }
           case Event.GroupActionError: {
-            this.emit('group_action_error', data.d);
+            this.emit("group_action_error", data.d);
             break;
           }
           case Event.GroupCreateError: {
-            this.emit('group_create_error', data.d);
+            this.emit("group_create_error", data.d);
             break;
           }
           case Event.UserUpdateError: {
-            this.emit('user_update_error', data.d);
+            this.emit("user_update_error", data.d);
             break;
           }
           case Event.GroupUserDeviceDisconnect: {
-            this.emit('group_user_device_disconnect', data.d);
+            this.emit("group_user_device_disconnect", data.d);
             break;
           }
           case Event.GroupUserUnready: {
-            this.emit('group_user_unready', data.d);
+            this.emit("group_user_unready", data.d);
             break;
           }
           case Event.GroupMessage: {
-            this.emit('group_message', data.d);
+            this.emit("group_message", data.d);
             break;
           }
           case Event.GroupReaction: {
-            this.emit('group_reaction', data.d);
+            this.emit("group_reaction", data.d);
             break;
           }
           case Event.SessionResumed: {
             this.session_id = data.d.session_id;
-            this.emit('session_resumed', data.d);
+            this.emit("session_resumed", data.d);
             break;
           }
           case Event.GroupUserKicked: {
-            this.emit('group_user_kicked', data.d);
+            this.emit("group_user_kicked", data.d);
             break;
           }
           case Event.GroupUserAwayState: {
-            this.emit('group_user_away_state', data.d);
+            this.emit("group_user_away_state", data.d);
             break;
           }
           case Event.RateLimited: {
-            this.emit('rate_limited');
+            this.emit("rate_limited");
             break;
           }
           case Event.InternalError: {
-            this.emit('internal_error', data.d);
+            this.emit("internal_error", data.d);
             break;
           }
         }
@@ -343,7 +415,11 @@ export class Gateway extends EventEmitter {
 
   private opened(): void {
     console.log(
-      `%c${SOCKET_URL.includes('puff.social') ? SOCKET_URL.split('.')[0].split('//')[1] : 'Local'}%c Socket connection opened`,
+      `%c${
+        SOCKET_URL.includes("puff.social")
+          ? SOCKET_URL.split(".")[0].split("//")[1]
+          : "Local"
+      }%c Socket connection opened`,
       "padding: 10px; text-transform: capitalize; font-size: 1em; line-height: 1.4em; color: white; background: #151515; border-radius: 15px;",
       "font-size: 1em;"
     );
@@ -352,13 +428,19 @@ export class Gateway extends EventEmitter {
   }
 
   private closed(code: number): void {
+    if (code != 4006) this.emit("close");
+
     if (code == 4001) {
-      this.emit('resume_failed');
-      return
+      this.emit("resume_failed");
+      return;
     }
 
     console.log(
-      `%c${SOCKET_URL.includes('puff.social') ? SOCKET_URL.split('.')[0].split('//')[1] : 'Local'}%c Socket connection closed ${code}`,
+      `%c${
+        SOCKET_URL.includes("puff.social")
+          ? SOCKET_URL.split(".")[0].split("//")[1]
+          : "Local"
+      }%c Socket connection closed ${code}`,
       "padding: 10px; text-transform: capitalize; font-size: 1em; line-height: 1.4em; color: white; background: #151515; border-radius: 15px;",
       "font-size: 1em;"
     );
@@ -367,5 +449,16 @@ export class Gateway extends EventEmitter {
   }
 }
 
-export const SOCKET_URL = typeof location != 'undefined' && ['localhost', 'dev.puff.social'].includes(location.hostname) ? (location.hostname == 'dev.puff.social' ? 'wss://flower.puff.social' : 'ws://127.0.0.1:9000') : 'wss://rosin.puff.social';
-export const gateway = typeof window != "undefined" && (['ws://127.0.0.1:9000', 'wss://flower.puff.social'].includes(SOCKET_URL) || ['stage.puff.social', '127.0.0.1'].includes(location.hostname) ? new Gateway(SOCKET_URL, 'json', 'none') : new Gateway(SOCKET_URL));
+export const SOCKET_URL =
+  typeof location != "undefined" &&
+  ["localhost", "dev.puff.social"].includes(location.hostname)
+    ? location.hostname == "dev.puff.social"
+      ? "wss://flower.puff.social"
+      : "ws://127.0.0.1:9000"
+    : "wss://rosin.puff.social";
+export const gateway =
+  typeof window != "undefined" &&
+  (["ws://127.0.0.1:9000", "wss://flower.puff.social"].includes(SOCKET_URL) ||
+  ["stage.puff.social", "127.0.0.1"].includes(location.hostname)
+    ? new Gateway(SOCKET_URL, "json", "none")
+    : new Gateway(SOCKET_URL));

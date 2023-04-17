@@ -62,7 +62,7 @@ import { ChatIcon } from "../components/icons/Chat";
 import { GroupHeader } from "../components/group/Header";
 import { GroupMembersModal } from "../components/modals/GroupMembers";
 import { GroupStrainModal } from "../components/modals/GroupStrain";
-import { PlugConnected } from "../components/icons/Plug";
+import { PlugConnected, PlugDisconnected } from "../components/icons/Plug";
 import { useSelector } from "react-redux";
 import { selectSessionState } from "../state/slices/session";
 
@@ -173,6 +173,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
   }, []);
 
   const sessionResumed = useCallback(async () => {
+    setUsDisconnected(false);
     toast("Socket reconnected", {
       position: "top-right",
       duration: 1500,
@@ -481,6 +482,15 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
 
   function groupMessage() {}
 
+  function gatewayClosed() {
+    setUsDisconnected(true);
+    toast("Socket disconnected (Reconnecting..)", {
+      position: "top-right",
+      duration: 1000,
+      icon: <PlugDisconnected />,
+    });
+  }
+
   useEffect(() => {
     if (initGroup && initGroup.group_id) {
       if (firstVisit) {
@@ -518,6 +528,8 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
       gateway.on("group_user_kicked", groupUserKicked);
       gateway.on("group_user_away_state", groupUserAwayState);
 
+      gateway.on("close", gatewayClosed);
+
       if (gateway.ws.readyState == gateway.ws.OPEN)
         gateway.send(Op.Join, { group_id: initGroup.group_id });
       else
@@ -553,6 +565,8 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
         gateway.removeListener("group_user_left", groupMemberLeft);
         gateway.removeListener("group_user_kicked", groupUserKicked);
         gateway.removeListener("group_user_away_state", groupUserAwayState);
+
+        gateway.removeListener("close", gatewayClosed);
       };
     }
   }, [initGroup]);
