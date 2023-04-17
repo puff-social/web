@@ -333,9 +333,9 @@ export function GroupMember(props: GroupMemberProps) {
                   ) : (
                     <></>
                   )}
-                  {props.us ? (
-                    props.disconnected
-                  ) : props.member?.disconnected ? (
+                  {(
+                    props.us ? props.disconnected : props.member?.disconnected
+                  ) ? (
                     <Tippy content="User reconnecting..." placement="top-start">
                       <div className="flex items-center">
                         <PlugDisconnected className="text-yellow-600" />

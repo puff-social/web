@@ -203,6 +203,8 @@ export class Gateway extends EventEmitter {
     );
     if (this.compression != "none") this.ws.binaryType = "arraybuffer";
 
+    if (typeof window != 'undefined') window["ws"] = this.ws;
+
     // Socket open handler
     this.ws.addEventListener("open", () => this.opened());
 
@@ -226,7 +228,9 @@ export class Gateway extends EventEmitter {
     });
 
     // Close event for websocket
-    this.ws.addEventListener("close", (event) => this.closed(event.code));
+    this.ws.addEventListener("close", (event) =>
+      this.closed(event.code, event.reason)
+    );
   }
 
   private resetConnectionThrottle(): void {
@@ -427,7 +431,7 @@ export class Gateway extends EventEmitter {
     this.resetConnectionThrottle();
   }
 
-  private closed(code: number): void {
+  private closed(code: number, reason: string): void {
     if (code != 4006) this.emit("close");
 
     if (code == 4001) {
@@ -440,7 +444,7 @@ export class Gateway extends EventEmitter {
         SOCKET_URL.includes("puff.social")
           ? SOCKET_URL.split(".")[0].split("//")[1]
           : "Local"
-      }%c Socket connection closed ${code}`,
+      }%c Socket connection closed ${code} - ${reason || "no reason"}`,
       "padding: 10px; text-transform: capitalize; font-size: 1em; line-height: 1.4em; color: white; background: #151515; border-radius: 15px;",
       "font-size: 1em;"
     );
