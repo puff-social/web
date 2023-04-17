@@ -41,7 +41,7 @@ import { PlugDisconnected } from "./icons/Plug";
 import { User } from "../types/api";
 import { Mobile } from "./icons/Mobile";
 import { UserFlags } from "../utils/constants";
-import { GiftBox } from "./icons/GiftBox";
+import { Money } from "./icons/Money";
 
 interface GroupMemberProps {
   name?: string;
@@ -396,7 +396,7 @@ export function GroupMember(props: GroupMemberProps) {
                   {props.member?.user?.flags & UserFlags.supporter ? (
                     <Tippy content="Supporter" placement="bottom">
                       <div>
-                        <GiftBox className="w-4" />
+                        <Money className="w-4" />
                       </div>
                     </Tippy>
                   ) : (

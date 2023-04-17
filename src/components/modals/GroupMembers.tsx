@@ -10,6 +10,9 @@ import { Op, gateway } from "../../utils/gateway";
 import { Person } from "../icons/Person";
 import { automaticRelativeDifference } from "../../utils/time";
 import { Mobile } from "../icons/Mobile";
+import { UserFlags } from "../../utils/constants";
+import { Money } from "../icons/Money";
+import { Wrench } from "../icons/Wrench";
 
 export interface ModalProps {
   modalOpen: boolean;
@@ -94,8 +97,26 @@ function GroupListMember({
         )}
         {member.session_id == gateway.session_id ? (
           <Tippy content="You" placement="left-end">
-            <span className="text-gray-400 dark:text-gray-400 hover:text-green-600 rounded-md p-1">
+            <span className="text-gray-400 dark:text-gray-400 hover:text-green-600 transition-all rounded-md p-1">
               <Person className="w-4 h-4" />
+            </span>
+          </Tippy>
+        ) : (
+          <></>
+        )}
+        {member.user?.flags & UserFlags.supporter ? (
+          <Tippy content="Supporter" placement="left-end">
+            <span className="text-gray-400 dark:text-gray-400 hover:text-yellow-400 transition-all rounded-md p-1">
+              <Money className="w-4 h-4" />
+            </span>
+          </Tippy>
+        ) : (
+          <></>
+        )}
+        {member.user?.flags & UserFlags.admin ? (
+          <Tippy content="Global Admin" placement="left-end">
+            <span className="text-gray-400 dark:text-gray-400 hover:text-blue-600 transition-all rounded-md p-1">
+              <Wrench className="w-4 h-4" />
             </span>
           </Tippy>
         ) : (
