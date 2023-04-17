@@ -157,6 +157,7 @@ export function GroupMember(props: GroupMemberProps) {
             : ""
           : ""
       }`}
+      id={props.us ? gateway.session_id : props.member?.session_id}
     >
       <div
         className={`group flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md px-4 h-full w-[440px] justify-center items-center overflow-hidden ${
@@ -166,7 +167,6 @@ export function GroupMember(props: GroupMemberProps) {
         }`}
         onMouseEnter={() => setHoveringCard(true)}
         onMouseLeave={() => setHoveringCard(false)}
-        id={props.us ? gateway.session_id : props.member?.session_id}
       >
         {(props.us && !!props.device) || props.device ? (
           <div className="flex flex-col justify-center w-full overflow-hidden">
