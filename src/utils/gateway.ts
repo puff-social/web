@@ -241,10 +241,10 @@ export class Gateway extends EventEmitter {
       this.connectionAttempt == 1
         ? 1000 * 2
         : this.connectionAttempt == 2
-        ? 1000 * 10
+        ? 1000 * 5
         : this.connectionAttempt == 3
-        ? 1000 * 30
-        : 1000 * 30 * 5
+        ? 1000 * 10
+        : 1000 * 15
     );
   }
 
