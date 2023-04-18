@@ -1,13 +1,7 @@
 import { emojisplosion } from "emojisplosion";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
-import React, {
-  ReactNode,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Tippy } from "../components/Tippy";
 
 import {
@@ -63,10 +57,14 @@ import { GroupHeader } from "../components/group/Header";
 import { GroupMembersModal } from "../components/modals/GroupMembers";
 import { GroupStrainModal } from "../components/modals/GroupStrain";
 import { PlugConnected, PlugDisconnected } from "../components/icons/Plug";
-import { useSelector } from "react-redux";
-import { selectSessionState } from "../state/slices/session";
 
-export default function Group({ group: initGroup }: { group: APIGroup }) {
+export default function Group({
+  group: initGroup,
+  headless,
+}: {
+  group: APIGroup;
+  headless: boolean;
+}) {
   const router = useRouter();
 
   const membersList = useRef<HTMLDivElement>();
@@ -757,35 +755,39 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
 
       {groupConnected ? (
         <NoSSR>
-          <div className="flex flex-col m-4 z-10">
-            {group ? (
-              <>
-                <GroupHeader
-                  group={group}
-                  watchers={watchers}
-                  seshers={seshers}
-                  setGroupMembersModalOpen={setGroupMembersModalOpen}
-                />
+          {!headless ? (
+            <div className="flex flex-col m-4 z-10">
+              {group ? (
+                <>
+                  <GroupHeader
+                    group={group}
+                    watchers={watchers}
+                    seshers={seshers}
+                    setGroupMembersModalOpen={setGroupMembersModalOpen}
+                  />
 
-                <GroupActions
-                  group={group}
-                  seshers={seshers}
-                  members={groupMembers}
-                  readyMembers={readyMembers}
-                  deviceConnected={deviceConnected}
-                  deviceProfiles={deviceProfiles}
-                  disconnect={disconnect}
-                  setGroupSettingsModalOpen={setGroupSettingsModalOpen}
-                  setDeviceSettingsModalOpen={setDeviceSettingsModalOpen}
-                  setUserSettingsModalOpen={setUserSettingsModalOpen}
-                  setFeedbackModalOpen={setFeedbackModalOpen}
-                  setLeaderboardOpen={setLeaderboardOpen}
-                />
-              </>
-            ) : (
-              <></>
-            )}
-          </div>
+                  <GroupActions
+                    group={group}
+                    seshers={seshers}
+                    members={groupMembers}
+                    readyMembers={readyMembers}
+                    deviceConnected={deviceConnected}
+                    deviceProfiles={deviceProfiles}
+                    disconnect={disconnect}
+                    setGroupSettingsModalOpen={setGroupSettingsModalOpen}
+                    setDeviceSettingsModalOpen={setDeviceSettingsModalOpen}
+                    setUserSettingsModalOpen={setUserSettingsModalOpen}
+                    setFeedbackModalOpen={setFeedbackModalOpen}
+                    setLeaderboardOpen={setLeaderboardOpen}
+                  />
+                </>
+              ) : (
+                <></>
+              )}
+            </div>
+          ) : (
+            <></>
+          )}
 
           <div className="flex flex-row flex-wrap m-4" ref={membersList}>
             <>
@@ -806,6 +808,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                   (mem) => mem.session_id == gateway.session_id
                 )}
                 disconnected={usDisconnected}
+                headless={headless}
                 us
               />
               {groupMembers
@@ -821,6 +824,7 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
                     member={member}
                     owner={group.owner_session_id == member.session_id}
                     group={group}
+                    headless={headless}
                     key={member.session_id}
                   />
                 ))}
@@ -828,38 +832,42 @@ export default function Group({ group: initGroup }: { group: APIGroup }) {
             </>
           </div>
 
-          <div className="absolute right-0 bottom-0 m-4">
-            <Tippy
-              interactive
-              placement="left-start"
-              content={
-                <ChatBox
-                  chatBoxOpen={chatBoxOpen}
-                  group={group}
-                  ourName={ourName}
-                  user={ourUser}
-                  members={groupMembers}
-                />
-              }
-              visible={chatBoxOpen}
-              onClickOutside={() => setChatBoxOpen(false)}
-              onShown={() => {
-                document.removeEventListener("keydown", closeChatBox);
-                document.addEventListener("keydown", closeChatBox);
-              }}
-            >
-              <div>
-                <Tippy content="Group Chat" placement="top-end">
-                  <span
-                    onClick={() => setChatBoxOpen((prev) => !prev)}
-                    className="flex bg-green-400 hover:bg-green-600 text-white p-4 rounded-full w-fit h-fit justify-center items-center transition-all"
-                  >
-                    <ChatIcon />
-                  </span>
-                </Tippy>
-              </div>
-            </Tippy>
-          </div>
+          {!headless ? (
+            <div className="absolute right-0 bottom-0 m-4">
+              <Tippy
+                interactive
+                placement="left-start"
+                content={
+                  <ChatBox
+                    chatBoxOpen={chatBoxOpen}
+                    group={group}
+                    ourName={ourName}
+                    user={ourUser}
+                    members={groupMembers}
+                  />
+                }
+                visible={chatBoxOpen}
+                onClickOutside={() => setChatBoxOpen(false)}
+                onShown={() => {
+                  document.removeEventListener("keydown", closeChatBox);
+                  document.addEventListener("keydown", closeChatBox);
+                }}
+              >
+                <div>
+                  <Tippy content="Group Chat" placement="top-end">
+                    <span
+                      onClick={() => setChatBoxOpen((prev) => !prev)}
+                      className="flex bg-green-400 hover:bg-green-600 text-white p-4 rounded-full w-fit h-fit justify-center items-center transition-all"
+                    >
+                      <ChatIcon />
+                    </span>
+                  </Tippy>
+                </div>
+              </Tippy>
+            </div>
+          ) : (
+            <></>
+          )}
 
           <div />
         </NoSSR>
@@ -892,7 +900,7 @@ export async function getServerSideProps(context: NextPageContext) {
     const group = await getGroupById(context.query.id as string);
 
     return {
-      props: { group },
+      props: { group, headless: context.query.headless == "true" },
     };
   } catch (error) {
     return {

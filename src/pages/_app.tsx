@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Transition } from "@headlessui/react";
 import { Toaster, ToastIcon, toast, resolveValue } from "react-hot-toast";
 
@@ -18,6 +18,14 @@ import { setSessionState } from "../state/slices/session";
 function App({ Component, pageProps }) {
   const router = useRouter();
   const dispatch = useDispatch();
+
+  const headless = useMemo(() => {
+    return router.query.headless == "true";
+  }, [router]);
+
+  useEffect(() => {
+    console.log(router.query, "query");
+  }, [router]);
 
   function groupCreated(group: GatewayGroupCreate) {
     toast(`Group ${group.name} (${group.group_id}) created`, {
@@ -104,24 +112,28 @@ function App({ Component, pageProps }) {
         rel="stylesheet"
       />
 
-      <Toaster>
-        {(t) => (
-          <Transition
-            appear
-            show={t.visible}
-            className="transform flex justify-center items-center rounded-md p-2 bg-white text-black dark:bg-neutral-800 dark:text-white drop-shadow-xl max-w-96"
-            enter="transition-all duration-150"
-            enterFrom="opacity-0 scale-50"
-            enterTo="opacity-100 scale-100"
-            leave="transition-all duration-150"
-            leaveFrom="opacity-100 scale-100"
-            leaveTo="opacity-0 scale-75"
-          >
-            <ToastIcon toast={t} />
-            <p className="px-2">{resolveValue(t.message, t)}</p>
-          </Transition>
-        )}
-      </Toaster>
+      {!headless ? (
+        <Toaster>
+          {(t) => (
+            <Transition
+              appear
+              show={t.visible}
+              className="transform flex justify-center items-center rounded-md p-2 bg-white text-black dark:bg-neutral-800 dark:text-white drop-shadow-xl max-w-96"
+              enter="transition-all duration-150"
+              enterFrom="opacity-0 scale-50"
+              enterTo="opacity-100 scale-100"
+              leave="transition-all duration-150"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-75"
+            >
+              <ToastIcon toast={t} />
+              <p className="px-2">{resolveValue(t.message, t)}</p>
+            </Transition>
+          )}
+        </Toaster>
+      ) : (
+        <></>
+      )}
       <Component {...pageProps} />
     </PlausibleProvider>
   );

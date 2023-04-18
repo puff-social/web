@@ -60,6 +60,7 @@ interface GroupMemberProps {
   nobody?: boolean;
   connectToDevice?: Function;
   user?: User;
+  headless?: boolean;
   setStrainModalOpen?: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -75,7 +76,8 @@ export function GroupMember(props: GroupMemberProps) {
   );
 
   const [bluetooth] = useState<boolean>(() => {
-    if (typeof window == "undefined") false;
+    if (props.headless) return false;
+    if (typeof window == "undefined") return false;
     return typeof window.navigator.bluetooth !== "undefined";
   });
 
