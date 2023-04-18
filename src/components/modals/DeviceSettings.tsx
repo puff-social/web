@@ -18,6 +18,7 @@ import {
   ChamberTypeMap,
   updateDeviceDob,
   updateDeviceName,
+  setBrightness as setDeviceBrightness,
 } from "../../utils/puffco";
 import { ProductModelMap } from "../../utils/constants";
 import toast from "react-hot-toast";
@@ -43,6 +44,8 @@ export function DeviceSettingsModal({
   const closeModal = useCallback(() => {
     setModalOpen(false);
   }, []);
+
+  const [brightness, setBrightness] = useState(device.brightness);
 
   const [deviceName, setDeviceName] = useState(device.deviceName);
   const [deviceDob, setDeviceDob] = useState(new Date(info.dob * 1000));
@@ -80,7 +83,7 @@ export function DeviceSettingsModal({
   }, [deviceName, deviceDob]);
 
   const updateDevice = useCallback(async () => {
-    await updateDeviceName(deviceName);
+    if (deviceName != device.deviceName) await updateDeviceName(deviceName);
     setMyDevice((curr) => ({ ...curr, deviceName }));
     await trackDevice(
       { ...info, name: deviceName, dob: deviceDob.getTime() / 1000 },
@@ -89,6 +92,12 @@ export function DeviceSettingsModal({
     toast("Updated device");
     closeModal();
   }, [deviceName, deviceDob]);
+
+  const updateBrightness = useCallback(async () => {
+    setDeviceBrightness(brightness);
+    setMyDevice((curr) => ({ ...curr, brightness }));
+    toast("Changed brightness", { duration: 1000 });
+  }, [brightness]);
 
   return (
     <Modal
@@ -209,6 +218,22 @@ export function DeviceSettingsModal({
               ) : (
                 <></>
               )}
+            </span>
+          </span>
+          <span className="flex justify-between">
+            <p className="font-bold">Lantern Brightness</p>
+            <span className="flex flex-row items-center justify-center">
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={brightness}
+                onChange={({ target: { value } }) =>
+                  setBrightness(Number(value))
+                }
+                onMouseUp={() => updateBrightness()}
+              />
+              <p className="font-bold pl-1">{brightness}%</p>
             </span>
           </span>
         </span>

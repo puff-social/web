@@ -74,7 +74,7 @@ export function GroupActions({
     const child = window.open(
       oauth.data.url,
       "Login with Discord",
-      "width=480,height=820"
+      "width=820,height=820"
     );
 
     const int = setInterval(async () => {

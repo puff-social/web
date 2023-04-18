@@ -203,7 +203,7 @@ export class Gateway extends EventEmitter {
     );
     if (this.compression != "none") this.ws.binaryType = "arraybuffer";
 
-    if (typeof window != 'undefined') window["ws"] = this.ws;
+    if (typeof window != "undefined") window["ws"] = this.ws;
 
     // Socket open handler
     this.ws.addEventListener("open", () => this.opened());
@@ -254,6 +254,7 @@ export class Gateway extends EventEmitter {
 
   send(op: Op, d?: any): void {
     if (this.ws.readyState != this.ws.OPEN) return;
+    if (op == Op.ResumeSession) console.log("Resuming session");
     const data =
       this.compression != "none"
         ? deflate(JSON.stringify({ op, d }))
@@ -388,6 +389,8 @@ export class Gateway extends EventEmitter {
             break;
           }
           case Event.SessionResumed: {
+            console.log("session resumed");
+            this.session_id = data.d.session_id;
             this.session_id = data.d.session_id;
             this.emit("session_resumed", data.d);
             break;
@@ -435,6 +438,7 @@ export class Gateway extends EventEmitter {
     if (code != 4006) this.emit("close");
 
     if (code == 4001) {
+      console.log("RESUME HAS FAILED?");
       this.emit("resume_failed");
       return;
     }
@@ -459,7 +463,7 @@ export const SOCKET_URL =
     ? location.hostname == "dev.puff.social"
       ? "wss://flower.puff.social"
       : "ws://127.0.0.1:9000"
-    : "wss://rosin.puff.social";
+    : "ws://10.8.0.47:9000";
 export const gateway =
   typeof window != "undefined" &&
   (["ws://127.0.0.1:9000", "wss://flower.puff.social"].includes(SOCKET_URL) ||

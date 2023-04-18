@@ -38,6 +38,7 @@ export const PuffcoOperatingMap = [
 export interface PuffcoState {
   temperature: number;
   battery: number;
+  brightness: number;
   totalDabs: number;
   charging: "USB" | "None" | "Wireless";
   profileColor: Colors;
@@ -116,6 +117,7 @@ export interface GatewayDeviceProfile {
 export interface GatewayMemberDeviceState {
   deviceUid?: string;
   activeColor: Colors;
+  brightness: number;
   battery: number;
   state: number;
   temperature: number;
@@ -172,7 +174,7 @@ export interface ChatMessageData {
 }
 
 export interface GroupChatMessage {
-  group_id: string
+  group_id: string;
   author_session_id: string;
   message: ChatMessageData;
 }
