@@ -102,8 +102,8 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
   }, []);
 
   useEffect(() => {
-    init();
-  }, []);
+    if (modalOpen) init();
+  }, [modalOpen]);
 
   return (
     <Modal
