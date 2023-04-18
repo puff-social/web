@@ -74,7 +74,7 @@ export function GroupActions({
     const child = window.open(
       oauth.data.url,
       "Login with Discord",
-      "width=820,height=820"
+      "width=1000,height=820"
     );
 
     const int = setInterval(async () => {
@@ -337,7 +337,7 @@ export function GroupActions({
           <Settings />
         </div>
       </Tippy>
-      <Tippy content="Discord" placement="bottom">
+      <Tippy content="Discord Server" placement="bottom">
         <div
           className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
           onClick={() => window.open("https://discord.gg/M4uYMyU7bC")}
@@ -382,8 +382,8 @@ export function GroupActions({
           arrow={false}
           interactive
           content={
-            <span className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-72">
-              {session.user ? (
+            session.user ? (
+              <span className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-72">
                 <span
                   className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
                   onClick={() => logoutUser()}
@@ -391,20 +391,17 @@ export function GroupActions({
                   <p>Logout</p>
                   <Leave className="text-red-400" />
                 </span>
-              ) : (
-                <span
-                  className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
-                  onClick={() => startDiscordOAuth()}
-                >
-                  <p>Login with Discord</p>
-                  <Discord />
-                </span>
-              )}
-            </span>
+              </span>
+            ) : (
+              <></> || <></>
+            )
           }
           placement="bottom-start"
         >
-          <div className="flex items-center justify-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl">
+          <div
+            className="flex items-center justify-center group rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+            onClick={() => startDiscordOAuth()}
+          >
             {session.user ? (
               <img
                 className="rounded-full p-0.5 w-7 h-7"
@@ -413,7 +410,12 @@ export function GroupActions({
                 }.${session.user.image.startsWith("a_") ? "gif" : "png"}`}
               />
             ) : (
-              <Account />
+              <>
+                <Discord />{" "}
+                <p className="mx-1 text-sm opacity-50 group-hover:opacity-100 transition-all">
+                  Login with Discord
+                </p>
+              </>
             )}
           </div>
         </Tippy>
