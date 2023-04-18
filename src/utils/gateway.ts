@@ -463,7 +463,7 @@ export const SOCKET_URL =
     ? location.hostname == "dev.puff.social"
       ? "wss://flower.puff.social"
       : "ws://127.0.0.1:9000"
-    : "wss://hash.puff.social";
+    : "wss://rosin.puff.social";
 export const gateway =
   typeof window != "undefined" &&
   (["ws://127.0.0.1:9000", "wss://flower.puff.social"].includes(SOCKET_URL) ||
