@@ -45,11 +45,12 @@ export default function Info(props) {
             work with firmware{" "}
             <span className="font-bold text-teal-100 bg-gray-700 px-1 rounded-md">
               Y
-            </span>{" "}
+            </span>
+            ,{" "}
             <span className="font-bold text-teal-100 bg-gray-700 px-1 rounded-md">
               Z
-            </span>
-            , and{" "}
+            </span>{" "}
+            and{" "}
             <span className="font-bold text-teal-100 bg-gray-700 px-1 rounded-md">
               AA
             </span>{" "}
