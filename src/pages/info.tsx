@@ -46,10 +46,18 @@ export default function Info(props) {
             <span className="font-bold text-teal-100 bg-gray-700 px-1 rounded-md">
               Y
             </span>{" "}
-            and{" "}
+            <span className="font-bold text-teal-100 bg-gray-700 px-1 rounded-md">
+              Z
+            </span>
+            , and{" "}
             <span className="font-bold text-teal-100 bg-gray-700 px-1 rounded-md">
               AA
-            </span>
+            </span>{" "}
+            Currently not working with Firmware{" "}
+            <span className="font-bold text-teal-100 bg-gray-700 px-1 rounded-md">
+              AC
+            </span>{" "}
+            (Trying to work with Puffco to support this ASAP)
           </p>
           <p className="w-[700px]">
             <span className="font-bold">Also Important:</span> This will only
