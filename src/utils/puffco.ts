@@ -11,6 +11,7 @@ import {
   gattPoller,
   getValue,
   hexToFloat,
+  constructLoraxCommand,
 } from "./functions";
 import { DeviceInformation, DiagData } from "../types/api";
 import { trackDiags } from "./hash";
@@ -27,6 +28,7 @@ export const FIRMWARE_INFORMATION = "00002a28-0000-1000-8000-00805f9b34fb";
 export const BASE_CHARACTERISTIC = `f9a98c15-c651-4f34-b656-d100bf5800`;
 export const HANDSHAKE_KEY = Buffer.from("FUrZc0WilhUBteT2JlCc+A==", "base64");
 
+export let isLorax: boolean;
 export let deviceModel: string;
 export let deviceFirmware: string;
 export let modelService: BluetoothRemoteGATTService;
@@ -38,6 +40,33 @@ export let profiles: Record<number, PuffcoProfile>;
 
 export const decoder = new TextDecoder("utf-8");
 export const encoder = new TextEncoder();
+
+export let lastSequenceId = 0;
+
+export const LoraxCharacteristic = {
+  VERSION: "05434bca-cc7f-4ef6-bbb3-b1c520b9800c",
+  COMMAND: "60133d5c-5727-4f2c-9697-d842c5292a3c",
+  REPLY: "8dc5ec05-8f7d-45ad-99db-3fbde65dbd9c",
+  EVENT: "43312cd1-7d34-46ce-a7d3-0a98fd9b4cb8",
+};
+
+export const LoraxCommands = {
+  GET_ACCESS_SEED: 0,
+  UNLOCK_ACCESS: 1,
+  GET_LIMITS: 2,
+  ACK_EVENTS: 3,
+  READ_SHORT: 16,
+  WRITE_SHORT: 17,
+  STAT_SHORT: 18,
+  UNLINK: 19,
+  OPEN: 32,
+  READ: 33,
+  WRITE: 34,
+  WATCH: 35,
+  UNWATCH: 36,
+  STAT: 37,
+  CLOSE: 38,
+};
 
 export const Characteristic = {
   ACCESS_KEY: `${BASE_CHARACTERISTIC}e0`,
@@ -272,6 +301,9 @@ export async function startConnection() {
           {
             services: [SERVICE],
           },
+          {
+            services: [LORAX_SERVICE],
+          },
         ],
         optionalServices: [
           MODEL_SERVICE,
@@ -285,12 +317,31 @@ export async function startConnection() {
     }
 
     server = await device.gatt.connect();
-    service = await server.getPrimaryService(SERVICE);
-    modelService = await server.getPrimaryService(MODEL_SERVICE);
+
+    const primaryServices = await server.getPrimaryServices();
+    isLorax = !!primaryServices.find(
+      (service) => service.uuid == LORAX_SERVICE
+    );
+
+    if (isLorax)
+      throw {
+        code: "ac_firmware",
+      };
+
+    service = await server.getPrimaryService(isLorax ? LORAX_SERVICE : SERVICE);
+
+    device.addEventListener("gattserverdisconnected", () => {
+      console.log("Gatt server disconnected");
+    });
+
+    if (!isLorax) modelService = await server.getPrimaryService(MODEL_SERVICE);
 
     // DEBUG ONLY
     if (typeof window != "undefined") window["modelService"] = modelService;
+    if (typeof window != "undefined") window["server"] = server;
     if (typeof window != "undefined") window["service"] = service;
+    if (typeof window != "undefined") window["LoraxCommands"] = LoraxCommands;
+    window["LoraxCharacteristic"] = LoraxCharacteristic;
     if (typeof window != "undefined") window["Characteristic"] = Characteristic;
     if (typeof window != "undefined") window["getValue"] = getValue;
     if (typeof window != "undefined") window["unpack"] = unpack;
@@ -303,142 +354,179 @@ export async function startConnection() {
     if (typeof window != "undefined") window["DeviceCommand"] = DeviceCommand;
     if (typeof window != "undefined") window["setBrightness"] = setBrightness;
     if (typeof window != "undefined") window["setLightMode"] = setLightMode;
+    if (typeof window != "undefined")
+      window["constructLoraxCommand"] = constructLoraxCommand;
+    if (typeof window != "undefined")
+      window["sendLoraxCommand"] = sendLoraxCommand;
+    if (typeof window != "undefined")
+      window["writeLoraxCommand"] = writeLoraxCommand;
 
-    const [, model] = await getValue(modelService, MODEL_INFORMATION, 0);
-    const [, firmware] = await getValue(modelService, FIRMWARE_INFORMATION, 0);
-    deviceFirmware = decoder.decode(firmware);
-    deviceModel = decoder.decode(model);
+    if (!isLorax) {
+      const [, model] = await getValue(modelService, MODEL_INFORMATION, 0);
+      const [, firmware] = await getValue(
+        modelService,
+        FIRMWARE_INFORMATION,
+        0
+      );
+      deviceFirmware = decoder.decode(firmware);
+      deviceModel = decoder.decode(model);
 
-    setTimeout(async () => {
-      const diagData: DiagData = {
-        session_id: gateway.session_id,
-        device_parameters: {
-          name: device.name,
-          firmware: deviceFirmware,
-          model: deviceModel,
-        },
-      };
+      setTimeout(async () => {
+        const diagData: DiagData = {
+          session_id: gateway.session_id,
+          device_parameters: {
+            name: device.name,
+            firmware: deviceFirmware,
+            model: deviceModel,
+          },
+        };
+
+        try {
+          diagData.device_services = await Promise.all(
+            (
+              await server.getPrimaryServices()
+            ).map(async (service) => ({
+              uuid: service.uuid,
+              characteristicCount: (await service.getCharacteristics()).length,
+            }))
+          );
+          diagData.device_parameters.loraxService = await server
+            .getPrimaryService(LORAX_SERVICE)
+            .then(() => true)
+            .catch(() => false);
+          diagData.device_parameters.pupService = await server
+            .getPrimaryService(PUP_SERVICE)
+            .then(() => true)
+            .catch(() => false);
+        } catch (error) {}
+
+        trackDiags(diagData);
+      }, 100);
+    }
+
+    if (isLorax) {
+      const reply = await service.getCharacteristic(LoraxCharacteristic.REPLY);
+      reply.addEventListener("characteristicvaluechanged", (ev) => {
+        console.log("Got reply from lorax", ev);
+      });
+      reply.startNotifications();
+
+      const event = await service.getCharacteristic(LoraxCharacteristic.EVENT);
+      event.addEventListener("characteristicvaluechanged", (ev) => {
+        console.log("Got event from lorax", ev);
+      });
+      event.startNotifications();
+
+      // const t = Buffer.alloc(1);
+      // t.writeUInt8(0, 0);
+      // const u = Buffer.concat([t, Buffer.from(lastSequenceId.toString())]);
+      await writeLoraxCommand(
+        constructLoraxCommand(LoraxCommands.OPEN, null, null)
+      );
+
+      console.log("Lorax auth");
+      await writeLoraxCommand(
+        constructLoraxCommand(LoraxCommands.GET_ACCESS_SEED, null)
+      );
+    } else {
+      const accessSeedKey = await service.getCharacteristic(
+        Characteristic.ACCESS_KEY
+      );
+      const value = await accessSeedKey.readValue();
+
+      const decodedKey = new Uint8Array(16);
+      for (let i = 0; i < 16; i++) {
+        decodedKey[i] = value.getUint8(i);
+      }
+
+      const decodedHandshake = convertFromHex(HANDSHAKE_KEY.toString("hex"));
+
+      const newSeed = new Uint8Array(32);
+      for (let i = 0; i < 16; ++i) {
+        newSeed[i] = decodedHandshake.charCodeAt(i);
+        newSeed[i + 16] = decodedKey[i];
+      }
+
+      const newKey = convertHexStringToNumArray(
+        createHash("sha256").update(newSeed).digest("hex")
+      ).slice(0, 16);
+      await accessSeedKey.writeValue(Buffer.from(newKey));
+      profiles = await loopProfiles();
 
       try {
-        diagData.device_services = await Promise.all(
-          (
-            await server.getPrimaryServices()
-          ).map(async (service) => ({
-            uuid: service.uuid,
-            characteristicCount: (await service.getCharacteristics()).length,
-          }))
+        const [, gitHash] = await getValue(service, Characteristic.GIT_HASH, 0);
+        const [, deviceUptime] = await getValue(
+          service,
+          Characteristic.UPTIME,
+          0
         );
-        diagData.device_parameters.loraxService = await server
+        const [, deviceUtcTime] = await getValue(
+          service,
+          Characteristic.UTC_TIME,
+          0
+        );
+        const [, deviceDob] = await getValue(
+          service,
+          Characteristic.DEVICE_BIRTHDAY,
+          0
+        );
+        const [, batteryCapacity] = await getValue(
+          service,
+          Characteristic.BATTERY_CAPACITY,
+          0
+        );
+        const [, euid] = await getValue(service, Characteristic.EUID, 0);
+        const [, chamberType] = await getValue(
+          service,
+          Characteristic.CHAMBER_TYPE,
+          0
+        );
+
+        const loraxService = await server
           .getPrimaryService(LORAX_SERVICE)
           .then(() => true)
           .catch(() => false);
-        diagData.device_parameters.pupService = await server
+        const pupService = await server
           .getPrimaryService(PUP_SERVICE)
           .then(() => true)
           .catch(() => false);
-      } catch (error) {}
 
-      trackDiags(diagData);
-    }, 100);
-
-    const accessSeedKey = await service.getCharacteristic(
-      Characteristic.ACCESS_KEY
-    );
-    const value = await accessSeedKey.readValue();
-
-    const decodedKey = new Uint8Array(16);
-    for (let i = 0; i < 16; i++) {
-      decodedKey[i] = value.getUint8(i);
-    }
-
-    const decodedHandshake = convertFromHex(HANDSHAKE_KEY.toString("hex"));
-
-    const newSeed = new Uint8Array(32);
-    for (let i = 0; i < 16; ++i) {
-      newSeed[i] = decodedHandshake.charCodeAt(i);
-      newSeed[i + 16] = decodedKey[i];
-    }
-
-    const newKey = convertHexStringToNumArray(
-      createHash("sha256").update(newSeed).digest("hex")
-    ).slice(0, 16);
-    await accessSeedKey.writeValue(Buffer.from(newKey));
-
-    profiles = await loopProfiles();
-
-    try {
-      const [, gitHash] = await getValue(service, Characteristic.GIT_HASH, 0);
-      const [, deviceUptime] = await getValue(
-        service,
-        Characteristic.UPTIME,
-        0
-      );
-      const [, deviceUtcTime] = await getValue(
-        service,
-        Characteristic.UTC_TIME,
-        0
-      );
-      const [, deviceDob] = await getValue(
-        service,
-        Characteristic.DEVICE_BIRTHDAY,
-        0
-      );
-      const [, batteryCapacity] = await getValue(
-        service,
-        Characteristic.BATTERY_CAPACITY,
-        0
-      );
-      const [, euid] = await getValue(service, Characteristic.EUID, 0);
-      const [, chamberType] = await getValue(
-        service,
-        Characteristic.CHAMBER_TYPE,
-        0
-      );
-
-      const loraxService = await server
-        .getPrimaryService(LORAX_SERVICE)
-        .then(() => true)
-        .catch(() => false);
-      const pupService = await server
-        .getPrimaryService(PUP_SERVICE)
-        .then(() => true)
-        .catch(() => false);
-
-      const diagData: DiagData = {
-        session_id: gateway.session_id,
-        device_services: await Promise.all(
-          (
-            await server.getPrimaryServices()
-          ).map(async (service) => ({
-            uuid: service.uuid,
-            characteristicCount: (await service.getCharacteristics()).length,
-          }))
-        ),
-        device_profiles: profiles,
-        device_parameters: {
-          name: device.name,
-          firmware: deviceFirmware,
-          model: deviceModel,
-          authenticated: true,
-          loraxService,
-          pupService,
-          hash: decoder.decode(gitHash),
-          uptime: unpack(new Uint8Array(deviceUptime.buffer), { bits: 32 }),
-          utc: unpack(new Uint8Array(deviceUtcTime.buffer), { bits: 32 }),
-          batteryCapacity: unpack(new Uint8Array(batteryCapacity.buffer), {
-            bits: 16,
-          }),
-          uid: unpack(new Uint8Array(euid.buffer), { bits: 32 }).toString(),
-          chamberType: Number(
-            unpack(new Uint8Array(chamberType.buffer), { bits: 8 })
+        const diagData: DiagData = {
+          session_id: gateway.session_id,
+          device_services: await Promise.all(
+            (
+              await server.getPrimaryServices()
+            ).map(async (service) => ({
+              uuid: service.uuid,
+              characteristicCount: (await service.getCharacteristics()).length,
+            }))
           ),
-          dob: Number(unpack(new Uint8Array(deviceDob.buffer), { bits: 32 })),
-        },
-      };
+          device_profiles: profiles,
+          device_parameters: {
+            name: device.name,
+            firmware: "Temp",
+            model: "temp",
+            authenticated: true,
+            loraxService,
+            pupService,
+            hash: decoder.decode(gitHash),
+            uptime: unpack(new Uint8Array(deviceUptime.buffer), { bits: 32 }),
+            utc: unpack(new Uint8Array(deviceUtcTime.buffer), { bits: 32 }),
+            batteryCapacity: unpack(new Uint8Array(batteryCapacity.buffer), {
+              bits: 16,
+            }),
+            uid: unpack(new Uint8Array(euid.buffer), { bits: 32 }).toString(),
+            chamberType: Number(
+              unpack(new Uint8Array(chamberType.buffer), { bits: 8 })
+            ),
+            dob: Number(unpack(new Uint8Array(deviceDob.buffer), { bits: 32 })),
+          },
+        };
 
-      trackDiags(diagData);
-    } catch (error) {
-      console.error(`Failed to track diags: ${error}`);
+        trackDiags(diagData);
+      } catch (error) {
+        console.error(`Failed to track diags: ${error}`);
+      }
     }
 
     return { device, profiles };
@@ -458,6 +546,16 @@ export async function sendCommand(command: Uint8Array) {
   await writeValue(Characteristic.COMMAND, command);
 }
 
+export async function sendLoraxCommand(op: number, data: Uint8Array) {
+  if (!service) return;
+
+  const off = Math.pow(2, 16) - 1;
+  lastSequenceId = (lastSequenceId + 1) % off;
+  const message = constructLoraxCommand(op, lastSequenceId, data);
+
+  await writeLoraxCommand(message);
+}
+
 export async function updateDeviceDob(date: Date) {
   await writeValue(
     Characteristic.DEVICE_BIRTHDAY,
@@ -474,6 +572,17 @@ export async function writeValue(characteristic: string, value: Uint8Array) {
 
   const char = await service.getCharacteristic(characteristic);
   await char.writeValue(Buffer.from(value));
+}
+
+export async function writeLoraxCommand(message: Buffer) {
+  if (!service) return;
+
+  console.log("sending", message);
+
+  const char = await service.getCharacteristic(LoraxCharacteristic.COMMAND);
+  console.log(char);
+
+  return await char.writeValueWithoutResponse(message);
 }
 
 export async function startPolling(device?: BluetoothDevice) {

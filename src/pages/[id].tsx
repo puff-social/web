@@ -661,6 +661,17 @@ export default function Group({
         });
       };
     } catch (error) {
+      if ("code" in error) {
+        switch (error.code) {
+          case "ac_firmware": {
+            toast(
+              "Your device has Firmware AC and is not supported currently, we're trying to work with puffco to support this ASAP!",
+              { position: "top-right", duration: 5000, icon: "‼" }
+            );
+            break;
+          }
+        }
+      }
       console.error(error);
     }
   }, [ourName, group]);
