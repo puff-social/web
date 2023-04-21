@@ -109,8 +109,8 @@ export function GroupMember(props: GroupMemberProps) {
 
   useEffect(() => {
     (async () => {
-      if (props.device?.deviceUid) {
-        const lb = await getLeaderboardDevice(props.device.deviceUid);
+      if (props.device?.deviceMac) {
+        const lb = await getLeaderboardDevice(props.device.deviceMac);
         setLeaderboardPos(lb.data.position);
       }
     })();
@@ -247,7 +247,9 @@ export function GroupMember(props: GroupMemberProps) {
                           }
                         );
                         navigator.clipboard.writeText(
-                          `https://puff.social/api/device/device_${props.device.deviceUid}`
+                          `https://puff.social/api/device/device_${Buffer.from(
+                            props.device.deviceMac
+                          ).toString("base64")}`
                         );
                       }}
                     >
@@ -304,7 +306,7 @@ export function GroupMember(props: GroupMemberProps) {
                 id={
                   props.us
                     ? "self"
-                    : `${props.member.session_id}-${props.device.deviceUid}`
+                    : `${props.member.session_id}-${props.device.deviceMac}`
                 }
                 svgClassName="w-40 h-full"
                 className="-z-50 min-w-[40%]"
