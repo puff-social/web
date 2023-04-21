@@ -110,7 +110,9 @@ export function GroupMember(props: GroupMemberProps) {
   useEffect(() => {
     (async () => {
       if (props.device?.deviceMac) {
-        const lb = await getLeaderboardDevice(props.device.deviceMac);
+        const lb = await getLeaderboardDevice(
+          Buffer.from(props.device.deviceMac).toString("base64")
+        );
         setLeaderboardPos(lb.data.position);
       }
     })();
