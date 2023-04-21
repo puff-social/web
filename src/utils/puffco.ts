@@ -391,10 +391,10 @@ export async function startConnection() {
       (service) => service.uuid == LORAX_SERVICE
     );
 
-    // if (isLorax)
-    //   throw {
-    //     code: "ac_firmware",
-    //   };
+    if (isLorax)
+      throw {
+        code: "ac_firmware",
+      };
 
     service = await server.getPrimaryService(isLorax ? LORAX_SERVICE : SERVICE);
 
