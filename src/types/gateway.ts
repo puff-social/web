@@ -115,7 +115,7 @@ export interface GatewayDeviceProfile {
 }
 
 export interface GatewayMemberDeviceState {
-  deviceUid?: string;
+  deviceMac?: string;
   activeColor: Colors;
   brightness: number;
   battery: number;

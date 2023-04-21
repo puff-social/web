@@ -6,7 +6,7 @@ export interface APIResponse<T> {
     code: string;
     message?: string;
     issues?: any;
-  },
+  };
   success: boolean;
 }
 
@@ -25,7 +25,7 @@ export interface DeviceInformation {
   id: string;
   dob: number;
   name: string;
-  uid: string;
+  mac: string;
   totalDabs: number;
   owner: string;
   model: string;
@@ -39,7 +39,7 @@ export interface DiagService {
 }
 
 export interface DiagParameters {
-  uid?: string;
+  mac?: string;
   dob?: number;
   name: string;
   model: string;
@@ -47,7 +47,7 @@ export interface DiagParameters {
   hash?: string;
   uptime?: number;
   utc?: number;
-  batteryCapacity?: number
+  batteryCapacity?: number;
   chamberType?: number;
   authenticated?: boolean;
   pupService?: boolean;

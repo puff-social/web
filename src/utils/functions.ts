@@ -1,4 +1,5 @@
 import EventEmitter from "events";
+import { LoraxCommands, loraxLimits, sendLoraxCommand } from "./puffco";
 
 export function millisToMinutesAndSeconds(millis: number) {
   var minutes = Math.floor(millis / 60000);
@@ -59,8 +60,17 @@ export function constructLoraxCommand(
   alloc.writeUInt16LE(seq, 0);
   alloc.writeUInt8(op, 2);
 
-  if (data) return Buffer.concat([alloc, data]);
+  if (data) return Buffer.concat([alloc, Buffer.from(data)]);
   return alloc;
+}
+
+export function processLoraxReply(message: ArrayBuffer) {
+  const buffer = Buffer.from(message);
+  const seq = buffer.readUInt16LE(0); // ? seq
+  const error = buffer.readUInt8(2); // ? error
+  const data = buffer.subarray(3);
+
+  return { seq, error, data };
 }
 
 export async function getValue(
@@ -68,9 +78,6 @@ export async function getValue(
   characteristic: string,
   bytes = 4
 ): Promise<[string, DataView]> {
-  // await new Promise((resolve) => setTimeout(() => resolve(true), Math.floor(Math.random() * 2200) + 100))
-  // console.log(`DEBUG > getting ${characteristic} ${bytes}`);
-
   const char = await service.getCharacteristic(characteristic);
   const value = await char.readValue();
 
@@ -81,6 +88,63 @@ export async function getValue(
     str += decimalToHexString(value.getUint8(i)).toString();
   const hex = flipHexString("0x" + str, 8);
   return [hex, value];
+}
+
+function readCmd(t: number, path: string) {
+  const w = Buffer.alloc(6);
+  w.writeUInt16LE(t, 0);
+  w.writeUInt16LE(loraxLimits.maxPayload, 2);
+
+  const buff = Buffer.concat([w, Buffer.from(path)]);
+  return buff;
+}
+
+function readShortCmd(p: number, path: string) {
+  const w = Buffer.alloc(4);
+  w.writeUInt16LE(p, 0);
+  w.writeUInt16LE(loraxLimits.maxPayload, 2);
+  const t = Buffer.concat([w, Buffer.from(path)]);
+  return t;
+}
+
+function writeShortCmd(p: number, path: string, data: Buffer) {
+  const w = Buffer.alloc(3);
+  w.writeUInt16LE(p, 0);
+  // w.writeUInt16LE(loraxLimits.maxPayload, 2);
+  const t = Buffer.concat([w, Buffer.from(path), Buffer.from([0]), data]);
+  return t;
+}
+
+function openCmd(r: number, path: string) {
+  const w = Buffer.alloc(1);
+  w.writeUInt8(r, 0);
+
+  const u = Buffer.concat([w, Buffer.from(path)]);
+  return u;
+}
+
+export async function getLoraxValue(path: string) {
+  const command = readCmd(0, path);
+  await sendLoraxCommand(LoraxCommands.READ, command, path);
+}
+
+export async function getLoraxValueShort(path: string) {
+  const command = readShortCmd(0, path);
+  await sendLoraxCommand(LoraxCommands.READ_SHORT, command, path);
+}
+
+export async function sendLoraxValueShort(path: string, data: Buffer) {
+  const command = writeShortCmd(0, path, data);
+  await sendLoraxCommand(LoraxCommands.WRITE_SHORT, command, path);
+}
+
+export function intArrayToMacAddress(uint8Array: Uint8Array): string {
+  const hexString = Array.from(uint8Array)
+    .reverse()
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join(":");
+
+  return hexString.toUpperCase();
 }
 
 export async function gattPoller(

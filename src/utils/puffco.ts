@@ -12,10 +12,14 @@ import {
   getValue,
   hexToFloat,
   constructLoraxCommand,
+  processLoraxReply,
+  getLoraxValueShort,
+  sendLoraxValueShort,
+  intArrayToMacAddress,
 } from "./functions";
 import { DeviceInformation, DiagData } from "../types/api";
 import { trackDiags } from "./hash";
-import { PuffcoProfile } from "../types/puffco";
+import { LoraxLimits, LoraxMessage, PuffcoProfile } from "../types/puffco";
 import { gateway } from "./gateway";
 
 export const SILLABS_OTA_SERVICE = "1d14d6ee-fd63-4fa1-bfa4-8f47b42119f0";
@@ -25,8 +29,13 @@ export const SERVICE = "06caf9c0-74d3-454f-9be9-e30cd999c17a";
 export const MODEL_SERVICE = "0000180a-0000-1000-8000-00805f9b34fb";
 export const MODEL_INFORMATION = "00002a24-0000-1000-8000-00805f9b34fb";
 export const FIRMWARE_INFORMATION = "00002a28-0000-1000-8000-00805f9b34fb";
+export const SERIAL_NUMBER = "00002a25-0000-1000-8000-00805f9b34fb";
 export const BASE_CHARACTERISTIC = `f9a98c15-c651-4f34-b656-d100bf5800`;
 export const HANDSHAKE_KEY = Buffer.from("FUrZc0WilhUBteT2JlCc+A==", "base64");
+export const LORAX_HANDSHAKE_KEY = Buffer.from(
+  "ZMZFYlbyb1scoSc3pd1x+w==",
+  "base64"
+);
 
 export let isLorax: boolean;
 export let deviceModel: string;
@@ -38,10 +47,17 @@ export let server: BluetoothRemoteGATTServer;
 export let poller: EventEmitter;
 export let profiles: Record<number, PuffcoProfile>;
 
+export const loraxLimits: LoraxLimits = {
+  maxCommands: 0,
+  maxFiles: 0,
+  maxPayload: 0,
+};
+
+export const loraxMessages = new Map<number, LoraxMessage>();
+export let lastLoraxSequenceId = 0;
+
 export const decoder = new TextDecoder("utf-8");
 export const encoder = new TextEncoder();
-
-export let lastSequenceId = 0;
 
 export const LoraxCharacteristic = {
   VERSION: "05434bca-cc7f-4ef6-bbb3-b1c520b9800c",
@@ -121,6 +137,58 @@ export const Characteristic = {
   TRIP_HEAT_CYCLES: `${BASE_CHARACTERISTIC}51`,
   TRIP_HEAT_CYCLE_TIME: `${BASE_CHARACTERISTIC}52`,
   HEAT_CYCLE_COUNT: `${BASE_CHARACTERISTIC}60`,
+};
+
+export const LoraxCharacteristicPathMap = {
+  [Characteristic.EUID]: "/p/sys/bt/mac",
+  [Characteristic.GIT_HASH]: "/p/sys/fw/gith",
+  [Characteristic.BATTERY_SOC]: "/p/bat/soc",
+  [Characteristic.BATTERY_VOLTAGE]: "/p/bat/volt",
+  [Characteristic.OPERATING_STATE]: "/p/app/stat/id",
+  [Characteristic.STATE_ELAPSED_TIME]: "/p/app/stat/elap",
+  [Characteristic.STATE_TOTAL_TIME]: "/p/app/stat/tott",
+  [Characteristic.HEATER_TEMP]: "/p/app/htr/temp",
+  [Characteristic.ACTIVE_LED_COLOR]: "/p/app/led/aclr",
+  [Characteristic.HEATER_POWER]: "/p/htr/pwr",
+  [Characteristic.HEATER_DUTY]: "/p/htr/duty",
+  [Characteristic.HEATER_VOLTAGE]: "/p/htr/vavg",
+  [Characteristic.HEATER_CURRENT]: "/p/htr/iavg",
+  [Characteristic.SAFETY_THERMAL_EST_TEMP]: "/p/htr/stet",
+  [Characteristic.HEATER_RESISTANCE]: "/p/htr/res",
+  [Characteristic.BATTERY_CHARGE_CURRENT]: "/p/bat/chg/iout",
+  [Characteristic.TOTAL_HEAT_CYCLES]: "/p/app/odom/0/nc",
+  [Characteristic.TOTAL_HEAT_CYCLE_TIME]: "/p/app/odom/0/tm",
+  [Characteristic.BATTERY_CHARGE_STATE]: "/p/bat/chg/stat",
+  [Characteristic.BATTER_CHARGE_ELAPSED_TIME]: "/p/bat/chg/elap",
+  [Characteristic.BATTER_CHARGE_EST_TIME_TO_FULL]: "/p/bat/chg/etf",
+  [Characteristic.BATTERY_TEMP]: "/p/bat/temp",
+  [Characteristic.UPTIME]: "/p/sys/uptm",
+  [Characteristic.BATTERY_CAPACITY]: "/p/bat/cap",
+  [Characteristic.BATTERY_CURRENT]: "/p/bat/curr",
+  [Characteristic.APPROX_DABS_REMAINING]: "/p/app/info/drem",
+  [Characteristic.DABS_PER_DAY]: "/p/app/info/dpd",
+  [Characteristic.RAW_HEATER_TEMP]: "/p/htr/temp",
+  [Characteristic.RAW_HEATER_TEMP_COMMAND]: "/p/htr/tcmd",
+  [Characteristic.BATTERY_CHARGE_SOURCE]: "/p/bat/chg/src",
+  [Characteristic.CHAMBER_TYPE]: "/p/htr/chmt",
+  [Characteristic.COMMAND]: "/p/app/mc",
+  [Characteristic.PROFILE_CURRENT]: "/p/app/hcs",
+  [Characteristic.STEALTH_MODE]: "/u/app/ui/stlm",
+  [Characteristic.UTC_TIME]: "/p/sys/time",
+  [Characteristic.TEMPERATURE_OVERRIDE]: "/p/app/tmpo",
+  [Characteristic.TIME_OVERRIDE]: "/p/app/timo",
+  [Characteristic.LANTERN_COLOR]: "/p/app/ltrn/colr",
+  [Characteristic.LANTERN_START]: "/p/app/ltrn/cmd",
+  [Characteristic.LED_BRIGHTNESS]: "/u/app/ui/lbrt",
+  [Characteristic.DEVICE_NAME]: "/u/sys/name",
+  [Characteristic.DEVICE_BIRTHDAY]: "/u/sys/bday",
+  [Characteristic.TRIP_HEAT_CYCLES]: "/p/app/odom/1/nc",
+  [Characteristic.TRIP_HEAT_CYCLE_TIME]: "/p/app/odom/1/tm",
+  [Characteristic.HEAT_CYCLE_COUNT]: "/p/app/nhc",
+  [MODEL_INFORMATION]: "/p/sys/hw/mdcd",
+  [SERIAL_NUMBER]: "/p/sys/hw/ser",
+  HARDWARE_VERSION: "/p/sys/hw/ver",
+  [FIRMWARE_INFORMATION]: "/p/sys/fw/ver",
 };
 
 export const DeviceCommand = {
@@ -323,10 +391,10 @@ export async function startConnection() {
       (service) => service.uuid == LORAX_SERVICE
     );
 
-    if (isLorax)
-      throw {
-        code: "ac_firmware",
-      };
+    // if (isLorax)
+    //   throw {
+    //     code: "ac_firmware",
+    //   };
 
     service = await server.getPrimaryService(isLorax ? LORAX_SERVICE : SERVICE);
 
@@ -406,28 +474,151 @@ export async function startConnection() {
 
     if (isLorax) {
       const reply = await service.getCharacteristic(LoraxCharacteristic.REPLY);
-      reply.addEventListener("characteristicvaluechanged", (ev) => {
-        console.log("Got reply from lorax", ev);
+      reply.addEventListener("characteristicvaluechanged", async (ev) => {
+        const {
+          value: { buffer },
+        }: { value: DataView } = ev.target as any;
+        const data = processLoraxReply(buffer);
+        const msg = loraxMessages.get(data.seq);
+        msg.response = { data: data.data, error: !!data.error };
+
+        switch (msg.op) {
+          case LoraxCommands.GET_ACCESS_SEED: {
+            const arr = Buffer.from((data.data as Uint8Array).buffer);
+            console.log("got auth", arr);
+
+            const decodedHandshake = convertFromHex(
+              LORAX_HANDSHAKE_KEY.toString("hex")
+            );
+
+            const newSeed = new Uint8Array(32);
+            for (let i = 0; i < 16; ++i) {
+              newSeed[i] = decodedHandshake.charCodeAt(i);
+              newSeed[i + 16] = data.data[i];
+            }
+
+            const newKey = convertHexStringToNumArray(
+              createHash("sha256").update(newSeed).digest("hex")
+            ).slice(0, 16);
+
+            await sendLoraxCommand(LoraxCommands.UNLOCK_ACCESS, newKey);
+
+            await getLoraxValueShort(
+              LoraxCharacteristicPathMap[FIRMWARE_INFORMATION]
+            );
+            await getLoraxValueShort(LoraxCharacteristicPathMap[SERIAL_NUMBER]);
+            await getLoraxValueShort(
+              LoraxCharacteristicPathMap[MODEL_INFORMATION]
+            );
+            await getLoraxValueShort(
+              LoraxCharacteristicPathMap[Characteristic.GIT_HASH]
+            );
+            await getLoraxValueShort(
+              LoraxCharacteristicPathMap[Characteristic.DEVICE_BIRTHDAY]
+            );
+            await getLoraxValueShort(
+              LoraxCharacteristicPathMap[Characteristic.EUID]
+            );
+            await getLoraxValueShort(
+              LoraxCharacteristicPathMap[Characteristic.UTC_TIME]
+            );
+            await getLoraxValueShort(
+              LoraxCharacteristicPathMap[Characteristic.DEVICE_NAME]
+            );
+
+            await sendLoraxValueShort(
+              LoraxCharacteristicPathMap[Characteristic.COMMAND],
+              Buffer.from(DeviceCommand.HEAT_CYCLE_BEGIN)
+            );
+
+            break;
+          }
+
+          case LoraxCommands.UNLOCK_ACCESS: {
+            if (msg.response.error) return;
+            console.log("Authenticated with Lorax protocol");
+
+            break;
+          }
+
+          case LoraxCommands.READ: {
+            switch (msg.path) {
+              default:
+                console.log("Got read from lorax", data, msg);
+                break;
+            }
+
+            break;
+          }
+
+          case LoraxCommands.READ_SHORT: {
+            switch (msg.path) {
+              case LoraxCharacteristicPathMap[FIRMWARE_INFORMATION]:
+                const version = data.data.readUInt8(0);
+                console.log("Using API version", version);
+                break;
+              case LoraxCharacteristicPathMap[SERIAL_NUMBER]:
+                console.log("serial", data.data.toString());
+                break;
+              case LoraxCharacteristicPathMap[Characteristic.DEVICE_NAME]:
+                console.log("device name", data.data.toString());
+                break;
+              case LoraxCharacteristicPathMap[Characteristic.GIT_HASH]:
+                console.log("git hash", data.data.toString());
+                break;
+              case LoraxCharacteristicPathMap[Characteristic.DEVICE_BIRTHDAY]:
+                console.log("birthday", data.data);
+                break;
+              case LoraxCharacteristicPathMap[MODEL_INFORMATION]:
+                console.log("model", data.data);
+                break;
+              case LoraxCharacteristicPathMap[Characteristic.EUID]:
+                console.log("euid", intArrayToMacAddress(data.data));
+                break;
+              case LoraxCharacteristicPathMap[Characteristic.UTC_TIME]:
+                console.log("utc time", data.data);
+                break;
+
+              default:
+                console.log("Got read short from lorax", data, msg);
+                break;
+            }
+
+            break;
+          }
+
+          case LoraxCommands.GET_LIMITS: {
+            if (data.data) {
+              console.log("Limits raw", data.data);
+              loraxLimits.maxPayload = data.data.readUInt8(0);
+              loraxLimits.maxFiles = data.data.readUInt16LE(1);
+              loraxLimits.maxCommands = data.data.readUInt16LE(2);
+
+              console.log("Got lorax limits", loraxLimits);
+            }
+
+            break;
+          }
+
+          default:
+            console.log("Got reply from lorax", data, msg);
+            break;
+        }
       });
       reply.startNotifications();
 
       const event = await service.getCharacteristic(LoraxCharacteristic.EVENT);
       event.addEventListener("characteristicvaluechanged", (ev) => {
-        console.log("Got event from lorax", ev);
+        const {
+          value: { buffer },
+        }: { value: DataView } = ev.target as any;
+        const data = processLoraxReply(buffer);
+        console.log("Got event from lorax", data, (ev.target as any).value);
       });
       event.startNotifications();
 
-      // const t = Buffer.alloc(1);
-      // t.writeUInt8(0, 0);
-      // const u = Buffer.concat([t, Buffer.from(lastSequenceId.toString())]);
-      await writeLoraxCommand(
-        constructLoraxCommand(LoraxCommands.OPEN, null, null)
-      );
-
-      console.log("Lorax auth");
-      await writeLoraxCommand(
-        constructLoraxCommand(LoraxCommands.GET_ACCESS_SEED, null)
-      );
+      sendLoraxCommand(LoraxCommands.GET_LIMITS, null);
+      sendLoraxCommand(LoraxCommands.GET_ACCESS_SEED, null);
     } else {
       const accessSeedKey = await service.getCharacteristic(
         Characteristic.ACCESS_KEY
@@ -504,8 +695,8 @@ export async function startConnection() {
           device_profiles: profiles,
           device_parameters: {
             name: device.name,
-            firmware: "Temp",
-            model: "temp",
+            firmware: deviceFirmware,
+            model: deviceModel,
             authenticated: true,
             loraxService,
             pupService,
@@ -515,7 +706,7 @@ export async function startConnection() {
             batteryCapacity: unpack(new Uint8Array(batteryCapacity.buffer), {
               bits: 16,
             }),
-            uid: unpack(new Uint8Array(euid.buffer), { bits: 32 }).toString(),
+            mac: intArrayToMacAddress(new Uint8Array(euid.buffer)),
             chamberType: Number(
               unpack(new Uint8Array(chamberType.buffer), { bits: 8 })
             ),
@@ -546,12 +737,22 @@ export async function sendCommand(command: Uint8Array) {
   await writeValue(Characteristic.COMMAND, command);
 }
 
-export async function sendLoraxCommand(op: number, data: Uint8Array) {
+export async function sendLoraxCommand(
+  op: number,
+  data: Uint8Array,
+  path?: string
+) {
   if (!service) return;
 
   const off = Math.pow(2, 16) - 1;
-  lastSequenceId = (lastSequenceId + 1) % off;
-  const message = constructLoraxCommand(op, lastSequenceId, data);
+  lastLoraxSequenceId = (lastLoraxSequenceId + 1) % off;
+  const message = constructLoraxCommand(op, lastLoraxSequenceId, data);
+  loraxMessages.set(lastLoraxSequenceId, {
+    op,
+    seq: lastLoraxSequenceId,
+    request: data,
+    path,
+  });
 
   await writeLoraxCommand(message);
 }
@@ -577,10 +778,7 @@ export async function writeValue(characteristic: string, value: Uint8Array) {
 export async function writeLoraxCommand(message: Buffer) {
   if (!service) return;
 
-  console.log("sending", message);
-
   const char = await service.getCharacteristic(LoraxCharacteristic.COMMAND);
-  console.log(char);
 
   return await char.writeValueWithoutResponse(message);
 }
@@ -703,10 +901,8 @@ export async function startPolling(device?: BluetoothDevice) {
   );
 
   const [, initEuid] = await getValue(service, Characteristic.EUID);
-  deviceInfo.uid = Buffer.from(
-    unpack(new Uint8Array(initEuid.buffer), { bits: 32 }).toString()
-  ).toString("base64");
-  initState.deviceUid = deviceInfo.uid;
+  deviceInfo.mac = intArrayToMacAddress(new Uint8Array(initEuid.buffer));
+  initState.deviceMac = deviceInfo.mac;
 
   const [, initChamberType] = await getValue(
     service,
