@@ -48,7 +48,7 @@ export interface PuffcoState {
   deviceName: string;
   profile: GatewayDeviceProfile;
   chamberType: ChamberType;
-  deviceModel: string;
+  deviceModel: number;
 }
 
 export interface GatewayGroupCreate {
@@ -126,7 +126,7 @@ export interface GatewayMemberDeviceState {
   deviceName: string;
   profile: GatewayDeviceProfile;
   chamberType: ChamberType;
-  deviceModel: string;
+  deviceModel: number;
 }
 
 export interface GroupUserUpdate {

@@ -20,15 +20,7 @@ import {
   GroupUserLeft,
   PuffcoOperatingState,
 } from "../types/gateway";
-import {
-  DeviceCommand,
-  disconnectBluetooth,
-  PuffLightMode,
-  sendCommand,
-  setLightMode,
-  startConnection,
-  startPolling,
-} from "../utils/puffco";
+import { DeviceCommand, PuffLightMode, Device } from "../utils/puffco";
 import { gateway, Op } from "../utils/gateway";
 import { UserSettingsModal } from "../components/modals/UserSettings";
 import { trackDevice } from "../utils/hash";
@@ -68,6 +60,8 @@ export default function Group({
   const router = useRouter();
 
   const membersList = useRef<HTMLDivElement>();
+
+  const [instance, setInstance] = useState<Device>();
 
   const [deviceConnected, setDeviceConnected] = useState(false);
   const [groupConnected, setGroupConnected] = useState(false);
@@ -152,12 +146,12 @@ export default function Group({
           newGroup.state == GroupState.Chilling)
       ) {
         setReadyMembers([]);
-        setLightMode(PuffLightMode.Default);
+        instance.setLightMode(PuffLightMode.Default);
       }
 
       setGroup(newGroup);
     },
-    [readyMembers, group, deviceConnected, myDevice]
+    [readyMembers, group, deviceConnected, myDevice, instance]
   );
 
   const sessionResumeFailed = useCallback(async () => {
@@ -179,15 +173,15 @@ export default function Group({
     });
 
     if (group.state == GroupState.Awaiting) {
-      await setLightMode(PuffLightMode.QueryReady);
+      await instance.setLightMode(PuffLightMode.QueryReady);
     } else {
-      await setLightMode(PuffLightMode.Default);
+      await instance.setLightMode(PuffLightMode.Default);
     }
 
     setReadyMembers((curr) => [
       ...curr.filter((item) => item != gateway.session_id),
     ]);
-  }, [group]);
+  }, [group, instance]);
 
   function groupMemberUpdated(member: GatewayGroupMember) {
     if (member.session_id == gateway.session_id) {
@@ -359,7 +353,7 @@ export default function Group({
         toast("Dab", { duration: 1000, position: "top-right" });
 
         if (!data.away && !data.watcher && !data.excluded)
-          sendCommand(DeviceCommand.HEAT_CYCLE_BEGIN);
+          instance.sendCommand(DeviceCommand.HEAT_CYCLE_BEGIN);
       }, 1000);
     }, 1000);
   }
@@ -377,8 +371,8 @@ export default function Group({
         });
 
         if (!data.away && !data.watcher && !data.excluded) {
-          sendCommand(DeviceCommand.BONDING);
-          setLightMode(PuffLightMode.QueryReady);
+          instance.sendCommand(DeviceCommand.BONDING);
+          instance.setLightMode(PuffLightMode.QueryReady);
           toast(`Confirm by pressing your button`, {
             icon: "🔘",
             duration: 8000,
@@ -389,7 +383,7 @@ export default function Group({
         return groupMembers;
       });
     },
-    [groupMembers]
+    [groupMembers, instance]
   );
 
   const groupMemberReady = useCallback(
@@ -471,12 +465,12 @@ export default function Group({
   );
 
   const disconnect = useCallback(async () => {
-    if (deviceConnected) await setLightMode(PuffLightMode.Default);
-    disconnectBluetooth();
+    if (deviceConnected) await instance.setLightMode(PuffLightMode.Default);
+    instance.disconnect();
     setDeviceConnected(false);
     setMyDevice(null);
     gateway.send(Op.DisconnectDevice);
-  }, [deviceConnected]);
+  }, [deviceConnected, instance]);
 
   function groupMessage() {}
 
@@ -608,23 +602,26 @@ export default function Group({
 
   const connectToDevice = useCallback(async () => {
     try {
-      const { device, profiles } = await startConnection();
+      const instance = new Device();
+      setInstance(instance);
+      const { device, profiles } = await instance.init();
       toast(`Connected to ${device.name}`, {
         icon: <BluetoothConnected />,
         position: "top-right",
       });
       setDeviceProfiles(profiles);
 
-      if (group.state == GroupState.Awaiting) {
-        await setLightMode(PuffLightMode.QueryReady);
-        await sendCommand(DeviceCommand.BONDING);
-      } else {
-        await setLightMode(PuffLightMode.Default);
-      }
+      // if (group.state == GroupState.Awaiting) {
+      //   await instance.setLightMode(PuffLightMode.QueryReady);
+      //   await instance.sendCommand(DeviceCommand.BONDING);
+      // } else {
+      //   await instance.setLightMode(PuffLightMode.Default);
+      // }
 
-      const { poller, initState, deviceInfo } = await startPolling(device);
-      const tracked = await trackDevice(deviceInfo, ourName);
-      setOurLeaderboardPosition(tracked.data.position);
+      const { poller, initState, deviceInfo } = await instance.startPolling();
+      console.log(poller, initState, deviceInfo, "asd");
+      // const tracked = await trackDevice(deviceInfo, ourName);
+      // setOurLeaderboardPosition(tracked.data.position);
       gateway.send(Op.SendDeviceState, initState);
       setDeviceConnected(true);
       setDeviceInfo(deviceInfo as DeviceInformation);
@@ -632,7 +629,7 @@ export default function Group({
       poller.on("data", async (data) => {
         if (data.totalDabs)
           setDeviceInfo((deviceInfo) => {
-            trackDevice({ ...deviceInfo, totalDabs: data.totalDabs }, ourName);
+            // trackDevice({ ...deviceInfo, totalDabs: data.totalDabs }, ourName);
             return deviceInfo;
           });
         setGroup((currGroup) => {
@@ -640,7 +637,7 @@ export default function Group({
             currGroup.state == GroupState.Awaiting &&
             data.state == PuffcoOperatingState.TEMP_SELECT
           ) {
-            setLightMode(PuffLightMode.MarkedReady);
+            instance.setLightMode(PuffLightMode.MarkedReady);
           }
 
           return currGroup;
@@ -651,7 +648,7 @@ export default function Group({
         gateway.send(Op.SendDeviceState, data);
       });
       device.ongattserverdisconnected = async () => {
-        if (deviceConnected) await setLightMode(PuffLightMode.Default);
+        if (deviceConnected) await instance.setLightMode(PuffLightMode.Default);
         poller.emit("stop");
         setDeviceConnected(false);
         gateway.send(Op.DisconnectDevice);

@@ -8,6 +8,7 @@ export interface LoraxMessage {
   seq: number;
   op: number;
   path?: string;
+  characteristic?: string;
   request: ArrayBufferLike;
   response?: {
     data?: Buffer;

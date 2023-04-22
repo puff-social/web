@@ -1,5 +1,4 @@
-import EventEmitter from "events";
-import { LoraxCommands, loraxLimits, sendLoraxCommand } from "./puffco";
+import { LoraxLimits } from "../types/puffco";
 
 export function millisToMinutesAndSeconds(millis: number) {
   var minutes = Math.floor(millis / 60000);
@@ -25,6 +24,18 @@ export function convertHexStringToNumArray(h: string) {
     : j.map((k: string) => {
         return parseInt(k, 0x10);
       });
+}
+
+export function convertHexArrayToNumArray(hexArray: string[]): number[] {
+  const numArray: number[] = [];
+
+  for (let i = 0; i < hexArray.length; i++) {
+    const hexValue: string = hexArray[i];
+    const numValue: number = parseInt(hexValue, 16);
+    numArray.push(numValue);
+  }
+
+  return numArray;
 }
 
 export function decimalToHexString(number: number) {
@@ -73,24 +84,22 @@ export function processLoraxReply(message: ArrayBuffer) {
   return { seq, error, data };
 }
 
-export async function getValue(
-  service: BluetoothRemoteGATTService,
-  characteristic: string,
-  bytes = 4
-): Promise<[string, DataView]> {
-  const char = await service.getCharacteristic(characteristic);
-  const value = await char.readValue();
-
-  if (bytes == 0) return [null, value];
-
-  let str = "";
-  for (let i = 0; i < bytes; i++)
-    str += decimalToHexString(value.getUint8(i)).toString();
-  const hex = flipHexString("0x" + str, 8);
-  return [hex, value];
+export function lettersToNumbers(text: string) {
+  return [...text].reduce((prev, curr) => {
+    return prev * 26 + curr.charCodeAt(0) - 64;
+  }, 0);
 }
 
-function readCmd(t: number, path: string) {
+export function numbersToLetters(value: number) {
+  let letters = "";
+  while (value-- > 0) {
+    letters = String.fromCharCode((value % 26) + 65) + letters;
+    value = Math.floor(value / 26);
+  }
+  return letters || "A";
+}
+
+export function readCmd(loraxLimits: LoraxLimits, t: number, path: string) {
   const w = Buffer.alloc(6);
   w.writeUInt16LE(t, 0);
   w.writeUInt16LE(loraxLimits.maxPayload, 2);
@@ -99,7 +108,18 @@ function readCmd(t: number, path: string) {
   return buff;
 }
 
-function readShortCmd(p: number, path: string) {
+// export function watchCmd(loraxLimits: LoraxLimits, path: string) {
+//   const w = Buffer.alloc(2);
+//   w.writeUInt16LE(loraxLimits.maxPayload, 0);
+//   const buff = Buffer.concat([w, Buffer.from(path)]);
+//   return buff;
+// }
+
+export function readShortCmd(
+  loraxLimits: LoraxLimits,
+  p: number,
+  path: string
+) {
   const w = Buffer.alloc(4);
   w.writeUInt16LE(p, 0);
   w.writeUInt16LE(loraxLimits.maxPayload, 2);
@@ -107,35 +127,41 @@ function readShortCmd(p: number, path: string) {
   return t;
 }
 
-function writeShortCmd(p: number, path: string, data: Buffer) {
+export function writeShortCmd(
+  loraxLimits: LoraxLimits,
+  q: number,
+  r: any,
+  path: string,
+  data: Buffer
+) {
   const w = Buffer.alloc(3);
-  w.writeUInt16LE(p, 0);
+  w.writeUInt16LE(q, 0);
+  w.writeUInt8(r, 2);
   // w.writeUInt16LE(loraxLimits.maxPayload, 2);
   const t = Buffer.concat([w, Buffer.from(path), Buffer.from([0]), data]);
   return t;
 }
 
-function openCmd(r: number, path: string) {
+export function writeCmd(
+  loraxLimits: LoraxLimits,
+  q: number,
+  r: any,
+  path: string,
+  data: Buffer
+) {
+  const w = Buffer.alloc(4);
+  w.writeUInt16LE(q, 0);
+  w.writeUInt8(loraxLimits.maxPayload, 2);
+  const t = Buffer.concat([w, Buffer.from(path), Buffer.from([0]), data]);
+  return t;
+}
+
+export function openCmd(loraxLimits: LoraxLimits, r: number, path: string) {
   const w = Buffer.alloc(1);
   w.writeUInt8(r, 0);
 
   const u = Buffer.concat([w, Buffer.from(path)]);
   return u;
-}
-
-export async function getLoraxValue(path: string) {
-  const command = readCmd(0, path);
-  await sendLoraxCommand(LoraxCommands.READ, command, path);
-}
-
-export async function getLoraxValueShort(path: string) {
-  const command = readShortCmd(0, path);
-  await sendLoraxCommand(LoraxCommands.READ_SHORT, command, path);
-}
-
-export async function sendLoraxValueShort(path: string, data: Buffer) {
-  const command = writeShortCmd(0, path, data);
-  await sendLoraxCommand(LoraxCommands.WRITE_SHORT, command, path);
 }
 
 export function intArrayToMacAddress(uint8Array: Uint8Array): string {
@@ -145,43 +171,4 @@ export function intArrayToMacAddress(uint8Array: Uint8Array): string {
     .join(":");
 
   return hexString.toUpperCase();
-}
-
-export async function gattPoller(
-  service: BluetoothRemoteGATTService,
-  characteristic: string,
-  bytes = 4,
-  time?: number
-): Promise<EventEmitter> {
-  if (!time) time = 10000; // 10s
-  // time = time + Math.floor(Math.random() * 2000) + 100 // Make this jitter higher on android only
-  const listener = new EventEmitter();
-  const char = await service.getCharacteristic(characteristic);
-
-  const func = async () => {
-    const value = await char.readValue();
-    if (bytes == 0) {
-      listener.emit("data", null, value);
-      listener.emit("change", null, value);
-    } else {
-      let str = "";
-      for (let i = 0; i < bytes; i++)
-        str += decimalToHexString(value.getUint8(i)).toString();
-      const hex = flipHexString("0x" + str, 8);
-      listener.emit("data", hex, value);
-      if (hex != lastValue) listener.emit("change", hex, value);
-      lastValue = hex;
-    }
-  };
-
-  let lastValue: string;
-  func();
-  const int = setInterval(func, time);
-
-  listener.on("stop", () => {
-    listener.removeAllListeners();
-    clearInterval(int);
-  });
-
-  return listener;
 }
