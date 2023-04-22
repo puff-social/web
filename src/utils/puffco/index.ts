@@ -399,7 +399,9 @@ export class Device extends EventEmitter {
           );
           const batteryCapacity = batteryCapacityRaw.readUInt16LE(0);
 
-          const deviceMacAddressRaw = await this.getValue(Characteristic.EUID);
+          const deviceMacAddressRaw = await this.getValue(
+            Characteristic.BT_MAC
+          );
           this.deviceMacAddress = intArrayToMacAddress(deviceMacAddressRaw);
 
           if (this.isLorax) {
@@ -552,7 +554,7 @@ export class Device extends EventEmitter {
     );
     deviceInfo.dob = initDeviceBirthday.readUInt32LE(0);
 
-    const initDeviceMac = await this.getValue(Characteristic.EUID);
+    const initDeviceMac = await this.getValue(Characteristic.BT_MAC);
     deviceInfo.mac = intArrayToMacAddress(initDeviceMac);
     initState.deviceMac = deviceInfo.mac;
 

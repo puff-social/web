@@ -37,7 +37,7 @@ export const LoraxCommands = {
 export const BASE_CHARACTERISTIC = `f9a98c15-c651-4f34-b656-d100bf5800`;
 export const Characteristic = {
   ACCESS_KEY: `${BASE_CHARACTERISTIC}e0`,
-  EUID: `${BASE_CHARACTERISTIC}01`,
+  BT_MAC: `${BASE_CHARACTERISTIC}01`,
   GIT_HASH: `${BASE_CHARACTERISTIC}02`,
   COMMAND: `${BASE_CHARACTERISTIC}40`,
   BATTERY_SOC: `${BASE_CHARACTERISTIC}20`,
@@ -95,7 +95,7 @@ export const Characteristic = {
 };
 
 export const LoraxCharacteristicPathMap = {
-  [Characteristic.EUID]: "/p/sys/bt/mac",
+  [Characteristic.BT_MAC]: "/p/sys/bt/mac",
   [Characteristic.GIT_HASH]: "/p/sys/fw/gith",
   [Characteristic.BATTERY_SOC]: "/p/bat/soc",
   [Characteristic.BATTERY_VOLTAGE]: "/p/bat/volt",
