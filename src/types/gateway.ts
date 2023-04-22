@@ -1,4 +1,4 @@
-import { ChamberType, ChargeSource } from "../utils/puffco";
+import { ChamberType, ChargeSource } from "../utils/puffco/constants";
 import { User } from "./api";
 
 export interface Colors {

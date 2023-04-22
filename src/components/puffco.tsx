@@ -2,7 +2,7 @@ import { PropsWithoutRef, useEffect, useState } from "react";
 import usePrefersColorScheme from "use-prefers-color-scheme";
 
 import { PuffcoOperatingState } from "../types/gateway";
-import { ChargeSource } from "../utils/puffco";
+import { ChargeSource } from "../utils/puffco/constants";
 
 export interface DeviceProps {
   svgClassName?: string;

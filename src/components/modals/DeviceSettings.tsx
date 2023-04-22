@@ -14,7 +14,7 @@ import { GatewayMemberDeviceState } from "../../types/gateway";
 import { DeviceInformation } from "../../types/api";
 import { Info } from "../icons/Info";
 import { Tippy } from "../Tippy";
-import { ChamberTypeMap } from "../../utils/puffco";
+import { ChamberTypeMap } from "../../utils/puffco/constants";
 import { ProductModelMap } from "../../utils/constants";
 import toast from "react-hot-toast";
 import { trackDevice } from "../../utils/hash";

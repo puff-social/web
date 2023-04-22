@@ -20,7 +20,8 @@ import {
   GroupUserLeft,
   PuffcoOperatingState,
 } from "../types/gateway";
-import { DeviceCommand, PuffLightMode, Device } from "../utils/puffco";
+import { Device } from "../utils/puffco";
+import { DeviceCommand, PuffLightMode } from "../utils/puffco/constants";
 import { gateway, Op } from "../utils/gateway";
 import { UserSettingsModal } from "../components/modals/UserSettings";
 import { trackDevice } from "../utils/hash";
@@ -50,6 +51,8 @@ import { GroupMembersModal } from "../components/modals/GroupMembers";
 import { GroupStrainModal } from "../components/modals/GroupStrain";
 import { PlugConnected, PlugDisconnected } from "../components/icons/Plug";
 
+const instance = new Device();
+
 export default function Group({
   group: initGroup,
   headless,
@@ -60,8 +63,6 @@ export default function Group({
   const router = useRouter();
 
   const membersList = useRef<HTMLDivElement>();
-
-  const [instance, setInstance] = useState<Device>();
 
   const [deviceConnected, setDeviceConnected] = useState(false);
   const [groupConnected, setGroupConnected] = useState(false);
@@ -151,7 +152,7 @@ export default function Group({
 
       setGroup(newGroup);
     },
-    [readyMembers, group, deviceConnected, myDevice, instance]
+    [readyMembers, group, deviceConnected, myDevice]
   );
 
   const sessionResumeFailed = useCallback(async () => {
@@ -181,7 +182,7 @@ export default function Group({
     setReadyMembers((curr) => [
       ...curr.filter((item) => item != gateway.session_id),
     ]);
-  }, [group, instance]);
+  }, [group]);
 
   function groupMemberUpdated(member: GatewayGroupMember) {
     if (member.session_id == gateway.session_id) {
@@ -383,7 +384,7 @@ export default function Group({
         return groupMembers;
       });
     },
-    [groupMembers, instance]
+    [groupMembers]
   );
 
   const groupMemberReady = useCallback(
@@ -470,7 +471,7 @@ export default function Group({
     setDeviceConnected(false);
     setMyDevice(null);
     gateway.send(Op.DisconnectDevice);
-  }, [deviceConnected, instance]);
+  }, [deviceConnected]);
 
   function groupMessage() {}
 
@@ -603,7 +604,7 @@ export default function Group({
   const connectToDevice = useCallback(async () => {
     try {
       const instance = new Device();
-      setInstance(instance);
+
       const { device, profiles } = await instance.init();
       toast(`Connected to ${device.name}`, {
         icon: <BluetoothConnected />,
@@ -611,21 +612,21 @@ export default function Group({
       });
       setDeviceProfiles(profiles);
 
-      // if (group.state == GroupState.Awaiting) {
-      //   await instance.setLightMode(PuffLightMode.QueryReady);
-      //   await instance.sendCommand(DeviceCommand.BONDING);
-      // } else {
-      //   await instance.setLightMode(PuffLightMode.Default);
-      // }
+      if (group.state == GroupState.Awaiting) {
+        await instance.setLightMode(PuffLightMode.QueryReady);
+        // await instance.sendCommand(DeviceCommand.BONDING);
+      } else {
+        await instance.setLightMode(PuffLightMode.Default);
+      }
 
       const { poller, initState, deviceInfo } = await instance.startPolling();
-      console.log(poller, initState, deviceInfo, "asd");
       // const tracked = await trackDevice(deviceInfo, ourName);
       // setOurLeaderboardPosition(tracked.data.position);
-      gateway.send(Op.SendDeviceState, initState);
+
       setDeviceConnected(true);
       setDeviceInfo(deviceInfo as DeviceInformation);
       setMyDevice((curr) => ({ ...curr, ...initState }));
+      gateway.send(Op.SendDeviceState, initState);
       poller.on("data", async (data) => {
         if (data.totalDabs)
           setDeviceInfo((deviceInfo) => {
