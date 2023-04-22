@@ -28,7 +28,7 @@ export interface DeviceInformation {
   mac: string;
   totalDabs: number;
   owner: string;
-  model: number;
+  model: string;
   firmware: string;
   hash: string;
 }
@@ -42,7 +42,7 @@ export interface DiagParameters {
   mac?: string;
   dob?: number;
   name: string;
-  model: number;
+  model: string;
   firmware: string;
   serialNumber?: string;
   hash?: string;

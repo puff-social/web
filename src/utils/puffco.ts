@@ -278,7 +278,7 @@ export interface Device {
   isLorax: boolean;
 
   gitHash: string;
-  deviceModel: number;
+  deviceModel: string;
   deviceFirmware: string;
   deviceSerialNumber: string;
   deviceMacAddress: string;
@@ -378,7 +378,7 @@ export class Device extends EventEmitter {
 
         if (!this.isLorax) {
           const modelRaw = await this.getValue(Characteristic.HARDWARE_MODEL);
-          this.deviceModel = modelRaw.readUint8(0);
+          this.deviceModel = modelRaw.toString();
 
           const firmwareRaw = await this.getValue(
             Characteristic.FIRMWARE_VERSION
@@ -517,7 +517,7 @@ export class Device extends EventEmitter {
           });
 
           const modelRaw = await this.getValue(Characteristic.HARDWARE_MODEL);
-          this.deviceModel = modelRaw.readUInt8(0);
+          this.deviceModel = modelRaw.toString();
 
           const firmwareRaw = await this.getValue(
             Characteristic.FIRMWARE_VERSION
