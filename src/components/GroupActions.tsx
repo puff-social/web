@@ -22,7 +22,6 @@ import { Leave } from "./icons/Leave";
 import { Skip } from "./icons/Skip";
 import { useRouter } from "next/router";
 import { ArrowSwitch } from "./icons/ArrowSwitch";
-import { switchProfile } from "../utils/puffco";
 import { PuffcoProfile } from "../types/puffco";
 import toast from "react-hot-toast";
 import { GiftBox } from "./icons/GiftBox";
@@ -192,7 +191,7 @@ export function GroupActions({
                           <span
                             className="select-none text-lg flex justify-between items-center rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 m-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
                             onClick={() => {
-                              switchProfile(Number(key));
+                              toast(Number(key).toFixed());
                               toast(
                                 `Switched device profile to ${deviceProfiles[key].name}`
                               );
