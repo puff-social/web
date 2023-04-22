@@ -141,26 +141,27 @@ export class Device extends EventEmitter {
         window["LoraxCharacteristic"] = LoraxCharacteristic;
         if (typeof window != "undefined")
           window["Characteristic"] = Characteristic;
-        if (typeof window != "undefined") window["getValue"] = this.getValue;
+        if (typeof window != "undefined")
+          window["getValue"] = this.getValue.bind(this);
         if (typeof window != "undefined") window["unpack"] = unpack;
         if (typeof window != "undefined") window["pack"] = pack;
         if (typeof window != "undefined") window["hexToFloat"] = hexToFloat;
         if (typeof window != "undefined")
           window["decimalToHexString"] = decimalToHexString;
         if (typeof window != "undefined")
-          window["sendCommand"] = this.sendCommand;
+          window["sendCommand"] = this.sendCommand.bind(this);
         if (typeof window != "undefined")
           window["DeviceCommand"] = DeviceCommand;
         if (typeof window != "undefined")
-          window["setBrightness"] = this.setBrightness;
+          window["setBrightness"] = this.setBrightness.bind(this);
         if (typeof window != "undefined")
-          window["setLightMode"] = this.setLightMode;
+          window["setLightMode"] = this.setLightMode.bind(this);
         if (typeof window != "undefined")
           window["constructLoraxCommand"] = constructLoraxCommand;
         if (typeof window != "undefined")
-          window["sendLoraxCommand"] = this.sendLoraxCommand;
+          window["sendLoraxCommand"] = this.sendLoraxCommand.bind(this);
         if (typeof window != "undefined")
-          window["writeLoraxCommand"] = this.writeLoraxCommand;
+          window["writeLoraxCommand"] = this.writeLoraxCommand.bind(this);
 
         if (!this.isLorax) {
           const modelRaw = await this.getValue(Characteristic.HARDWARE_MODEL);
@@ -254,6 +255,19 @@ export class Device extends EventEmitter {
                     console.log("Authenticated with Lorax protocol");
 
                     upperResolve(true);
+
+                    break;
+                  }
+
+                  case LoraxCommands.WRITE_SHORT: {
+                    console.log("Got a response to a write short", msg, data);
+                    if (msg.response.error)
+                      console.log(
+                        "Got an error response to a write short",
+                        msg.path,
+                        msg,
+                        data
+                      );
 
                     break;
                   }
@@ -568,7 +582,6 @@ export class Device extends EventEmitter {
     );
     chargingPoll.on("change", (data: Buffer) => {
       if (data.byteLength != 1) return;
-      console.log(data, "charge source", data.readUInt8(0));
       this.poller.emit("data", {
         chargeSource: Number(data.readUInt8(0).toFixed(0)),
       });
@@ -694,7 +707,7 @@ export class Device extends EventEmitter {
       operatingState.emit("stop");
       chamberType.emit("stop");
       aciveLEDPoll.emit("stop");
-      // brightnessPoll.emit("stop");
+      brightnessPoll.emit("stop");
       totalDabsPoll.emit("stop");
       tempPoll.emit("stop");
       currentProfilePoll.emit("stop");
@@ -724,8 +737,9 @@ export class Device extends EventEmitter {
     return await this.sendLoraxCommand(LoraxCommands.READ_SHORT, command, path);
   }
 
-  private async sendLoraxValueShort(path: string, data: Buffer) {
+  async sendLoraxValueShort(path: string, data: Buffer) {
     const command = writeShortCmd(this.loraxLimits, 0, 0, path, data);
+    console.log("sending", command, "write short");
     await this.sendLoraxCommand(LoraxCommands.WRITE_SHORT, command, path);
   }
 
@@ -765,22 +779,12 @@ export class Device extends EventEmitter {
     if (this.isLorax)
       await this.sendLoraxValueShort(
         LoraxCharacteristicPathMap[characteristic || Characteristic.COMMAND],
-        Buffer.from(
-          "LORAX" in command
-            ? this.isLorax
-              ? command.LORAX
-              : command.OLD
-            : command
-        )
+        Buffer.from("LORAX" in command ? command.LORAX : command)
       );
     else
       await this.writeRawValue(
         characteristic || Characteristic.COMMAND,
-        "OLD" in command
-          ? this.isLorax
-            ? command.LORAX
-            : command.OLD
-          : command
+        "OLD" in command ? command.OLD : command
       );
   }
 
@@ -927,9 +931,11 @@ export class Device extends EventEmitter {
   }
 
   async setLightMode(mode: PuffLightMode) {
+    console.log("setting light mode", this.isLorax, mode);
     switch (mode) {
       case PuffLightMode.QueryReady: {
         if (this.isLorax) {
+          console.log("lorax");
           await this.sendCommand(
             LightCommands.LIGHT_QUERY_READY,
             Characteristic.LANTERN_COLOR

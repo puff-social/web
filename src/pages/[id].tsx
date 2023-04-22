@@ -52,6 +52,7 @@ import { GroupStrainModal } from "../components/modals/GroupStrain";
 import { PlugConnected, PlugDisconnected } from "../components/icons/Plug";
 
 const instance = new Device();
+if (typeof window != "undefined") window["instance"] = instance;
 
 export default function Group({
   group: initGroup,
@@ -372,8 +373,14 @@ export default function Group({
         });
 
         if (!data.away && !data.watcher && !data.excluded) {
-          instance.sendCommand(DeviceCommand.BONDING);
-          instance.setLightMode(PuffLightMode.QueryReady);
+          console.log(data, "start?");
+
+          (async () => {
+            console.log("sending", instance);
+            await instance.sendCommand(DeviceCommand.BONDING);
+            await instance.setLightMode(PuffLightMode.QueryReady);
+          })();
+
           toast(`Confirm by pressing your button`, {
             icon: "🔘",
             duration: 8000,
@@ -603,8 +610,6 @@ export default function Group({
 
   const connectToDevice = useCallback(async () => {
     try {
-      const instance = new Device();
-
       const { device, profiles } = await instance.init();
       toast(`Connected to ${device.name}`, {
         icon: <BluetoothConnected />,

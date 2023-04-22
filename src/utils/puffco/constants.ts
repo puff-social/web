@@ -154,15 +154,46 @@ export const DynamicLoraxCharacteristics = {
 };
 
 export const DeviceCommand = {
-  IDLE: new Uint8Array([0, 0, 0, 64]),
-  SHOW_VERSION: new Uint8Array([0, 0, 192, 64]),
-  TEMP_SELECT_BEGIN: new Uint8Array([0, 0, 64, 64]),
-  TEMP_SELECT_STOP: new Uint8Array([0, 0, 296, 64]),
+  OFF: {
+    LORAX: new Uint8Array([0]),
+    OLD: new Uint8Array([0, 0, 0, 0]),
+  },
+  IDLE: {
+    LORAX: new Uint8Array([1]),
+    OLD: new Uint8Array([0, 0, 0, 64]),
+  },
+  TEMP_SELECT_STOP: {
+    LORAX: new Uint8Array([2]),
+    OLD: new Uint8Array([0, 0, 296, 64]),
+  },
+  TEMP_SELECT_BEGIN: {
+    LORAX: new Uint8Array([3]),
+    OLD: new Uint8Array([0, 0, 64, 64]),
+  },
+  SWITCH_PROFILE: {
+    LORAX: new Uint8Array([4]),
+    OLD: new Uint8Array([0, 0, 0, 64]), // IDLE (UNKNOWN)
+  },
+  BATTERY_CHECK: {
+    LORAX: new Uint8Array([5]),
+    OLD: new Uint8Array([0, 0, 0, 64]), // IDLE (UNKNOWN)
+  },
+  VERSION_CHECK: {
+    LORAX: new Uint8Array([6]),
+    OLD: new Uint8Array([0, 0, 192, 64]),
+  },
   HEAT_CYCLE_BEGIN: {
     LORAX: new Uint8Array([7]),
     OLD: new Uint8Array([0, 0, 224, 64]),
   },
-  BONDING: new Uint8Array([0, 0, 48, 65]),
+  LOCK_OUT: {
+    LORAX: new Uint8Array([10]), // TBH IDK WHAT THIS DOES, BUT IT PREVENTS BUTTONS PRESSEES TILL 1 IS SENT
+    OLD: new Uint8Array([0, 0, 224, 64]),
+  },
+  BONDING: {
+    LORAX: new Uint8Array([11]),
+    OLD: new Uint8Array([0, 0, 48, 65]),
+  },
 };
 
 export const DeviceProfile = {
@@ -213,11 +244,11 @@ export enum ColorMode {
 export const LightCommands = {
   LANTERN_ON: {
     OLD: new Uint8Array([1, 0, 0, 0]),
-    LORAX: new Uint8Array([1, 0, 0, 0]),
+    LORAX: new Uint8Array([1]),
   },
   LANTERN_OFF: {
     OLD: new Uint8Array([0, 0, 0, 0]),
-    LORAX: new Uint8Array([0, 0, 0, 0]),
+    LORAX: new Uint8Array([0]),
   },
   LIGHT_DEFAULT: {
     OLD: new Uint8Array([255, 255, 255, 0, ColorMode.Static]),
