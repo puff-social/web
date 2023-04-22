@@ -315,7 +315,7 @@ export function GroupMember(props: GroupMemberProps) {
                 model={
                   ProductModelMap[props.device.deviceModel]
                     ? ProductModelMap[props.device.deviceModel].toLowerCase()
-                    : ProductModelMap[0]
+                    : ProductModelMap[0].toLowerCase()
                 }
                 device={props.device}
               />
