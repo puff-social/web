@@ -17,8 +17,6 @@ import {
   writeCmd,
   writeShortCmd,
   numbersToLetters,
-  convertHexArrayToNumArray,
-  watchCmd,
 } from "./functions";
 import { DeviceInformation, DiagData } from "../types/api";
 import { trackDiags } from "./hash";
