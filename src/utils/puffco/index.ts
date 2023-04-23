@@ -551,11 +551,12 @@ export class Device extends EventEmitter {
     );
     chargingPoll.on("change", (data: Buffer) => {
       if (data.byteLength != 1) return;
-      if (Number(data.readUInt8(0).toFixed(0)) != currentChargingState)
+      const val = Number(data.readUInt8(0).toFixed(0));
+      if (val != currentChargingState)
         this.poller.emit("data", {
-          chargeSource: Number(data.readUInt8(0).toFixed(0)),
+          chargeSource: val,
         });
-      currentChargingState = Number(data.readUInt8(0).toFixed(0));
+      currentChargingState = val;
     });
 
     let currentBattery: number;
@@ -566,11 +567,12 @@ export class Device extends EventEmitter {
     );
     batteryPoll.on("change", (data: Buffer) => {
       if (data.byteLength != 4) return;
-      if (Number(data.readFloatLE(0).toFixed(0)) != currentBattery)
+      const val = Number(data.readFloatLE(0).toFixed(0));
+      if (val != currentBattery)
         this.poller.emit("data", {
-          battery: Number(data.readFloatLE(0).toFixed(0)),
+          battery: val,
         });
-      currentBattery = Number(data.readFloatLE(0).toFixed(0));
+      currentBattery = val;
     });
 
     let currentOperatingState: number;
@@ -581,9 +583,10 @@ export class Device extends EventEmitter {
     );
     operatingState.on("change", (data: Buffer) => {
       if (data.byteLength != 1) return;
-      if (data.readUInt8(0) != currentOperatingState)
-        this.poller.emit("data", { state: data.readUInt8(0) });
-      currentChamberType = data.readUInt8(0);
+      const val = data.readUInt8(0);
+      if (val != currentOperatingState)
+        this.poller.emit("data", { state: val });
+      currentOperatingState = val;
     });
 
     let currentChamberType: number;
@@ -594,11 +597,12 @@ export class Device extends EventEmitter {
     );
     chamberType.on("change", (data: Buffer) => {
       if (data.byteLength != 1) return;
-      if (data.readUInt8(0) != currentChamberType)
+      const val = data.readUInt8(0);
+      if (val != currentChamberType)
         this.poller.emit("data", {
-          chamberType: data.readUInt8(0),
+          chamberType: val,
         });
-      currentChamberType = data.readUInt8(0);
+      currentChamberType = val;
     });
 
     let currentLedColor: { r: number; g: number; b: number };
@@ -630,11 +634,13 @@ export class Device extends EventEmitter {
       const mainLed = data.readUInt8(2);
       // const batteryLed = data.readUInt8(3);
 
-      if (Number(mainLed.toFixed(0)) != lastBrightness)
+      const val = Number(mainLed.toFixed(0));
+
+      if (val != lastBrightness)
         this.poller.emit("data", {
-          brightness: Number(mainLed.toFixed(0)),
+          brightness: val,
         });
-      lastBrightness = Number(mainLed.toFixed(0));
+      lastBrightness = val;
     });
 
     let lastDabs: number;
