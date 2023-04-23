@@ -65,6 +65,7 @@ export interface Device {
 
   gitHash: string;
   deviceModel: string;
+  hardwareVersion: number;
   deviceFirmware: string;
   deviceSerialNumber: string;
   deviceMacAddress: string;
@@ -317,16 +318,12 @@ export class Device extends EventEmitter {
           });
 
           const modelRaw = await this.getValue(Characteristic.HARDWARE_MODEL);
-          this.deviceModel = modelRaw.toString();
+          this.deviceModel = modelRaw.readUInt32LE(0).toString();
 
           const hardwareVersion = await this.getValue(
             Characteristic.HARDWARE_VERSION
           );
-          console.log(
-            hardwareVersion.toString(),
-            hardwareVersion,
-            "hardware version"
-          );
+          this.hardwareVersion = hardwareVersion.readUInt8(0);
 
           const firmwareRaw = await this.getValue(
             Characteristic.FIRMWARE_VERSION
@@ -343,6 +340,7 @@ export class Device extends EventEmitter {
               name: this.device.name,
               firmware: this.deviceFirmware,
               model: this.deviceModel,
+              hardwareVersion: this.hardwareVersion,
             },
           };
 

@@ -44,6 +44,7 @@ export interface DiagParameters {
   name: string;
   model: string;
   firmware: string;
+  hardwareVersion?: number;
   serialNumber?: string;
   hash?: string;
   uptime?: number;
