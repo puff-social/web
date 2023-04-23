@@ -64,6 +64,7 @@ export interface Device {
   isLorax: boolean;
 
   gitHash: string;
+  deviceName: string;
   deviceModel: string;
   hardwareVersion: number;
   deviceFirmware: string;
@@ -498,6 +499,7 @@ export class Device extends EventEmitter {
       initState.deviceName = initDeviceName.toString();
     }
     deviceInfo.name = initState.deviceName;
+    this.deviceName = initState.deviceName;
 
     const initProfileName = await this.getValue(
       this.isLorax
@@ -541,6 +543,7 @@ export class Device extends EventEmitter {
     const initChamberType = await this.getValue(Characteristic.CHAMBER_TYPE);
     initState.chamberType = initChamberType.readUInt8(0);
 
+    let currentChargingState: number;
     const chargingPoll = await this.pollValue(
       Characteristic.BATTERY_CHARGE_SOURCE,
       4,
@@ -548,11 +551,14 @@ export class Device extends EventEmitter {
     );
     chargingPoll.on("change", (data: Buffer) => {
       if (data.byteLength != 1) return;
-      this.poller.emit("data", {
-        chargeSource: Number(data.readUInt8(0).toFixed(0)),
-      });
+      if (Number(data.readUInt8(0).toFixed(0)) != currentChargingState)
+        this.poller.emit("data", {
+          chargeSource: Number(data.readUInt8(0).toFixed(0)),
+        });
+      currentChargingState = Number(data.readUInt8(0).toFixed(0));
     });
 
+    let currentBattery: number;
     const batteryPoll = await this.pollValue(
       Characteristic.BATTERY_SOC,
       4,
@@ -560,11 +566,14 @@ export class Device extends EventEmitter {
     );
     batteryPoll.on("change", (data: Buffer) => {
       if (data.byteLength != 4) return;
-      this.poller.emit("data", {
-        battery: Number(data.readFloatLE(0).toFixed(0)),
-      });
+      if (Number(data.readFloatLE(0).toFixed(0)) != currentBattery)
+        this.poller.emit("data", {
+          battery: Number(data.readFloatLE(0).toFixed(0)),
+        });
+      currentBattery = Number(data.readFloatLE(0).toFixed(0));
     });
 
+    let currentOperatingState: number;
     const operatingState = await this.pollValue(
       Characteristic.OPERATING_STATE,
       0,
@@ -572,9 +581,12 @@ export class Device extends EventEmitter {
     );
     operatingState.on("change", (data: Buffer) => {
       if (data.byteLength != 1) return;
-      this.poller.emit("data", { state: data.readUInt8(0) });
+      if (data.readUInt8(0) != currentOperatingState)
+        this.poller.emit("data", { state: data.readUInt8(0) });
+      currentChamberType = data.readUInt8(0);
     });
 
+    let currentChamberType: number;
     const chamberType = await this.pollValue(
       Characteristic.CHAMBER_TYPE,
       0,
@@ -582,17 +594,19 @@ export class Device extends EventEmitter {
     );
     chamberType.on("change", (data: Buffer) => {
       if (data.byteLength != 1) return;
-      this.poller.emit("data", {
-        chamberType: data.readUInt8(0),
-      });
+      if (data.readUInt8(0) != currentChamberType)
+        this.poller.emit("data", {
+          chamberType: data.readUInt8(0),
+        });
+      currentChamberType = data.readUInt8(0);
     });
 
+    let currentLedColor: { r: number; g: number; b: number };
     const aciveLEDPoll = await this.pollValue(
       Characteristic.ACTIVE_LED_COLOR,
       4,
       1050
     );
-    let currentLedColor: { r: number; g: number; b: number };
     aciveLEDPoll.on("data", (data: Buffer) => {
       if (data.byteLength != 8) return;
       const r = data.readUInt8(0);
@@ -603,6 +617,7 @@ export class Device extends EventEmitter {
       currentLedColor = { r, g, b };
     });
 
+    let lastBrightness: number;
     const brightnessPoll = await this.pollValue(
       Characteristic.LED_BRIGHTNESS,
       1,
@@ -615,11 +630,14 @@ export class Device extends EventEmitter {
       const mainLed = data.readUInt8(2);
       // const batteryLed = data.readUInt8(3);
 
-      this.poller.emit("data", {
-        brightness: Number(mainLed.toFixed(0)),
-      });
+      if (Number(mainLed.toFixed(0)) != lastBrightness)
+        this.poller.emit("data", {
+          brightness: Number(mainLed.toFixed(0)),
+        });
+      lastBrightness = Number(mainLed.toFixed(0));
     });
 
+    let lastDabs: number;
     const totalDabsPoll = await this.pollValue(
       Characteristic.TOTAL_HEAT_CYCLES,
       0,
@@ -627,9 +645,12 @@ export class Device extends EventEmitter {
     );
     totalDabsPoll.on("data", (data: Buffer) => {
       if (data.byteLength != 4) return;
-      this.poller.emit("data", {
-        totalDabs: Number(data.readFloatLE(0)),
-      });
+      const conv = Number(data.readFloatLE(0));
+      if (lastDabs != conv)
+        this.poller.emit("data", {
+          totalDabs: conv,
+        });
+      lastDabs = conv;
     });
 
     let lastTemp: number;
@@ -664,7 +685,9 @@ export class Device extends EventEmitter {
     );
     deviceNamePoll.on("change", (data: Buffer) => {
       const name = data.toString();
-      this.poller.emit("data", { deviceName: name });
+      if (name != this.deviceName)
+        this.poller.emit("data", { deviceName: name });
+      this.deviceName = name;
     });
 
     this.poller.on("stop", () => {

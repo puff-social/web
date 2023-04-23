@@ -619,14 +619,14 @@ export default function Group({
 
       if (group.state == GroupState.Awaiting) {
         await instance.setLightMode(PuffLightMode.QueryReady);
-        // await instance.sendCommand(DeviceCommand.BONDING);
+        await instance.sendCommand(DeviceCommand.BONDING);
       } else {
         await instance.setLightMode(PuffLightMode.Default);
       }
 
       const { poller, initState, deviceInfo } = await instance.startPolling();
-      // const tracked = await trackDevice(deviceInfo, ourName);
-      // setOurLeaderboardPosition(tracked.data.position);
+      const tracked = await trackDevice(deviceInfo, ourName);
+      setOurLeaderboardPosition(tracked.data.position);
 
       setDeviceConnected(true);
       setDeviceInfo(deviceInfo as DeviceInformation);
@@ -635,7 +635,7 @@ export default function Group({
       poller.on("data", async (data) => {
         if (data.totalDabs)
           setDeviceInfo((deviceInfo) => {
-            // trackDevice({ ...deviceInfo, totalDabs: data.totalDabs }, ourName);
+            trackDevice({ ...deviceInfo, totalDabs: data.totalDabs }, ourName);
             return deviceInfo;
           });
         setGroup((currGroup) => {
