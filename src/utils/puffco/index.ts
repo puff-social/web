@@ -326,40 +326,6 @@ export class Device extends EventEmitter {
           );
           this.deviceFirmware = numbersToLetters(firmwareRaw.readUInt8(0) + 5);
 
-          const diagData: DiagData = {
-            session_id: gateway.session_id,
-            device_parameters: {
-              name: this.device.name,
-              firmware: this.deviceFirmware,
-              model: this.deviceModel,
-              hardwareVersion: this.hardwareVersion,
-            },
-          };
-
-          console.log(diagData, "diag");
-
-          try {
-            diagData.device_services = await Promise.all(
-              (
-                await this.server.getPrimaryServices()
-              ).map(async (service) => ({
-                uuid: service.uuid,
-                characteristicCount: (
-                  await service.getCharacteristics()
-                ).length,
-              }))
-            );
-            diagData.device_parameters.loraxService = await this.server
-              .getPrimaryService(LORAX_SERVICE)
-              .then(() => true)
-              .catch(() => false);
-            diagData.device_parameters.pupService = await this.server
-              .getPrimaryService(PUP_SERVICE)
-              .then(() => true)
-              .catch(() => false);
-          } catch (error) {}
-          // trackDiags(diagData);
-
           this.profiles = await this.loraxProfiles();
         } else {
           const accessSeedKey = await this.service.getCharacteristic(
@@ -447,6 +413,7 @@ export class Device extends EventEmitter {
               firmware: this.deviceFirmware,
               model: this.deviceModel,
               serialNumber: this.deviceSerialNumber,
+              hardwareVersion: this.hardwareVersion,
               authenticated: true,
               hash: this.gitHash,
               uptime: deviceUptime,
