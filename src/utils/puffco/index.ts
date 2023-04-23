@@ -171,11 +171,7 @@ export class Device extends EventEmitter {
           const firmwareRaw = await this.getValue(
             Characteristic.FIRMWARE_VERSION
           );
-          this.deviceFirmware = numbersToLetters(
-            new Uint8Array(firmwareRaw.buffer).reduce(
-              (prev, curr) => prev + curr
-            )
-          ); // Map this to firmwares later
+          this.deviceFirmware = numbersToLetters(firmwareRaw.readUInt8(0) + 5);
 
           setTimeout(async () => {
             const diagData: DiagData = {
@@ -328,11 +324,7 @@ export class Device extends EventEmitter {
           const firmwareRaw = await this.getValue(
             Characteristic.FIRMWARE_VERSION
           );
-          this.deviceFirmware = numbersToLetters(
-            new Uint8Array(firmwareRaw.buffer).reduce(
-              (prev, curr) => prev + curr
-            )
-          ); // Map this to firmwares later
+          this.deviceFirmware = numbersToLetters(firmwareRaw.readUInt8(0) + 5);
 
           const diagData: DiagData = {
             session_id: gateway.session_id,
@@ -344,7 +336,7 @@ export class Device extends EventEmitter {
             },
           };
 
-          console.log(diagData);
+          console.log(diagData, "diag");
 
           try {
             diagData.device_services = await Promise.all(
