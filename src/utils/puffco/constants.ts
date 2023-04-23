@@ -91,6 +91,7 @@ export const Characteristic = {
   MODEL_SERVICE: "0000180a-0000-1000-8000-00805f9b34fb",
   HARDWARE_MODEL: "00002a24-0000-1000-8000-00805f9b34fb",
   FIRMWARE_VERSION: "00002a28-0000-1000-8000-00805f9b34fb",
+  HARDWARE_VERSION: "00002a27-0000-1000-8000-00805f9b34fb",
   SERIAL_NUMBER: "00002a25-0000-1000-8000-00805f9b34fb",
 };
 
@@ -143,7 +144,7 @@ export const LoraxCharacteristicPathMap = {
   [Characteristic.HEAT_CYCLE_COUNT]: "/p/app/nhc",
   [Characteristic.HARDWARE_MODEL]: "/p/sys/hw/mdcd",
   [Characteristic.SERIAL_NUMBER]: "/p/sys/hw/ser",
-  HARDWARE_VERSION: "/p/sys/hw/ver",
+  [Characteristic.HARDWARE_VERSION]: "/p/sys/hw/ver",
   [Characteristic.FIRMWARE_VERSION]: "/p/sys/fw/ver",
 };
 

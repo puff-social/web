@@ -319,6 +319,15 @@ export class Device extends EventEmitter {
           const modelRaw = await this.getValue(Characteristic.HARDWARE_MODEL);
           this.deviceModel = modelRaw.toString();
 
+          const hardwareVersion = await this.getValue(
+            Characteristic.HARDWARE_VERSION
+          );
+          console.log(
+            hardwareVersion.toString(),
+            hardwareVersion,
+            "hardware version"
+          );
+
           const firmwareRaw = await this.getValue(
             Characteristic.FIRMWARE_VERSION
           );
@@ -813,6 +822,12 @@ export class Device extends EventEmitter {
           msg.response = { data: data.data, error: !!data.error };
 
           if (
+            msg.path ==
+            LoraxCharacteristicPathMap[Characteristic.HARDWARE_MODEL]
+          )
+            console.log("Got a response to a read short for model", msg, data);
+
+          if (
             msg.op == LoraxCommands.READ_SHORT &&
             msg.seq == req.seq &&
             msg.path ==
@@ -844,6 +859,7 @@ export class Device extends EventEmitter {
         const service = [
           Characteristic.MODEL_SERVICE,
           Characteristic.FIRMWARE_VERSION,
+          Characteristic.HARDWARE_VERSION,
           Characteristic.HARDWARE_MODEL,
         ].includes(characteristic)
           ? this.modelService
