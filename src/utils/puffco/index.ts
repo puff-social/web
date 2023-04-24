@@ -172,7 +172,12 @@ export class Device extends EventEmitter {
           const firmwareRaw = await this.getValue(
             Characteristic.FIRMWARE_VERSION
           );
-          this.deviceFirmware = numbersToLetters(firmwareRaw.readUInt8(0) + 5);
+          this.deviceFirmware = decoder.decode(firmwareRaw);
+
+          const hardwareVersion = await this.getValue(
+            Characteristic.HARDWARE_VERSION
+          );
+          this.hardwareVersion = hardwareVersion.readUInt8(0);
 
           setTimeout(async () => {
             const diagData: DiagData = {
@@ -455,7 +460,6 @@ export class Device extends EventEmitter {
     deviceInfo.hash = this.gitHash;
 
     const initTemperature = await this.getValue(Characteristic.HEATER_TEMP);
-    console.log(initTemperature, "init temp");
     initState.temperature = Number(initTemperature.readFloatLE(0).toFixed(0));
 
     const initActiveColor = await this.getValue(
@@ -477,7 +481,9 @@ export class Device extends EventEmitter {
     initState.battery = Number(initBattery.readFloatLE(0).toFixed(0));
 
     const initStateState = await this.getValue(Characteristic.OPERATING_STATE);
-    initState.state = initStateState.readUInt8(0);
+    initState.state = this.isLorax
+      ? initStateState.readUInt8(0)
+      : initStateState.readFloatLE(0);
 
     const initChargeSource = await this.getValue(
       Characteristic.BATTERY_CHARGE_SOURCE
@@ -550,7 +556,7 @@ export class Device extends EventEmitter {
       2500
     );
     chargingPoll.on("change", (data: Buffer) => {
-      if (data.byteLength != 1) return;
+      if (!data || data.byteLength != 1) return;
       const val = Number(data.readUInt8(0).toFixed(0));
       if (val != currentChargingState)
         this.poller.emit("data", {
@@ -566,7 +572,7 @@ export class Device extends EventEmitter {
       2300
     );
     batteryPoll.on("change", (data: Buffer) => {
-      if (data.byteLength != 4) return;
+      if (!data || data.byteLength != 4) return;
       const val = Number(data.readFloatLE(0).toFixed(0));
       if (val != currentBattery)
         this.poller.emit("data", {
@@ -579,11 +585,11 @@ export class Device extends EventEmitter {
     const operatingState = await this.pollValue(
       Characteristic.OPERATING_STATE,
       0,
-      250
+      this.isLorax ? 250 : 1200
     );
     operatingState.on("change", (data: Buffer) => {
-      if (data.byteLength != 1) return;
-      const val = data.readUInt8(0);
+      if (!data || data.byteLength != (this.isLorax ? 1 : 4)) return;
+      const val = this.isLorax ? data.readUInt8(0) : data.readFloatLE(0);
       if (val != currentOperatingState)
         this.poller.emit("data", { state: val });
       currentOperatingState = val;
@@ -596,7 +602,7 @@ export class Device extends EventEmitter {
       1000
     );
     chamberType.on("change", (data: Buffer) => {
-      if (data.byteLength != 1) return;
+      if (!data || data.byteLength != 1) return;
       const val = data.readUInt8(0);
       if (val != currentChamberType)
         this.poller.emit("data", {
@@ -612,7 +618,7 @@ export class Device extends EventEmitter {
       1050
     );
     aciveLEDPoll.on("data", (data: Buffer) => {
-      if (data.byteLength != 8) return;
+      if (!data || data.byteLength != 8) return;
       const r = data.readUInt8(0);
       const g = data.readUInt8(1);
       const b = data.readUInt8(2);
@@ -628,7 +634,7 @@ export class Device extends EventEmitter {
       9000
     );
     brightnessPoll.on("change", (data: Buffer) => {
-      if (data.byteLength != 4) return;
+      if (!data || data.byteLength != 4) return;
       // const ringLed = data.readUInt8(0);
       // const underglassLed = data.readUInt8(1);
       const mainLed = data.readUInt8(2);
@@ -647,10 +653,10 @@ export class Device extends EventEmitter {
     const totalDabsPoll = await this.pollValue(
       Characteristic.TOTAL_HEAT_CYCLES,
       0,
-      500
+      this.isLorax ? 500 : 2000
     );
     totalDabsPoll.on("data", (data: Buffer) => {
-      if (data.byteLength != 4) return;
+      if (!data || data.byteLength != 4) return;
       const conv = Number(data.readFloatLE(0));
       if (lastDabs != conv)
         this.poller.emit("data", {
@@ -660,9 +666,13 @@ export class Device extends EventEmitter {
     });
 
     let lastTemp: number;
-    const tempPoll = await this.pollValue(Characteristic.HEATER_TEMP, 0, 100); // Make this dynamic based on state
+    const tempPoll = await this.pollValue(
+      Characteristic.HEATER_TEMP,
+      0,
+      this.isLorax ? 100 : 1200
+    ); // Make this dynamic based on state
     tempPoll.on("data", async (data: Buffer) => {
-      if (data.byteLength != 4) return;
+      if (!data || data.byteLength != 4) return;
       const conv = Number(data.readFloatLE(0).toFixed(0));
       if (lastTemp != conv && conv < 1000 && conv > 1)
         this.poller.emit("data", { temperature: conv });
@@ -675,8 +685,10 @@ export class Device extends EventEmitter {
       1100
     );
     currentProfilePoll.on("data", async (data: Buffer) => {
-      if (data.byteLength != 1) return;
-      const profileCurrent = data.readUInt8(0);
+      if (!data || data.byteLength != (this.isLorax ? 1 : 4)) return;
+      const profileCurrent = this.isLorax
+        ? data.readUInt8(0)
+        : data.readFloatLE(0);
       if (profileCurrent != this.currentProfileId)
         this.poller.emit("data", {
           profile: this.profiles[profileCurrent + 1],
@@ -690,6 +702,7 @@ export class Device extends EventEmitter {
       10500
     );
     deviceNamePoll.on("change", (data: Buffer) => {
+      if (!data) return;
       const name = data.toString();
       if (name != this.deviceName)
         this.poller.emit("data", { deviceName: name });
@@ -854,13 +867,13 @@ export class Device extends EventEmitter {
         const char = await service.getCharacteristic(characteristic);
         const value = await char.readValue();
 
+        return resolve(Buffer.from(value.buffer));
         // if (bytes == 0) resolve([null, value]);
 
-        let str = "";
-        for (let i = 0; i < bytes; i++)
-          str += decimalToHexString(value.getUint8(i)).toString();
-        const hex = flipHexString("0x" + str, 8);
-        // resolve([hex, value]);
+        // let str = "";
+        // for (let i = 0; i < bytes; i++)
+        //   str += decimalToHexString(value.getUint8(i)).toString();
+        // const hex = flipHexString("0x" + str, 8);
       }
     });
   }
@@ -1055,13 +1068,12 @@ export class Device extends EventEmitter {
     this.currentProfileId = profileCurrent;
 
     let profiles: Record<number, PuffcoProfile> = {};
-    const startingIndex = profileCurrent;
     for await (const idx of [0, 1, 2, 3]) {
-      const key = (idx + startingIndex) % DeviceProfileReverse.length;
-      // await this.sendProfile(
-      //   Characteristic.PROFILE,
-      //   new Uint8Array([key, 0, 0, 0])
-      // );
+      const key = (idx + profileCurrent) % DeviceProfileReverse.length;
+      await this.sendCommand(
+        new Uint8Array([key, 0, 0, 0]),
+        Characteristic.PROFILE
+      );
       const profileName = await this.getValue(Characteristic.PROFILE_NAME);
       const name = profileName.toString();
 
@@ -1104,18 +1116,8 @@ export class Device extends EventEmitter {
         }
       : async () => {
           const value = await char?.readValue();
-          if (bytes == 0) {
-            listener.emit("data", null, value);
-            listener.emit("change", null, value);
-          } else {
-            let str = "";
-            for (let i = 0; i < bytes; i++)
-              str += decimalToHexString(value.getUint8(i)).toString();
-            const hex = flipHexString("0x" + str, 8);
-            listener.emit("data", hex, value);
-            if (hex != lastValue) listener.emit("change", hex, value);
-            lastValue = hex;
-          }
+          listener.emit("data", Buffer.from(value.buffer));
+          listener.emit("change", Buffer.from(value.buffer));
         };
 
     let lastValue: string;
