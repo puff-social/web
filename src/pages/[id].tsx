@@ -107,6 +107,12 @@ export default function Group({
       : false
   );
 
+  const [groupStartOnBatteryCheck] = useState(() =>
+    typeof localStorage != "undefined"
+      ? localStorage.getItem("puff-battery-check-start") == "true" || false
+      : false
+  );
+
   function validState(state: GatewayMemberDeviceState) {
     if (!state) return false;
     const required = [
@@ -288,7 +294,7 @@ export default function Group({
               initialVelocities: {
                 y: {
                   max: 1,
-                  min: -5,
+                  min: -10,
                 },
                 x: {
                   max: 1,
@@ -644,6 +650,14 @@ export default function Group({
             data.state == PuffcoOperatingState.TEMP_SELECT
           ) {
             instance.setLightMode(PuffLightMode.MarkedReady);
+          }
+
+          if (
+            currGroup.state == GroupState.Chilling &&
+            data.state == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
+            groupStartOnBatteryCheck
+          ) {
+            setTimeout(() => gateway.send(Op.InquireHeating));
           }
 
           return currGroup;

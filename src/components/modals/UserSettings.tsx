@@ -23,15 +23,25 @@ export function UserSettingsModal({ modalOpen, setModalOpen }: any) {
       : "private"
   );
 
+  const [groupStartOnBatteryCheck, setGroupStartOnBatteryCheck] = useState(() =>
+    typeof localStorage != "undefined"
+      ? localStorage.getItem("puff-battery-check-start") == "true" || false
+      : false
+  );
+
   const saveSettings = useCallback(() => {
     gateway.send(Op.UpdateUser, { name: ourName });
     localStorage.setItem("puff-social-name", ourName);
     localStorage.setItem("puff-default-visbility", defaultVisibility);
+    localStorage.setItem(
+      "puff-battery-check-start",
+      groupStartOnBatteryCheck.toString()
+    );
     toast("Updated user settings", {
       position: "top-right",
     });
     closeModal();
-  }, [ourName, defaultVisibility]);
+  }, [ourName, defaultVisibility, groupStartOnBatteryCheck]);
 
   return (
     <Modal
@@ -57,7 +67,7 @@ export function UserSettingsModal({ modalOpen, setModalOpen }: any) {
         },
       }}
     >
-      <div className="flex flex-col m-2 p-4 rounded-md bg-white dark:bg-neutral-800 text-black dark:text-white">
+      <div className="flex flex-col m-2 p-4 rounded-md bg-white dark:bg-neutral-800 text-black dark:text-white space-y-2">
         <p className="font-bold m-1 text-center">Client Options</p>
         <span>
           <p className="font-bold">Name</p>
@@ -67,6 +77,19 @@ export function UserSettingsModal({ modalOpen, setModalOpen }: any) {
             maxLength={32}
             className="w-full rounded-md p-2 mb-2 border-2 border-slate-300 text-black"
             onChange={({ target: { value } }) => setOurName(value)}
+          />
+        </span>
+        <span className="flex justify-between items-center">
+          <p className="font-bold w-64">
+            Start sesh on battery check (3 clicks)
+          </p>
+          <input
+            className="w-6 h-6 rounded-md"
+            type="checkbox"
+            checked={groupStartOnBatteryCheck}
+            onChange={({ target: { checked } }) =>
+              setGroupStartOnBatteryCheck(checked)
+            }
           />
         </span>
         <hr className="my-2" />

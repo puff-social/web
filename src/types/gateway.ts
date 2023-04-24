@@ -9,15 +9,15 @@ export interface Colors {
 
 export enum PuffcoOperatingState {
   INIT_MEMORY,
-  INIT_VERSION_DISPLAY,
-  INIT_BATTERY_DISPLAY,
-  MASTER_OFF,
+  MASTER_OFF = 3,
   SLEEP,
   IDLE,
   TEMP_SELECT,
   HEAT_CYCLE_PREHEAT,
   HEAT_CYCLE_ACTIVE,
   HEAT_CYCLE_FADE,
+  INIT_VERSION_DISPLAY,
+  INIT_BATTERY_DISPLAY,
 }
 
 export const PuffcoOperatingMap = [
