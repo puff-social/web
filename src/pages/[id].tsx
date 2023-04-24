@@ -660,6 +660,14 @@ export default function Group({
             setTimeout(() => gateway.send(Op.InquireHeating));
           }
 
+          if (
+            currGroup.state == GroupState.Awaiting &&
+            data.state == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
+            groupStartOnBatteryCheck
+          ) {
+            setTimeout(() => gateway.send(Op.StartWithReady));
+          }
+
           return currGroup;
         });
         setMyDevice((curr) => {
