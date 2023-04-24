@@ -784,6 +784,7 @@ export default function Group({
                     group={group}
                     seshers={seshers}
                     members={groupMembers}
+                    instance={instance}
                     readyMembers={readyMembers}
                     deviceConnected={deviceConnected}
                     deviceProfiles={deviceProfiles}

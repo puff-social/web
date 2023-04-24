@@ -880,14 +880,21 @@ export class Device extends EventEmitter {
   }
 
   async switchProfile(profile: number) {
-    await this.writeRawValue(
-      Characteristic.PROFILE,
-      new Uint8Array([profile - 1, 0, 0, 0])
-    );
-    await this.writeRawValue(
-      Characteristic.PROFILE_CURRENT,
-      DeviceProfile[profile]
-    );
+    if (this.isLorax) {
+      await this.sendCommand(
+        new Uint8Array([profile - 1]),
+        Characteristic.PROFILE_CURRENT
+      );
+    } else {
+      await this.writeRawValue(
+        Characteristic.PROFILE,
+        new Uint8Array([profile - 1, 0, 0, 0])
+      );
+      await this.writeRawValue(
+        Characteristic.PROFILE_CURRENT,
+        DeviceProfile[profile]
+      );
+    }
   }
 
   async setBrightness(brightness: number) {
