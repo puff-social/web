@@ -657,7 +657,7 @@ export default function Group({
             data.state == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
             groupStartOnBatteryCheck
           ) {
-            gateway.send(Op.InquireHeating);
+            setTimeout(() => gateway.send(Op.InquireHeating));
           }
 
           return currGroup;
