@@ -22,21 +22,21 @@ import { Leave } from "./icons/Leave";
 import { Skip } from "./icons/Skip";
 import { useRouter } from "next/router";
 import { ArrowSwitch } from "./icons/ArrowSwitch";
-import { switchProfile } from "../utils/puffco";
 import { PuffcoProfile } from "../types/puffco";
 import toast from "react-hot-toast";
 import { GiftBox } from "./icons/GiftBox";
 import { DeviceSettings } from "./icons/DeviceSettings";
-import { Account } from "./icons/Account";
 import { Discord } from "./icons/Discord";
 import { callbackDiscordOAuth, getDiscordOAuth } from "../utils/hash";
 import { useDispatch, useSelector } from "react-redux";
 import { selectSessionState, setSessionState } from "../state/slices/session";
+import { Device } from "../utils/puffco";
 
 interface ActionsProps {
   group?: GatewayGroup;
   seshers?: number;
   members?: GatewayGroupMember[];
+  instance?: Device;
   readyMembers?: string[];
   deviceConnected?: boolean;
   deviceProfiles?: Record<number, PuffcoProfile>;
@@ -52,6 +52,7 @@ export function GroupActions({
   group,
   seshers,
   members,
+  instance,
   readyMembers,
   setGroupSettingsModalOpen,
   setDeviceSettingsModalOpen,
@@ -191,8 +192,8 @@ export function GroupActions({
                         {Object.keys(deviceProfiles).map((key) => (
                           <span
                             className="select-none text-lg flex justify-between items-center rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 m-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
-                            onClick={() => {
-                              switchProfile(Number(key));
+                            onClick={async () => {
+                              await instance.switchProfile(Number(key));
                               toast(
                                 `Switched device profile to ${deviceProfiles[key].name}`
                               );

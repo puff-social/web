@@ -6,7 +6,7 @@ import { getLeaderboard } from "../../utils/hash";
 import { LeaderboardEntry } from "../../types/api";
 import { automaticRelativeDifference } from "../../utils/time";
 import { Tippy } from "../Tippy";
-import { ChargeSource } from "../../utils/puffco";
+import { ChargeSource } from "../../utils/puffco/constants";
 import { ProductModelMap } from "../../utils/constants";
 import { PuffcoContainer } from "../puffco";
 import { PuffcoOperatingState } from "../../types/gateway";

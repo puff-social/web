@@ -20,15 +20,8 @@ import {
   GroupUserLeft,
   PuffcoOperatingState,
 } from "../types/gateway";
-import {
-  DeviceCommand,
-  disconnectBluetooth,
-  PuffLightMode,
-  sendCommand,
-  setLightMode,
-  startConnection,
-  startPolling,
-} from "../utils/puffco";
+import { Device } from "../utils/puffco";
+import { DeviceCommand, PuffLightMode } from "../utils/puffco/constants";
 import { gateway, Op } from "../utils/gateway";
 import { UserSettingsModal } from "../components/modals/UserSettings";
 import { trackDevice } from "../utils/hash";
@@ -57,6 +50,9 @@ import { GroupHeader } from "../components/group/Header";
 import { GroupMembersModal } from "../components/modals/GroupMembers";
 import { GroupStrainModal } from "../components/modals/GroupStrain";
 import { PlugConnected, PlugDisconnected } from "../components/icons/Plug";
+
+const instance = new Device();
+if (typeof window != "undefined") window["instance"] = instance;
 
 export default function Group({
   group: initGroup,
@@ -152,7 +148,7 @@ export default function Group({
           newGroup.state == GroupState.Chilling)
       ) {
         setReadyMembers([]);
-        setLightMode(PuffLightMode.Default);
+        instance.setLightMode(PuffLightMode.Default);
       }
 
       setGroup(newGroup);
@@ -179,9 +175,9 @@ export default function Group({
     });
 
     if (group.state == GroupState.Awaiting) {
-      await setLightMode(PuffLightMode.QueryReady);
+      await instance.setLightMode(PuffLightMode.QueryReady);
     } else {
-      await setLightMode(PuffLightMode.Default);
+      await instance.setLightMode(PuffLightMode.Default);
     }
 
     setReadyMembers((curr) => [
@@ -359,7 +355,7 @@ export default function Group({
         toast("Dab", { duration: 1000, position: "top-right" });
 
         if (!data.away && !data.watcher && !data.excluded)
-          sendCommand(DeviceCommand.HEAT_CYCLE_BEGIN);
+          instance.sendCommand(DeviceCommand.HEAT_CYCLE_BEGIN);
       }, 1000);
     }, 1000);
   }
@@ -377,8 +373,14 @@ export default function Group({
         });
 
         if (!data.away && !data.watcher && !data.excluded) {
-          sendCommand(DeviceCommand.BONDING);
-          setLightMode(PuffLightMode.QueryReady);
+          console.log(data, "start?");
+
+          (async () => {
+            console.log("sending", instance);
+            await instance.sendCommand(DeviceCommand.BONDING);
+            await instance.setLightMode(PuffLightMode.QueryReady);
+          })();
+
           toast(`Confirm by pressing your button`, {
             icon: "🔘",
             duration: 8000,
@@ -471,8 +473,8 @@ export default function Group({
   );
 
   const disconnect = useCallback(async () => {
-    if (deviceConnected) await setLightMode(PuffLightMode.Default);
-    disconnectBluetooth();
+    if (deviceConnected) await instance.setLightMode(PuffLightMode.Default);
+    instance.disconnect();
     setDeviceConnected(false);
     setMyDevice(null);
     gateway.send(Op.DisconnectDevice);
@@ -608,7 +610,7 @@ export default function Group({
 
   const connectToDevice = useCallback(async () => {
     try {
-      const { device, profiles } = await startConnection();
+      const { device, profiles } = await instance.init();
       toast(`Connected to ${device.name}`, {
         icon: <BluetoothConnected />,
         position: "top-right",
@@ -616,19 +618,20 @@ export default function Group({
       setDeviceProfiles(profiles);
 
       if (group.state == GroupState.Awaiting) {
-        await setLightMode(PuffLightMode.QueryReady);
-        await sendCommand(DeviceCommand.BONDING);
+        await instance.setLightMode(PuffLightMode.QueryReady);
+        await instance.sendCommand(DeviceCommand.BONDING);
       } else {
-        await setLightMode(PuffLightMode.Default);
+        await instance.setLightMode(PuffLightMode.Default);
       }
 
-      const { poller, initState, deviceInfo } = await startPolling(device);
+      const { poller, initState, deviceInfo } = await instance.startPolling();
       const tracked = await trackDevice(deviceInfo, ourName);
       setOurLeaderboardPosition(tracked.data.position);
-      gateway.send(Op.SendDeviceState, initState);
+
       setDeviceConnected(true);
       setDeviceInfo(deviceInfo as DeviceInformation);
       setMyDevice((curr) => ({ ...curr, ...initState }));
+      gateway.send(Op.SendDeviceState, initState);
       poller.on("data", async (data) => {
         if (data.totalDabs)
           setDeviceInfo((deviceInfo) => {
@@ -640,7 +643,7 @@ export default function Group({
             currGroup.state == GroupState.Awaiting &&
             data.state == PuffcoOperatingState.TEMP_SELECT
           ) {
-            setLightMode(PuffLightMode.MarkedReady);
+            instance.setLightMode(PuffLightMode.MarkedReady);
           }
 
           return currGroup;
@@ -651,7 +654,7 @@ export default function Group({
         gateway.send(Op.SendDeviceState, data);
       });
       device.ongattserverdisconnected = async () => {
-        if (deviceConnected) await setLightMode(PuffLightMode.Default);
+        if (deviceConnected) await instance.setLightMode(PuffLightMode.Default);
         poller.emit("stop");
         setDeviceConnected(false);
         gateway.send(Op.DisconnectDevice);
@@ -781,6 +784,7 @@ export default function Group({
                     group={group}
                     seshers={seshers}
                     members={groupMembers}
+                    instance={instance}
                     readyMembers={readyMembers}
                     deviceConnected={deviceConnected}
                     deviceProfiles={deviceProfiles}

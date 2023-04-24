@@ -14,7 +14,7 @@ import {
   PuffcoOperatingMap,
   PuffcoOperatingState,
 } from "../types/gateway";
-import { ChamberType, ChargeSource } from "../utils/puffco";
+import { ChamberType, ChargeSource } from "../utils/puffco/constants";
 import {
   EASTER_EGG_CYCLE_COUNTS,
   ProductModelMap,
@@ -312,7 +312,11 @@ export function GroupMember(props: GroupMemberProps) {
                 }
                 svgClassName="w-40 h-full"
                 className="-z-50 min-w-[40%]"
-                model={ProductModelMap[props.device.deviceModel].toLowerCase()}
+                model={
+                  ProductModelMap[props.device.deviceModel]
+                    ? ProductModelMap[props.device.deviceModel].toLowerCase()
+                    : ProductModelMap[0].toLowerCase()
+                }
                 device={props.device}
               />
               <span className="flex flex-col p-4 w-full min-w-[60%]">

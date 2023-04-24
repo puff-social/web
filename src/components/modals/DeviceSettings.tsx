@@ -14,12 +14,7 @@ import { GatewayMemberDeviceState } from "../../types/gateway";
 import { DeviceInformation } from "../../types/api";
 import { Info } from "../icons/Info";
 import { Tippy } from "../Tippy";
-import {
-  ChamberTypeMap,
-  updateDeviceDob,
-  updateDeviceName,
-  setBrightness as setDeviceBrightness,
-} from "../../utils/puffco";
+import { ChamberTypeMap } from "../../utils/puffco/constants";
 import { ProductModelMap } from "../../utils/constants";
 import toast from "react-hot-toast";
 import { trackDevice } from "../../utils/hash";
@@ -73,7 +68,7 @@ export function DeviceSettingsModal({
         deviceDob.getFullYear() > new Date().getFullYear() ||
           deviceDob.getFullYear() < 2018
       );
-      await updateDeviceDob(deviceDob);
+      // await updateDeviceDob(deviceDob);
       setDeviceInfo((curr) => ({ ...curr, dob: deviceDob.getTime() / 1000 }));
       await trackDevice(
         { ...info, name: deviceName, dob: deviceDob.getTime() / 1000 },
@@ -83,7 +78,7 @@ export function DeviceSettingsModal({
   }, [deviceName, deviceDob]);
 
   const updateDevice = useCallback(async () => {
-    if (deviceName != device.deviceName) await updateDeviceName(deviceName);
+    // if (deviceName != device.deviceName) await updateDeviceName(deviceName);
     setMyDevice((curr) => ({ ...curr, deviceName }));
     await trackDevice(
       { ...info, name: deviceName, dob: deviceDob.getTime() / 1000 },
@@ -94,7 +89,7 @@ export function DeviceSettingsModal({
   }, [deviceName, deviceDob]);
 
   const updateBrightness = useCallback(async () => {
-    setDeviceBrightness(brightness);
+    // setDeviceBrightness(brightness);
     setMyDevice((curr) => ({ ...curr, brightness }));
     toast("Changed brightness", { duration: 1000 });
   }, [brightness]);
