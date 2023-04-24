@@ -488,7 +488,12 @@ export class Device extends EventEmitter {
     const initChargeSource = await this.getValue(
       Characteristic.BATTERY_CHARGE_SOURCE
     );
-    initState.chargeSource = Number(initChargeSource.readUInt8(0).toFixed(0));
+    initState.chargeSource = Number(
+      (this.isLorax
+        ? initChargeSource.readUInt8(0)
+        : initChargeSource.readFloatLE(0)
+      ).toFixed(0)
+    );
 
     const initTotalDabs = await this.getValue(Characteristic.TOTAL_HEAT_CYCLES);
     initState.totalDabs = Number(initTotalDabs.readFloatLE(0));
@@ -556,8 +561,10 @@ export class Device extends EventEmitter {
       2500
     );
     chargingPoll.on("change", (data: Buffer) => {
-      if (!data || data.byteLength != 1) return;
-      const val = Number(data.readUInt8(0).toFixed(0));
+      if (!data || data.byteLength != (this.isLorax ? 1 : 4)) return;
+      const val = Number(
+        (this.isLorax ? data.readUInt8(0) : data.readFloatLE(0)).toFixed(0)
+      );
       if (val != currentChargingState)
         this.poller.emit("data", {
           chargeSource: val,
