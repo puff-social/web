@@ -288,7 +288,7 @@ export default function Group({
               initialVelocities: {
                 y: {
                   max: 1,
-                  min: -5,
+                  min: -10,
                 },
                 x: {
                   max: 1,
