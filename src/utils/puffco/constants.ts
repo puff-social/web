@@ -187,8 +187,8 @@ export const DeviceCommand = {
     LORAX: new Uint8Array([7]),
     OLD: new Uint8Array([0, 0, 224, 64]),
   },
-  LOCK_OUT: {
-    LORAX: new Uint8Array([10]), // TBH IDK WHAT THIS DOES, BUT IT PREVENTS BUTTONS PRESSEES TILL 1 IS SENT
+  FACTORY_TEST: {
+    LORAX: new Uint8Array([10]),
     OLD: new Uint8Array([0, 0, 224, 64]),
   },
   BONDING: {
