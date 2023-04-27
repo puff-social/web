@@ -592,7 +592,7 @@ export class Device extends EventEmitter {
     const operatingState = await this.pollValue(
       Characteristic.OPERATING_STATE,
       0,
-      this.isLorax ? 250 : 1200
+      this.isLorax ? 350 : 1200
     );
     operatingState.on("change", (data: Buffer) => {
       if (!data || data.byteLength != (this.isLorax ? 1 : 4)) return;
@@ -660,7 +660,7 @@ export class Device extends EventEmitter {
     const totalDabsPoll = await this.pollValue(
       Characteristic.TOTAL_HEAT_CYCLES,
       0,
-      this.isLorax ? 500 : 2000
+      this.isLorax ? 700 : 2000
     );
     totalDabsPoll.on("data", (data: Buffer) => {
       if (!data || data.byteLength != 4) return;
@@ -676,7 +676,7 @@ export class Device extends EventEmitter {
     const tempPoll = await this.pollValue(
       Characteristic.HEATER_TEMP,
       0,
-      this.isLorax ? 100 : 1200
+      this.isLorax ? 150 : 1200
     ); // Make this dynamic based on state
     tempPoll.on("data", async (data: Buffer) => {
       if (!data || data.byteLength != 4) return;
