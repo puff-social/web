@@ -108,36 +108,18 @@ export function readCmd(loraxLimits: LoraxLimits, t: number, path: string) {
   return buff;
 }
 
-// export function watchCmd(loraxLimits: LoraxLimits, path: string) {
-//   const w = Buffer.alloc(2);
-//   w.writeUInt16LE(loraxLimits.maxPayload, 0);
-//   const buff = Buffer.concat([w, Buffer.from(path)]);
-//   return buff;
-// }
-
-export function readShortCmd(
-  loraxLimits: LoraxLimits,
-  p: number,
-  path: string
-) {
+export function readShortCmd(loraxLimits: LoraxLimits, path: string) {
   const w = Buffer.alloc(4);
-  w.writeUInt16LE(p, 0);
+  w.writeUInt16LE(0, 0);
   w.writeUInt16LE(loraxLimits.maxPayload, 2);
   const t = Buffer.concat([w, Buffer.from(path)]);
   return t;
 }
 
-export function writeShortCmd(
-  loraxLimits: LoraxLimits,
-  q: number,
-  r: any,
-  path: string,
-  data: Buffer
-) {
+export function writeShortCmd(path: string, data: Buffer) {
   const w = Buffer.alloc(3);
-  w.writeUInt16LE(q, 0);
-  w.writeUInt8(r, 2);
-  // w.writeUInt16LE(loraxLimits.maxPayload, 2);
+  w.writeUInt16LE(0, 0);
+  w.writeUInt8(0, 2);
   const t = Buffer.concat([w, Buffer.from(path), Buffer.from([0]), data]);
   return t;
 }
@@ -156,7 +138,7 @@ export function writeCmd(
   return t;
 }
 
-export function openCmd(loraxLimits: LoraxLimits, r: number, path: string) {
+export function openCmd(r: number, path: string) {
   const w = Buffer.alloc(1);
   w.writeUInt8(r, 0);
 

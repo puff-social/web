@@ -7,14 +7,11 @@ import {
   convertHexStringToNumArray,
   millisToMinutesAndSeconds,
   decimalToHexString,
-  flipHexString,
   hexToFloat,
   constructLoraxCommand,
   processLoraxReply,
   intArrayToMacAddress,
-  readCmd,
   readShortCmd,
-  writeCmd,
   writeShortCmd,
   numbersToLetters,
 } from "../functions";
@@ -39,6 +36,7 @@ import {
   PUP_SERVICE,
   SERVICE,
   SILLABS_OTA_SERVICE,
+  SILLABS_VERISON,
 } from "./constants";
 
 const decoder = new TextDecoder("utf-8");
@@ -50,6 +48,7 @@ export interface Device {
   server: BluetoothRemoteGATTServer;
   service: BluetoothRemoteGATTService;
   modelService?: BluetoothRemoteGATTService;
+  silabsService?: BluetoothRemoteGATTService;
 
   loraxReply?: BluetoothRemoteGATTCharacteristic;
   loraxEvent?: BluetoothRemoteGATTCharacteristic;
@@ -115,11 +114,6 @@ export class Device extends EventEmitter {
           (service) => service.uuid == LORAX_SERVICE
         );
 
-        // if (this.isLorax)
-        //   reject({
-        //     code: "ac_firmware",
-        //   });
-
         this.service = await this.server.getPrimaryService(
           this.isLorax ? LORAX_SERVICE : SERVICE
         );
@@ -133,37 +127,23 @@ export class Device extends EventEmitter {
             Characteristic.MODEL_SERVICE
           );
 
+        if (this.isLorax)
+          this.silabsService = await this.server.getPrimaryService(
+            SILLABS_OTA_SERVICE
+          );
+
         // DEBUG ONLY
-        if (typeof window != "undefined")
-          window["modelService"] = this.modelService;
-        if (typeof window != "undefined") window["server"] = this.server;
-        if (typeof window != "undefined") window["service"] = this.service;
-        if (typeof window != "undefined")
+        if (typeof window != "undefined") {
           window["LoraxCommands"] = LoraxCommands;
-        window["LoraxCharacteristic"] = LoraxCharacteristic;
-        if (typeof window != "undefined")
+          window["LoraxCharacteristic"] = LoraxCharacteristic;
           window["Characteristic"] = Characteristic;
-        if (typeof window != "undefined")
-          window["getValue"] = this.getValue.bind(this);
-        if (typeof window != "undefined") window["unpack"] = unpack;
-        if (typeof window != "undefined") window["pack"] = pack;
-        if (typeof window != "undefined") window["hexToFloat"] = hexToFloat;
-        if (typeof window != "undefined")
+          window["unpack"] = unpack;
+          window["pack"] = pack;
+          window["hexToFloat"] = hexToFloat;
           window["decimalToHexString"] = decimalToHexString;
-        if (typeof window != "undefined")
-          window["sendCommand"] = this.sendCommand.bind(this);
-        if (typeof window != "undefined")
           window["DeviceCommand"] = DeviceCommand;
-        if (typeof window != "undefined")
-          window["setBrightness"] = this.setBrightness.bind(this);
-        if (typeof window != "undefined")
-          window["setLightMode"] = this.setLightMode.bind(this);
-        if (typeof window != "undefined")
           window["constructLoraxCommand"] = constructLoraxCommand;
-        if (typeof window != "undefined")
-          window["sendLoraxCommand"] = this.sendLoraxCommand.bind(this);
-        if (typeof window != "undefined")
-          window["writeLoraxCommand"] = this.writeLoraxCommand.bind(this);
+        }
 
         if (!this.isLorax) {
           const modelRaw = await this.getValue(Characteristic.HARDWARE_MODEL);
@@ -215,6 +195,12 @@ export class Device extends EventEmitter {
         }
 
         if (this.isLorax) {
+          // This triggers pairing on lorax ;P
+          const silLabsVer = await this.silabsService.getCharacteristic(
+            SILLABS_VERISON
+          );
+          await silLabsVer.readValue();
+
           await new Promise(async (upperResolve, upperReject) => {
             this.loraxReply = await this.service.getCharacteristic(
               LoraxCharacteristic.REPLY
@@ -317,6 +303,8 @@ export class Device extends EventEmitter {
             this.loraxEvent.startNotifications();
 
             this.sendLoraxCommand(LoraxCommands.GET_LIMITS, null);
+
+            console.log("got limits");
           });
 
           const modelRaw = await this.getValue(Characteristic.HARDWARE_MODEL);
@@ -361,10 +349,6 @@ export class Device extends EventEmitter {
         }
 
         try {
-          // this.watchLoraxValue(
-          //   LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE]
-          // );
-
           const gitHashRaw = await this.getValue(Characteristic.GIT_HASH);
           this.gitHash = gitHashRaw.toString();
 
@@ -501,10 +485,6 @@ export class Device extends EventEmitter {
 
     const initDeviceName = await this.getValue(Characteristic.DEVICE_NAME);
     if (initDeviceName.byteLength == 0 && this.device) {
-      // await this.writeRawValue(
-      //   Characteristic.DEVICE_NAME,
-      //   encoder.encode(this.device.name)
-      // );
       initState.deviceName = this.device.name;
     } else {
       initState.deviceName = initDeviceName.toString();
@@ -739,34 +719,24 @@ export class Device extends EventEmitter {
     const char = await this.service.getCharacteristic(
       LoraxCharacteristic.COMMAND
     );
-    return await char.writeValueWithoutResponse(message);
-  }
-
-  private async getLoraxValue(path: string) {
-    const command = readCmd(this.loraxLimits, 0, path);
-    await this.sendLoraxCommand(LoraxCommands.READ, command, path);
+    try {
+      return await char.writeValueWithoutResponse(message);
+    } catch (error) {
+      console.log("There was an error with writeValueWithoutResponse", error);
+      return;
+    }
   }
 
   private async getLoraxValueShort(path: string) {
-    const command = readShortCmd(this.loraxLimits, 0, path);
+    const command = readShortCmd(this.loraxLimits, path);
     return await this.sendLoraxCommand(LoraxCommands.READ_SHORT, command, path);
   }
 
   async sendLoraxValueShort(path: string, data: Buffer) {
-    const command = writeShortCmd(this.loraxLimits, 0, 0, path, data);
+    const command = writeShortCmd(path, data);
     console.log("sending", command, "write short");
     await this.sendLoraxCommand(LoraxCommands.WRITE_SHORT, command, path);
   }
-
-  private async sendLoraxValue(path: string, data: Buffer) {
-    const command = writeCmd(this.loraxLimits, 0, 0, path, data);
-    await this.sendLoraxCommand(LoraxCommands.WRITE, command, path);
-  }
-
-  // private async watchLoraxValue(path: string) {
-  //   const command = watchCmd(this.loraxLimits, path);
-  //   await this.sendLoraxCommand(LoraxCommands.WATCH, command, path);
-  // }
 
   private async sendLoraxCommand(op: number, data: Uint8Array, path?: string) {
     if (!this.service) return;
@@ -807,7 +777,11 @@ export class Device extends EventEmitter {
     if (!this.service) return;
 
     const char = await this.service.getCharacteristic(characteristic);
-    await char.writeValue(Buffer.from(value));
+    try {
+      await char.writeValue(Buffer.from(value));
+    } catch (error) {
+      console.log("There was an error with writeValue", error);
+    }
   }
 
   async getValue(characteristic: string, bytes = 4): Promise<Buffer> {
@@ -872,31 +846,43 @@ export class Device extends EventEmitter {
           : this.service;
 
         const char = await service.getCharacteristic(characteristic);
-        const value = await char.readValue();
+        try {
+          const value = await char.readValue();
 
-        return resolve(Buffer.from(value.buffer));
-        // if (bytes == 0) resolve([null, value]);
-
-        // let str = "";
-        // for (let i = 0; i < bytes; i++)
-        //   str += decimalToHexString(value.getUint8(i)).toString();
-        // const hex = flipHexString("0x" + str, 8);
+          return resolve(Buffer.from(value.buffer));
+        } catch (error) {
+          return resolve(null);
+        }
       }
     });
   }
 
   async updateDeviceName(name: string) {
-    await this.writeRawValue(
-      Characteristic.DEVICE_NAME,
-      new TextEncoder().encode(name)
-    );
+    if (this.isLorax) {
+      await this.sendLoraxValueShort(
+        LoraxCharacteristicPathMap[Characteristic.DEVICE_NAME],
+        Buffer.from(new TextEncoder().encode(name))
+      );
+    } else {
+      await this.writeRawValue(
+        Characteristic.DEVICE_NAME,
+        new TextEncoder().encode(name)
+      );
+    }
   }
 
   async updateDeviceDob(date: Date) {
-    await this.writeRawValue(
-      Characteristic.DEVICE_BIRTHDAY,
-      new Uint8Array(pack(date.getTime() / 1000, { bits: 32 }))
-    );
+    if (this.isLorax) {
+      // await this.sendLoraxValueShort(
+      //   Characteristic.DEVICE_BIRTHDAY,
+      //   new Uint8Array(pack(date.getTime() / 1000, { bits: 32 }))
+      // );
+    } else {
+      await this.writeRawValue(
+        Characteristic.DEVICE_BIRTHDAY,
+        new Uint8Array(pack(date.getTime() / 1000, { bits: 32 }))
+      );
+    }
   }
 
   async switchProfile(profile: number) {
@@ -1122,9 +1108,11 @@ export class Device extends EventEmitter {
           listener.emit("data", value);
         }
       : async () => {
-          const value = await char?.readValue();
-          listener.emit("data", Buffer.from(value.buffer));
-          listener.emit("change", Buffer.from(value.buffer));
+          try {
+            const value = await char?.readValue();
+            listener.emit("data", Buffer.from(value.buffer));
+            listener.emit("change", Buffer.from(value.buffer));
+          } catch (error) {}
         };
 
     let lastValue: string;

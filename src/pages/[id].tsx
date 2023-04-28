@@ -617,11 +617,16 @@ export default function Group({
   const connectToDevice = useCallback(async () => {
     try {
       const { device, profiles } = await instance.init();
-      toast(`Connected to ${device.name}`, {
+      setDeviceProfiles(profiles);
+
+      const { poller, initState, deviceInfo } = await instance.startPolling();
+      const tracked = await trackDevice(deviceInfo, ourName);
+
+      setOurLeaderboardPosition(tracked.data.position);
+      toast(`Connected to ${deviceInfo.name}`, {
         icon: <BluetoothConnected />,
         position: "top-right",
       });
-      setDeviceProfiles(profiles);
 
       if (group.state == GroupState.Awaiting) {
         await instance.setLightMode(PuffLightMode.QueryReady);
@@ -629,10 +634,6 @@ export default function Group({
       } else {
         await instance.setLightMode(PuffLightMode.Default);
       }
-
-      const { poller, initState, deviceInfo } = await instance.startPolling();
-      const tracked = await trackDevice(deviceInfo, ourName);
-      setOurLeaderboardPosition(tracked.data.position);
 
       setDeviceConnected(true);
       setDeviceInfo(deviceInfo as DeviceInformation);
@@ -759,6 +760,7 @@ export default function Group({
       />
       {deviceConnected ? (
         <DeviceSettingsModal
+          instance={instance}
           device={myDevice}
           info={deviceInfo}
           setDeviceInfo={setDeviceInfo}

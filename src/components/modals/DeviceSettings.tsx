@@ -18,8 +18,10 @@ import { ChamberTypeMap } from "../../utils/puffco/constants";
 import { ProductModelMap } from "../../utils/constants";
 import toast from "react-hot-toast";
 import { trackDevice } from "../../utils/hash";
+import { Device } from "../../utils/puffco";
 
 interface Props {
+  instance: Device;
   device: GatewayMemberDeviceState;
   info: DeviceInformation;
   modalOpen: boolean;
@@ -29,6 +31,7 @@ interface Props {
 }
 
 export function DeviceSettingsModal({
+  instance,
   modalOpen,
   setModalOpen,
   device,
@@ -78,7 +81,8 @@ export function DeviceSettingsModal({
   }, [deviceName, deviceDob]);
 
   const updateDevice = useCallback(async () => {
-    // if (deviceName != device.deviceName) await updateDeviceName(deviceName);
+    if (deviceName != device.deviceName)
+      await instance.updateDeviceName(deviceName);
     setMyDevice((curr) => ({ ...curr, deviceName }));
     await trackDevice(
       { ...info, name: deviceName, dob: deviceDob.getTime() / 1000 },
@@ -89,7 +93,7 @@ export function DeviceSettingsModal({
   }, [deviceName, deviceDob]);
 
   const updateBrightness = useCallback(async () => {
-    // setDeviceBrightness(brightness);
+    instance.setBrightness(brightness);
     setMyDevice((curr) => ({ ...curr, brightness }));
     toast("Changed brightness", { duration: 1000 });
   }, [brightness]);

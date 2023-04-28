@@ -1,7 +1,11 @@
-export const SILLABS_OTA_SERVICE = "1d14d6ee-fd63-4fa1-bfa4-8f47b42119f0";
-export const LORAX_SERVICE = "e276967f-ea8a-478a-a92e-d78f5dd15dd5";
-export const PUP_SERVICE = "420b9b40-457d-4abe-a3bf-71609d79581b";
 export const SERVICE = "06caf9c0-74d3-454f-9be9-e30cd999c17a";
+export const LORAX_SERVICE = "e276967f-ea8a-478a-a92e-d78f5dd15dd5";
+
+export const SILLABS_OTA_SERVICE = "1d14d6ee-fd63-4fa1-bfa4-8f47b42119f0";
+export const SILLABS_VERISON = "0d77cc11-4ac1-49f2-bfa9-cd96ac7a92f8";
+
+export const PUP_SERVICE = "420b9b40-457d-4abe-a3bf-71609d79581b";
+export const PUP_APP_VERSION = "58b0a7aa-d89f-4bf2-961d-0d892d7439d8";
 
 export const HANDSHAKE_KEY = Buffer.from("FUrZc0WilhUBteT2JlCc+A==", "base64");
 export const LORAX_HANDSHAKE_KEY = Buffer.from(
