@@ -34,13 +34,13 @@ import {
   HANDSHAKE_KEY,
   LORAX_HANDSHAKE_KEY,
   PUP_SERVICE,
+  PUP_APP_VERSION,
   SERVICE,
   SILLABS_OTA_SERVICE,
   SILLABS_VERISON,
 } from "./constants";
 
 const decoder = new TextDecoder("utf-8");
-const encoder = new TextEncoder();
 
 export interface Device {
   device: BluetoothDevice;
@@ -49,6 +49,7 @@ export interface Device {
   service: BluetoothRemoteGATTService;
   modelService?: BluetoothRemoteGATTService;
   silabsService?: BluetoothRemoteGATTService;
+  pupService?: BluetoothRemoteGATTService;
 
   loraxReply?: BluetoothRemoteGATTCharacteristic;
   loraxEvent?: BluetoothRemoteGATTCharacteristic;
@@ -60,6 +61,7 @@ export interface Device {
   loraxMessages: Map<number, LoraxMessage>;
   loraxLimits: LoraxLimits;
 
+  isPup: boolean;
   isLorax: boolean;
 
   gitHash: string;
@@ -113,6 +115,9 @@ export class Device extends EventEmitter {
         this.isLorax = !!primaryServices.find(
           (service) => service.uuid == LORAX_SERVICE
         );
+        this.isPup = !!primaryServices.find(
+          (service) => service.uuid == PUP_SERVICE
+        );
 
         this.service = await this.server.getPrimaryService(
           this.isLorax ? LORAX_SERVICE : SERVICE
@@ -127,10 +132,13 @@ export class Device extends EventEmitter {
             Characteristic.MODEL_SERVICE
           );
 
-        if (this.isLorax)
+        if (this.isLorax && !this.isPup)
           this.silabsService = await this.server.getPrimaryService(
             SILLABS_OTA_SERVICE
           );
+
+        if (this.isLorax && this.isPup)
+          this.pupService = await this.server.getPrimaryService(PUP_SERVICE);
 
         // DEBUG ONLY
         if (typeof window != "undefined") {
@@ -196,10 +204,17 @@ export class Device extends EventEmitter {
 
         if (this.isLorax) {
           // This triggers pairing on lorax ;P
-          const silLabsVer = await this.silabsService.getCharacteristic(
-            SILLABS_VERISON
-          );
-          await silLabsVer.readValue();
+          if (this.isPup) {
+            const pupVer = await this.pupService.getCharacteristic(
+              PUP_APP_VERSION
+            );
+            await pupVer.readValue();
+          } else {
+            const silLabsVer = await this.silabsService.getCharacteristic(
+              SILLABS_VERISON
+            );
+            await silLabsVer.readValue();
+          }
 
           await new Promise(async (upperResolve, upperReject) => {
             this.loraxReply = await this.service.getCharacteristic(
@@ -249,7 +264,6 @@ export class Device extends EventEmitter {
                   }
 
                   case LoraxCommands.WRITE_SHORT: {
-                    console.log("Got a response to a write short", msg, data);
                     if (msg.response.error)
                       console.log(
                         "Got an error response to a write short",
@@ -303,8 +317,6 @@ export class Device extends EventEmitter {
             this.loraxEvent.startNotifications();
 
             this.sendLoraxCommand(LoraxCommands.GET_LIMITS, null);
-
-            console.log("got limits");
           });
 
           const modelRaw = await this.getValue(Characteristic.HARDWARE_MODEL);
@@ -734,7 +746,6 @@ export class Device extends EventEmitter {
 
   async sendLoraxValueShort(path: string, data: Buffer) {
     const command = writeShortCmd(path, data);
-    console.log("sending", command, "write short");
     await this.sendLoraxCommand(LoraxCommands.WRITE_SHORT, command, path);
   }
 
@@ -800,12 +811,6 @@ export class Device extends EventEmitter {
           const data = processLoraxReply(buffer);
           const msg = this.loraxMessages.get(data.seq);
           msg.response = { data: data.data, error: !!data.error };
-
-          if (
-            msg.path ==
-            LoraxCharacteristicPathMap[Characteristic.HARDWARE_MODEL]
-          )
-            console.log("Got a response to a read short for model", msg, data);
 
           if (
             msg.op == LoraxCommands.READ_SHORT &&
@@ -946,11 +951,9 @@ export class Device extends EventEmitter {
   }
 
   async setLightMode(mode: PuffLightMode) {
-    console.log("setting light mode", this.isLorax, mode);
     switch (mode) {
       case PuffLightMode.QueryReady: {
         if (this.isLorax) {
-          console.log("lorax");
           await this.sendCommand(
             LightCommands.LIGHT_QUERY_READY,
             Characteristic.LANTERN_COLOR
