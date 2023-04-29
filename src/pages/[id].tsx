@@ -53,6 +53,7 @@ import { PlugConnected, PlugDisconnected } from "../components/icons/Plug";
 
 const instance = new Device();
 if (typeof window != "undefined") window["instance"] = instance;
+if (typeof window != "undefined") window["Buffer"] = Buffer;
 
 export default function Group({
   group: initGroup,
@@ -142,8 +143,9 @@ export default function Group({
         duration: 5000,
         icon: "🗑",
       });
-    router.push("/");
-  }, [group]);
+    if (!headless) router.push("/");
+    else router.reload();
+  }, [group, headless]);
 
   const updatedGroup = useCallback(
     (newGroup: GatewayGroup) => {
@@ -169,7 +171,8 @@ export default function Group({
       icon: "❌",
     });
 
-    router.push("/");
+    if (!headless) router.push("/");
+    else router.reload();
   }, []);
 
   const sessionResumed = useCallback(async () => {
@@ -269,7 +272,8 @@ export default function Group({
       position: "top-right",
       icon: <Kick />,
     });
-    router.push("/");
+    if (!headless) router.push("/");
+    else router.reload();
   }
 
   const groupReaction = useCallback(
@@ -825,7 +829,11 @@ export default function Group({
               )}
             </div>
           ) : (
-            <></>
+            <div className="flex flex-col m-4 z-10">
+              <h1 className="flex flex-row text-4xl text-black dark:text-white font-bold items-center">
+                puff.social
+              </h1>
+            </div>
           )}
 
           <div className="flex flex-row flex-wrap m-4" ref={membersList}>
