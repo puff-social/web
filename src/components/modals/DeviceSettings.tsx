@@ -1,4 +1,5 @@
 import Modal from "react-modal";
+import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
 import {
   Dispatch,
@@ -7,18 +8,16 @@ import {
   useEffect,
   useState,
 } from "react";
-
 import "react-datepicker/dist/react-datepicker.css";
 
 import { GatewayMemberDeviceState } from "../../types/gateway";
-import { DeviceInformation } from "../../types/api";
-import { Info } from "../icons/Info";
-import { Tippy } from "../Tippy";
 import { ChamberTypeMap } from "../../utils/puffco/constants";
 import { ProductModelMap } from "../../utils/constants";
-import toast from "react-hot-toast";
+import { DeviceInformation } from "../../types/api";
 import { trackDevice } from "../../utils/hash";
 import { Device } from "../../utils/puffco";
+import { Info } from "../icons/Info";
+import { Tippy } from "../Tippy";
 
 interface Props {
   instance: Device;
@@ -148,6 +147,12 @@ export function DeviceSettingsModal({
             <p className="font-bold">Firmware</p>
             <p className="font-bold opacity-40">
               {info.firmware} ({info.hash})
+            </p>
+          </span>
+          <span className="flex justify-between">
+            <p className="font-bold">Serial Number</p>
+            <p className="font-bold opacity-40">
+              {instance.deviceSerialNumber || "Unknown (Probably <=Y)"}
             </p>
           </span>
           <span className="flex justify-between">

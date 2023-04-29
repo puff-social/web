@@ -122,6 +122,10 @@ export function GroupMember(props: GroupMemberProps) {
     setLeaderboardPos(props.leaderboardPosition);
   }, [props.leaderboardPosition]);
 
+  if (props.nobodyelse && props.headless) {
+    return <></>;
+  }
+
   if (!bluetooth && props.us && props.nobody)
     return (
       <div className="flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md m-4 px-8 w-[440px] h-72 justify-center items-center">

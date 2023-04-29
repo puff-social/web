@@ -53,7 +53,6 @@ import { PlugConnected, PlugDisconnected } from "../components/icons/Plug";
 
 const instance = new Device();
 if (typeof window != "undefined") window["instance"] = instance;
-if (typeof window != "undefined") window["Buffer"] = Buffer;
 
 export default function Group({
   group: initGroup,
@@ -741,7 +740,9 @@ export default function Group({
       </div>
     </div>
   ) : (
-    <div className="flex flex-col justify-between h-screen">
+    <div
+      className={`flex flex-col ${!headless ? "justify-between" : ""} h-screen`}
+    >
       <GroupMeta initGroup={initGroup} group={group} />
 
       {group ? (
@@ -875,7 +876,11 @@ export default function Group({
                     key={member.session_id}
                   />
                 ))}
-              {seshers == 1 ? <GroupMember nobodyelse /> : <></>}
+              {seshers == 1 ? (
+                <GroupMember nobodyelse headless={headless} />
+              ) : (
+                <></>
+              )}
             </>
           </div>
 
