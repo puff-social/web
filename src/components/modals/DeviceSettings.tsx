@@ -152,8 +152,12 @@ export function DeviceSettingsModal({
           <span className="flex justify-between">
             <p className="font-bold">Serial Number</p>
             <p className="font-bold opacity-40">
-              {instance.deviceSerialNumber || "Unknown (Probably <=Y)"}
+              {instance.deviceSerialNumber || "Unknown (Probably <=Z)"}
             </p>
+          </span>
+          <span className="flex justify-between">
+            <p className="font-bold">MAC Address</p>
+            <p className="font-bold opacity-40">{instance.deviceMacAddress}</p>
           </span>
           <span className="flex justify-between">
             <p className="font-bold">Hit Count</p>
