@@ -176,7 +176,8 @@ export function GroupMember(props: GroupMemberProps) {
         onMouseEnter={() => setHoveringCard(true)}
         onMouseLeave={() => setHoveringCard(false)}
       >
-        {(props.us && !!props.device) || props.device ? (
+        {(props.us && !!props.device && props.connected) ||
+        (!props.us && !!props.device) ? (
           <div className="flex flex-col justify-center w-full overflow-hidden">
             <div className="flex flex-row-reverse absolute right-0 bottom-0 m-4">
               <Tippy

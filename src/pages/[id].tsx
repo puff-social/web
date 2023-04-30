@@ -624,8 +624,18 @@ export default function Group({
 
       const { poller, initState, deviceInfo } = await instance.startPolling();
       const tracked = await trackDevice(deviceInfo, ourName);
-
       setOurLeaderboardPosition(tracked.data.position);
+      instance.once("gattdisconnect", async () => {
+        setDeviceConnected(false);
+
+        poller.emit("stop", false);
+        gateway.send(Op.DisconnectDevice);
+
+        toast(`Disconnected from ${deviceInfo.name}`, {
+          icon: <BluetoothDisabled />,
+          position: "top-right",
+        });
+      });
       toast(`Connected to ${deviceInfo.name}`, {
         icon: <BluetoothConnected />,
         position: "top-right",
@@ -679,16 +689,6 @@ export default function Group({
         });
         gateway.send(Op.SendDeviceState, data);
       });
-      device.ongattserverdisconnected = async () => {
-        if (deviceConnected) await instance.setLightMode(PuffLightMode.Default);
-        poller.emit("stop");
-        setDeviceConnected(false);
-        gateway.send(Op.DisconnectDevice);
-        toast(`Disconnected from ${device.name}`, {
-          icon: <BluetoothDisabled />,
-          position: "top-right",
-        });
-      };
     } catch (error) {
       if ("code" in error) {
         switch (error.code) {
@@ -846,6 +846,7 @@ export default function Group({
                 leaderboardPosition={ourLeaderboardPosition}
                 ready={readyMembers.includes(gateway.session_id)}
                 connectToDevice={connectToDevice}
+                connected={deviceConnected}
                 nobody={seshers == 0}
                 owner={group.owner_session_id == gateway.session_id}
                 setStrainModalOpen={setStrainSetModalOpen}

@@ -72,6 +72,8 @@ export interface Device {
   deviceSerialNumber: string;
   deviceMacAddress: string;
   currentProfileId: number;
+
+  on(event: "gattdisconnect", listener: () => void): this;
 }
 
 export class Device extends EventEmitter {
@@ -96,6 +98,9 @@ export class Device extends EventEmitter {
               },
               {
                 services: [LORAX_SERVICE],
+              },
+              {
+                services: [SILLABS_OTA_SERVICE],
               },
             ],
             optionalServices: [
@@ -125,6 +130,7 @@ export class Device extends EventEmitter {
 
         this.device.addEventListener("gattserverdisconnected", () => {
           console.log("Gatt server disconnected");
+          this.emit("gattdisconnect");
         });
 
         if (!this.isLorax)
@@ -708,7 +714,7 @@ export class Device extends EventEmitter {
       this.deviceName = name;
     });
 
-    this.poller.on("stop", () => {
+    this.poller.on("stop", (disconnect = true) => {
       chargingPoll.emit("stop");
       batteryPoll.emit("stop");
       operatingState.emit("stop");
@@ -719,6 +725,7 @@ export class Device extends EventEmitter {
       tempPoll.emit("stop");
       currentProfilePoll.emit("stop");
       deviceNamePoll.emit("stop");
+      if (this.server.connected && disconnect) this.server.disconnect();
       this.poller.removeAllListeners();
     });
 
@@ -1133,6 +1140,5 @@ export class Device extends EventEmitter {
   disconnect() {
     if (!this.server || !this.poller) return;
     this.poller.emit("stop");
-    this.server.disconnect();
   }
 }
