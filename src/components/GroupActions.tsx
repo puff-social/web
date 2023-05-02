@@ -31,6 +31,7 @@ import { callbackDiscordOAuth, getDiscordOAuth } from "../utils/hash";
 import { useDispatch, useSelector } from "react-redux";
 import { selectSessionState, setSessionState } from "../state/slices/session";
 import { Device } from "../utils/puffco";
+import { Instagram } from "./icons/Instagram";
 
 interface ActionsProps {
   group?: GatewayGroup;
@@ -344,6 +345,14 @@ export function GroupActions({
           onClick={() => window.open("https://discord.gg/M4uYMyU7bC")}
         >
           <Discord />
+        </div>
+      </Tippy>
+      <Tippy content="Instagram" placement="bottom">
+        <div
+          className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+          onClick={() => window.open("https://instagram.com/puffdotsocial")}
+        >
+          <Instagram />
         </div>
       </Tippy>
       <Tippy content="Information" placement="bottom">
