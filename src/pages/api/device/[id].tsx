@@ -69,7 +69,7 @@ export default async function handler(req: NextRequest) {
           </div>
           <img
             src={`https://puff.social/${ProductModelMap[
-              device.data.device.device_model
+              device.data.device.devices.model
             ].toLowerCase()}/device.png`}
             width={200}
           />
@@ -88,29 +88,23 @@ export default async function handler(req: NextRequest) {
                 fontFamily: "RobotoMono",
               }}
             >
-              {device.data.device.device_name}
+              {device.data.device.devices.name}
             </span>
-            <span
-              style={{
-                fontFamily: "RobotoMono",
-              }}
-            >
-              {device.data.device.owner_name}
-            </span>
+
             <span
               style={{
                 fontFamily: "RobotoMono",
               }}
             >
               <Counter style={{ marginRight: "10px" }} />{" "}
-              {device.data.device.total_dabs.toLocaleString()}
+              {device.data.device.devices.dabs.toLocaleString()}
             </span>
             <span
               style={{
                 fontFamily: "RobotoMono",
               }}
             >
-              🎂 {new Date(device.data.device.device_dob).toLocaleDateString()}
+              🎂 {new Date(device.data.device.devices.dob).toLocaleDateString()}
             </span>
           </div>
         </div>
