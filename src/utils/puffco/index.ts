@@ -459,7 +459,8 @@ export class Device extends EventEmitter {
     initState.deviceModel = this.deviceModel;
     deviceInfo.model = this.deviceModel;
     deviceInfo.firmware = this.deviceFirmware;
-    deviceInfo.hash = this.gitHash;
+    deviceInfo.hardware = this.hardwareVersion;
+    deviceInfo.gitHash = this.gitHash;
 
     const initTemperature = await this.getValue(Characteristic.HEATER_TEMP);
     initState.temperature = Number(initTemperature.readFloatLE(0).toFixed(0));
@@ -500,6 +501,9 @@ export class Device extends EventEmitter {
     const initTotalDabs = await this.getValue(Characteristic.TOTAL_HEAT_CYCLES);
     initState.totalDabs = Number(initTotalDabs.readFloatLE(0));
     deviceInfo.totalDabs = initState.totalDabs;
+
+    const initDabsPerDay = await this.getValue(Characteristic.DABS_PER_DAY);
+    deviceInfo.dabsPerDay = Number(initDabsPerDay.readFloatLE(0).toFixed(2));
 
     const initDeviceName = await this.getValue(Characteristic.DEVICE_NAME);
     if (initDeviceName.byteLength == 0 && this.device) {
@@ -556,7 +560,7 @@ export class Device extends EventEmitter {
     const chargingPoll = await this.pollValue(
       Characteristic.BATTERY_CHARGE_SOURCE,
       4,
-      2500
+      2200
     );
     chargingPoll.on("change", (data: Buffer) => {
       if (!data || data.byteLength != (this.isLorax ? 1 : 4)) return;
@@ -574,7 +578,7 @@ export class Device extends EventEmitter {
     const batteryPoll = await this.pollValue(
       Characteristic.BATTERY_SOC,
       4,
-      2300
+      2700
     );
     batteryPoll.on("change", (data: Buffer) => {
       if (!data || data.byteLength != 4) return;
@@ -590,7 +594,7 @@ export class Device extends EventEmitter {
     const operatingState = await this.pollValue(
       Characteristic.OPERATING_STATE,
       0,
-      this.isLorax ? 350 : 1200
+      this.isLorax ? 555 : 1200
     );
     operatingState.on("change", (data: Buffer) => {
       if (!data || data.byteLength != (this.isLorax ? 1 : 4)) return;
@@ -604,7 +608,7 @@ export class Device extends EventEmitter {
     const chamberType = await this.pollValue(
       Characteristic.CHAMBER_TYPE,
       0,
-      1000
+      1150
     );
     chamberType.on("change", (data: Buffer) => {
       if (!data || data.byteLength != 1) return;
@@ -620,7 +624,7 @@ export class Device extends EventEmitter {
     const aciveLEDPoll = await this.pollValue(
       Characteristic.ACTIVE_LED_COLOR,
       4,
-      1050
+      1150
     );
     aciveLEDPoll.on("data", (data: Buffer) => {
       if (!data || data.byteLength != 8) return;
@@ -658,7 +662,7 @@ export class Device extends EventEmitter {
     const totalDabsPoll = await this.pollValue(
       Characteristic.TOTAL_HEAT_CYCLES,
       0,
-      this.isLorax ? 700 : 2000
+      this.isLorax ? 750 : 2000
     );
     totalDabsPoll.on("data", (data: Buffer) => {
       if (!data || data.byteLength != 4) return;
@@ -674,7 +678,7 @@ export class Device extends EventEmitter {
     const tempPoll = await this.pollValue(
       Characteristic.HEATER_TEMP,
       0,
-      this.isLorax ? 150 : 1200
+      this.isLorax ? 200 : 1200
     ); // Make this dynamic based on state
     tempPoll.on("data", async (data: Buffer) => {
       if (!data || data.byteLength != 4) return;
@@ -687,7 +691,7 @@ export class Device extends EventEmitter {
     const currentProfilePoll = await this.pollValue(
       Characteristic.PROFILE_CURRENT,
       0,
-      1100
+      1150
     );
     currentProfilePoll.on("data", async (data: Buffer) => {
       if (!data || data.byteLength != (this.isLorax ? 1 : 4)) return;
@@ -715,16 +719,20 @@ export class Device extends EventEmitter {
     });
 
     this.poller.on("stop", (disconnect = true) => {
-      chargingPoll.emit("stop");
-      batteryPoll.emit("stop");
-      operatingState.emit("stop");
-      chamberType.emit("stop");
-      aciveLEDPoll.emit("stop");
-      brightnessPoll.emit("stop");
-      totalDabsPoll.emit("stop");
-      tempPoll.emit("stop");
-      currentProfilePoll.emit("stop");
-      deviceNamePoll.emit("stop");
+      const pollers = [
+        chargingPoll,
+        batteryPoll,
+        operatingState,
+        chamberType,
+        aciveLEDPoll,
+        brightnessPoll,
+        totalDabsPoll,
+        tempPoll,
+        currentProfilePoll,
+        deviceNamePoll,
+      ];
+      for (const poller of pollers) poller.emit("stop");
+
       if (this.server.connected && disconnect) this.server.disconnect();
       this.poller.removeAllListeners();
     });
@@ -741,7 +749,11 @@ export class Device extends EventEmitter {
     try {
       return await char.writeValueWithoutResponse(message);
     } catch (error) {
-      console.log("There was an error with writeValueWithoutResponse", error);
+      console.log(
+        "There was an error with writeValueWithoutResponse",
+        message,
+        error
+      );
       return;
     }
   }
@@ -833,7 +845,8 @@ export class Device extends EventEmitter {
                 msg.op,
                 msg.seq,
                 msg.path,
-                msg.response.data
+                msg.response.data,
+                data.error
               );
             this.loraxReply.removeEventListener(
               "characteristicvaluechanged",

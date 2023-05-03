@@ -146,7 +146,7 @@ export function DeviceSettingsModal({
           <span className="flex justify-between">
             <p className="font-bold">Firmware</p>
             <p className="font-bold opacity-40">
-              {info.firmware} ({info.hash})
+              {info.firmware} ({info.gitHash})
             </p>
           </span>
           <span className="flex justify-between">
@@ -164,6 +164,10 @@ export function DeviceSettingsModal({
             <p className="font-bold opacity-40">
               {device.totalDabs.toLocaleString()}
             </p>
+          </span>
+          <span className="flex justify-between">
+            <p className="font-bold">Dab Avg (Per Day)</p>
+            <p className="font-bold opacity-40">{info.dabsPerDay}</p>
           </span>
           <span className="flex justify-between">
             <p className="font-bold">Chamber Type</p>

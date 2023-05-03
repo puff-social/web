@@ -619,7 +619,7 @@ export default function Group({
 
   const connectToDevice = useCallback(async () => {
     try {
-      const { device, profiles } = await instance.init();
+      const { profiles } = await instance.init();
       setDeviceProfiles(profiles);
 
       const { poller, initState, deviceInfo } = await instance.startPolling();

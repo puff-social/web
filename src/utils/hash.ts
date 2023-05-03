@@ -1,6 +1,11 @@
 import { createCipheriv, createHash } from "crypto";
-import { APIResponse, LeaderboardEntry, DiagData, User } from "../types/api";
-import { DeviceInformation } from "../types/api";
+import {
+  APIResponse,
+  LeaderboardEntry,
+  DiagData,
+  User,
+  DeviceInformation,
+} from "../types/api";
 
 export const API_URL =
   (typeof location != "undefined" &&
@@ -34,7 +39,7 @@ export async function sendFeedback(content: string) {
 }
 
 export async function getLeaderboard() {
-  return (await fetch(`${API_URL}/v1/leaderboard`).then((r) =>
+  return (await fetch(`${API_URL}/v1/leaderboard?limit=10`).then((r) =>
     r.json()
   )) as APIResponse<{ leaderboards: LeaderboardEntry[] }>;
 }

@@ -16,8 +16,16 @@ const formatter = new Intl.RelativeTimeFormat("en", {
   numeric: "always",
 });
 
-function LeaderboardItem({ index, lb, last_active }) {
-  const dob = automaticRelativeDifference(new Date(lb.device_dob));
+function LeaderboardItem({
+  index,
+  lb,
+  last_active,
+}: {
+  index: number;
+  lb: LeaderboardEntry;
+  last_active: { duration: number; unit: Intl.RelativeTimeFormatUnit };
+}) {
+  const dob = automaticRelativeDifference(new Date(lb.devices.dob));
 
   return (
     <span className="flex flex-row justify-between p-2 bg-white dark:bg-neutral-900 rounded-md drop-shadow-xl">
@@ -27,38 +35,40 @@ function LeaderboardItem({ index, lb, last_active }) {
           <Tippy content="Device Name" placement="left">
             <span className="flex flex-row">
               <p className="font-bold">
-                {lb.device_name} -{" "}
-                {lb.device_model
-                  ? ProductModelMap[lb.device_model] || "Peak"
+                {lb.devices.name} -{" "}
+                {lb.devices.model
+                  ? ProductModelMap[lb.devices.model] || "Peak"
                   : "Unknown"}
               </p>
               <img
                 width={24}
                 className="ml-1"
                 src={`/emojis/${ProductModelMap[
-                  lb.device_model || 48
+                  lb.devices.model || 48
                 ].toLowerCase()}.png`}
               />
             </span>
           </Tippy>
           <span className="flex flex-row items-center space-x-1">
-            {lb.users && lb.users.image ? (
-              <img
-                className="rounded-full p-0.5 w-6 h-6"
-                src={`https://cdn.puff.social/avatars/${lb.user_id}/${
-                  lb.users.image
-                }.${lb.users.image.startsWith("a_") ? "gif" : "png"}`}
-              />
+            {lb.devices.users && lb.devices.users.image ? (
+              <>
+                <img
+                  className="rounded-full p-0.5 w-6 h-6"
+                  src={`https://cdn.puff.social/avatars/${lb.devices.user_id}/${
+                    lb.devices.users.image
+                  }.${lb.devices.users.image.startsWith("a_") ? "gif" : "png"}`}
+                />
+                <p className="opacity-60 italic truncate">
+                  {lb.devices.users.name}
+                </p>
+              </>
             ) : (
-              <></>
+              <p className="opacity-60 italic truncate">&nbsp;</p>
             )}
-            <p className="opacity-60 italic truncate">
-              {lb.users?.name || lb.owner_name}
-            </p>
           </span>
           <Tippy
             content={`Device DOB: ${
-              lb.device_dob == "1970-01-01T00:00:01.000Z"
+              lb.devices.dob == "1970-01-01T00:00:01.000Z"
                 ? "Unknown"
                 : formatter.format(dob.duration, dob.unit)
             }`}
@@ -66,9 +76,9 @@ function LeaderboardItem({ index, lb, last_active }) {
           >
             <p className="opacity-60">
               🎂{" "}
-              {lb.device_dob == "1970-01-01T00:00:01.000Z"
+              {lb.devices.dob == "1970-01-01T00:00:01.000Z"
                 ? "Unknown"
-                : new Date(lb.device_dob).toLocaleDateString()}
+                : new Date(lb.devices.dob).toLocaleDateString()}
             </p>
           </Tippy>
         </span>
@@ -76,7 +86,7 @@ function LeaderboardItem({ index, lb, last_active }) {
       <span className="flex flex-col justify-between">
         <Tippy content="Total Dabs" placement="right">
           <p className="text-right font-bold text-lg">
-            {lb.total_dabs.toLocaleString()}
+            {lb.devices.dabs.toLocaleString()}
           </p>
         </Tippy>
         <Tippy content="Last Active" placement="right">
@@ -145,10 +155,13 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
               <div className="flex space-x-2">
                 {leaderboard.slice(0, 3).map((lb, index) => {
                   const dob = automaticRelativeDifference(
-                    new Date(lb.device_dob)
+                    new Date(lb.devices.dob)
                   );
                   return (
-                    <span className="flex flex-col bg-white dark:bg-neutral-900 rounded-md drop-shadow-xl w-96 p-3">
+                    <span
+                      key={lb.id}
+                      className="flex flex-col bg-white dark:bg-neutral-900 rounded-md drop-shadow-xl w-96 p-3"
+                    >
                       <span className="flex flex-col justify-center align-center">
                         <div className="flex flex-row drop-shadow justify-between">
                           <span className="flex flex-col justify-between">
@@ -156,39 +169,43 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                             <span className="flex flex-col space-y-1 justify-end w-36">
                               <Tippy content="Total Dabs" placement="bottom">
                                 <p className="font-bold text-lg">
-                                  {lb.total_dabs.toLocaleString()}
+                                  {lb.devices.dabs.toLocaleString()}
                                 </p>
                               </Tippy>
                               <Tippy
-                                content={lb.device_name}
+                                content={lb.devices.name}
                                 placement="bottom"
                               >
                                 <p className="text truncate">
-                                  {lb.device_name}
+                                  {lb.devices.name}
                                 </p>
                               </Tippy>
                               <span className="flex flex-row items-center space-x-1">
-                                {lb.users && lb.users.image ? (
-                                  <img
-                                    className="rounded-full p-0.5 w-6 h-6"
-                                    src={`https://cdn.puff.social/avatars/${
-                                      lb.user_id
-                                    }/${lb.users.image}.${
-                                      lb.users.image.startsWith("a_")
-                                        ? "gif"
-                                        : "png"
-                                    }`}
-                                  />
+                                {lb.devices.users && lb.devices.users.image ? (
+                                  <>
+                                    <img
+                                      className="rounded-full p-0.5 w-6 h-6"
+                                      src={`https://cdn.puff.social/avatars/${
+                                        lb.devices.user_id
+                                      }/${lb.devices.users.image}.${
+                                        lb.devices.users.image.startsWith("a_")
+                                          ? "gif"
+                                          : "png"
+                                      }`}
+                                    />
+                                    <p className="opacity-60 italic truncate">
+                                      {lb.devices.users.name}
+                                    </p>
+                                  </>
                                 ) : (
-                                  <></>
+                                  <p className="opacity-60 italic truncate">
+                                    &nbsp;
+                                  </p>
                                 )}
-                                <p className="opacity-60 italic truncate">
-                                  {lb.users?.name || lb.owner_name}
-                                </p>
                               </span>
                               <Tippy
                                 content={`Device DOB: ${
-                                  lb.device_dob == "1970-01-01T00:00:01.000Z"
+                                  lb.devices.dob == "1970-01-01T00:00:01.000Z"
                                     ? "Unknown"
                                     : formatter.format(dob.duration, dob.unit)
                                 }`}
@@ -196,10 +213,10 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                               >
                                 <p className="opacity-60">
                                   🎂{" "}
-                                  {lb.device_dob == "1970-01-01T00:00:01.000Z"
+                                  {lb.devices.dob == "1970-01-01T00:00:01.000Z"
                                     ? "Unknown"
                                     : new Date(
-                                        lb.device_dob
+                                        lb.devices.dob
                                       ).toLocaleDateString()}
                                 </p>
                               </Tippy>
@@ -208,10 +225,10 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                                   🕐{" "}
                                   {formatter.format(
                                     automaticRelativeDifference(
-                                      new Date(lb.last_active)
+                                      new Date(lb.devices.last_active)
                                     ).duration,
                                     automaticRelativeDifference(
-                                      new Date(lb.last_active)
+                                      new Date(lb.devices.last_active)
                                     ).unit
                                   )}
                                 </p>
@@ -221,7 +238,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                           <span className="flex flex-row drop-shadow">
                             <PuffcoContainer
                               model={(
-                                ProductModelMap[lb.device_model] || "peak"
+                                ProductModelMap[lb.devices.model] || "peak"
                               ).toLowerCase()}
                               id={index.toString()}
                               className="flex items-center justify-center self-center w-[90px]"
@@ -258,10 +275,11 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
               {leaderboard.slice(3).map((lb, index) => {
                 return (
                   <LeaderboardItem
+                    key={lb.id}
                     lb={lb}
                     index={index + 4}
                     last_active={automaticRelativeDifference(
-                      new Date(lb.last_active)
+                      new Date(lb.devices.last_active)
                     )}
                   />
                 );

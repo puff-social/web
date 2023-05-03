@@ -27,10 +27,12 @@ export interface DeviceInformation {
   name: string;
   mac: string;
   totalDabs: number;
+  dabsPerDay: number;
   owner: string;
   model: string;
   firmware: string;
-  hash: string;
+  hardware: number;
+  gitHash: string;
 }
 
 export interface DiagService {
@@ -74,13 +76,17 @@ export interface User {
 
 export interface LeaderboardEntry {
   id: string;
-  device_id: string;
-  device_dob: string;
-  device_name: string;
-  total_dabs: number;
-  owner_name: string;
-  last_active: string;
-  device_model: string;
-  user_id?: string;
-  users?: User;
+  position: number;
+  devices: {
+    name: string;
+    dabs: number;
+    avg_dabs: number;
+    model: string;
+    firmware: string;
+    hardware: string;
+    last_active: string;
+    dob: string;
+    user_id?: string;
+    users?: User;
+  };
 }
