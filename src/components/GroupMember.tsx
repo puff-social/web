@@ -406,7 +406,7 @@ export function GroupMember(props: GroupMemberProps) {
                   >
                     <h1 className="m-0 text-xl font-bold truncate">
                       {props.member?.user?.name ||
-                        props.member?.name ||
+                        props.member?.device_state.deviceName ||
                         "Unknown"}
                     </h1>
                   </Tippy>

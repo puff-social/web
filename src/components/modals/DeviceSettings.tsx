@@ -72,10 +72,11 @@ export function DeviceSettingsModal({
       );
       // await updateDeviceDob(deviceDob);
       setDeviceInfo((curr) => ({ ...curr, dob: deviceDob.getTime() / 1000 }));
-      await trackDevice(
-        { ...info, name: deviceName, dob: deviceDob.getTime() / 1000 },
-        localStorage.getItem("puff-social-name") || "Unnamed"
-      );
+      await trackDevice({
+        ...info,
+        name: deviceName,
+        dob: deviceDob.getTime() / 1000,
+      });
     }
   }, [deviceName, deviceDob]);
 
@@ -83,10 +84,11 @@ export function DeviceSettingsModal({
     if (deviceName != device.deviceName)
       await instance.updateDeviceName(deviceName);
     setMyDevice((curr) => ({ ...curr, deviceName }));
-    await trackDevice(
-      { ...info, name: deviceName, dob: deviceDob.getTime() / 1000 },
-      localStorage.getItem("puff-social-name") || "Unnamed"
-    );
+    await trackDevice({
+      ...info,
+      name: deviceName,
+      dob: deviceDob.getTime() / 1000,
+    });
     toast("Updated device");
     closeModal();
   }, [deviceName, deviceDob]);

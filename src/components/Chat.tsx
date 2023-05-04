@@ -10,7 +10,6 @@ import toast from "react-hot-toast";
 import { User } from "../types/api";
 
 interface Props {
-  ourName: string;
   group: GatewayGroup;
   members: GatewayGroupMember[];
   chatBoxOpen: boolean;

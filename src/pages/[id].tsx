@@ -80,11 +80,6 @@ export default function Group({
   const [ourStrain, setOurStrain] = useState<string>();
   const [ourUser, setOurUser] = useState<User>();
   const [usDisconnected, setUsDisconnected] = useState<boolean>(false);
-  const [ourName, setOurName] = useState(() =>
-    typeof localStorage != "undefined"
-      ? localStorage.getItem("puff-social-name") || "Unnamed"
-      : "Unnamed"
-  );
 
   const [readyMembers, setReadyMembers] = useState<string[]>([]);
   const [deviceProfiles, setDeviceProfiles] = useState<
@@ -195,7 +190,6 @@ export default function Group({
 
   function groupMemberUpdated(member: GatewayGroupMember) {
     if (member.session_id == gateway.session_id) {
-      if (typeof member.name != "undefined") setOurName(member.name);
       if (typeof member.strain != "undefined") setOurStrain(member.strain);
       if (typeof member.user != "undefined") setOurUser(member.user);
       if (typeof member.disconnected != "undefined")
@@ -249,7 +243,7 @@ export default function Group({
   }
 
   function groupMemberJoin(member: GroupUserJoin) {
-    toast(`${member.user?.name || member.name} joined`, {
+    toast(`${member.user?.name || "Guest"} joined`, {
       position: "top-right",
     });
     setGroupMembers((curr) => [...curr, member]);
@@ -259,7 +253,7 @@ export default function Group({
     setGroupMembers((curr) => {
       const member = curr.find((mem) => mem.session_id == session_id);
       if (member)
-        toast(`${member.user?.name || member.name} left`, {
+        toast(`${member.user?.name || "Guest"} left`, {
           position: "top-right",
         });
       return [...curr.filter((mem) => mem.session_id != session_id)];
@@ -343,7 +337,7 @@ export default function Group({
             },
           });
 
-          toast(`${member.user?.name || member.name}: ${emoji}`, {
+          toast(`${member.user?.name || "Guest"}: ${emoji}`, {
             position: "top-right",
             duration: 1000,
           });
@@ -375,7 +369,7 @@ export default function Group({
         const initiator = groupMembers.find(
           (mem) => mem.session_id == data.session_id
         );
-        toast(`${initiator.user?.name || initiator.name} wants to start`, {
+        toast(`${initiator.user?.name || "Guest"} wants to start`, {
           icon: "🔥",
           duration: 5000,
           position: "top-right",
@@ -414,7 +408,7 @@ export default function Group({
           curr.includes(data.session_id) ? curr : [...curr, data.session_id]
         );
 
-        toast(`${initiator.user?.name || initiator.name} is ready`, {
+        toast(`${initiator.user?.name || "Guest"} is ready`, {
           icon: "✅",
           duration: 5000,
           position: "top-right",
@@ -437,10 +431,11 @@ export default function Group({
         ]);
 
         if (initiator)
-          toast(
-            `${initiator.user?.name || initiator.name} is no longer ready`,
-            { icon: "🚫", duration: 5000, position: "top-right" }
-          );
+          toast(`${initiator.user?.name || "Guest"} is no longer ready`, {
+            icon: "🚫",
+            duration: 5000,
+            position: "top-right",
+          });
         return groupMembers;
       });
     },
@@ -466,8 +461,8 @@ export default function Group({
         toast(
           `${
             data.session_id == gateway.session_id
-              ? ourUser?.name || ourName
-              : initiator.user?.name || initiator.name
+              ? ourUser?.name
+              : initiator.user?.name || "Guest"
           } made the group ${data.visibility}`,
           {
             icon: data.visibility == "public" ? "🌍" : "🔒",
@@ -623,7 +618,7 @@ export default function Group({
       setDeviceProfiles(profiles);
 
       const { poller, initState, deviceInfo } = await instance.startPolling();
-      const tracked = await trackDevice(deviceInfo, ourName);
+      const tracked = await trackDevice(deviceInfo);
       setOurLeaderboardPosition(tracked.data.position);
       instance.once("gattdisconnect", async () => {
         setDeviceConnected(false);
@@ -655,7 +650,7 @@ export default function Group({
       poller.on("data", async (data) => {
         if (data.totalDabs)
           setDeviceInfo((deviceInfo) => {
-            trackDevice({ ...deviceInfo, totalDabs: data.totalDabs }, ourName);
+            trackDevice({ ...deviceInfo, totalDabs: data.totalDabs });
             return deviceInfo;
           });
         setGroup((currGroup) => {
@@ -703,7 +698,7 @@ export default function Group({
       }
       console.error(error);
     }
-  }, [ourName, group]);
+  }, [group]);
 
   const [seshers, setSeshers] = useState(0);
   const [watchers, setWatchers] = useState(0);
@@ -841,7 +836,6 @@ export default function Group({
             <>
               <GroupMember
                 device={myDevice}
-                name={ourName}
                 strain={ourStrain}
                 leaderboardPosition={ourLeaderboardPosition}
                 ready={readyMembers.includes(gateway.session_id)}
@@ -894,7 +888,6 @@ export default function Group({
                   <ChatBox
                     chatBoxOpen={chatBoxOpen}
                     group={group}
-                    ourName={ourName}
                     user={ourUser}
                     members={groupMembers}
                   />

@@ -274,11 +274,6 @@ export class Gateway extends EventEmitter {
           data.d.heartbeat_interval
         );
 
-        if (typeof localStorage != "undefined")
-          this.send(Op.UpdateUser, {
-            name: localStorage.getItem("puff-social-name") || "Unnamed",
-          });
-
         if (this.session_token && this.session_id) {
           console.log("resuming");
           this.send(Op.ResumeSession, {

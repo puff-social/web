@@ -51,7 +51,9 @@ function GroupListMember({
     <span className="flex flex-row justify-between items-center bg-gray-200/50 dark:bg-neutral-600/50 rounded-md p-1">
       <span className="flex flex-col">
         <span className="flex flex-row items-center space-x-2">
-          <p className="text-sm">{member.user?.name || member.name}</p>
+          <p className="text-sm">
+            {member.user?.name || member.device_state.deviceName}
+          </p>
           <p className="text-xs opacity-30">
             {formatter.format(joinTime.duration, joinTime.unit)}
           </p>

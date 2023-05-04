@@ -44,11 +44,8 @@ export async function getLeaderboard() {
   )) as APIResponse<{ leaderboards: LeaderboardEntry[] }>;
 }
 
-export async function trackDevice(
-  device: Partial<DeviceInformation>,
-  name: string
-) {
-  const [signature, body] = signRequest({ device, name });
+export async function trackDevice(device: Partial<DeviceInformation>) {
+  const [signature, body] = signRequest({ device, name: "unset" });
   const req = await fetch(`${API_URL}/v1/track`, {
     method: "POST",
     headers: {
