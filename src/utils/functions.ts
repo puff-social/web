@@ -71,7 +71,11 @@ export function constructLoraxCommand(
   alloc.writeUInt16LE(seq, 0);
   alloc.writeUInt8(op, 2);
 
-  if (data) return Buffer.concat([alloc, Buffer.from(data)]);
+  if (data)
+    return Buffer.concat([
+      alloc,
+      "byteLength" in data ? data : Buffer.from(data),
+    ]);
   return alloc;
 }
 
@@ -116,11 +120,15 @@ export function readShortCmd(loraxLimits: LoraxLimits, path: string) {
   return t;
 }
 
-export function writeShortCmd(path: string, data: Buffer) {
+export function writeShortCmd(path: string, data: Buffer, padding: boolean) {
   const w = Buffer.alloc(3);
   w.writeUInt16LE(0, 0);
   w.writeUInt8(0, 2);
-  const t = Buffer.concat([w, Buffer.from(path), Buffer.from([0]), data]);
+  const t = Buffer.concat([
+    w,
+    Buffer.from(path),
+    padding ? Buffer.concat([Buffer.from([0]), data]) : data,
+  ]);
   return t;
 }
 
@@ -153,4 +161,9 @@ export function intArrayToMacAddress(uint8Array: Uint8Array): string {
     .join(":");
 
   return hexString.toUpperCase();
+}
+
+if (typeof window != "undefined") {
+  window["writeShortCmd"] = writeShortCmd;
+  window["readShortCmd"] = readShortCmd;
 }

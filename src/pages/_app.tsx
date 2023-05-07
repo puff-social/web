@@ -23,10 +23,6 @@ function App({ Component, pageProps }) {
     return router.query.headless == "true";
   }, [router]);
 
-  useEffect(() => {
-    console.log(router.query, "query");
-  }, [router]);
-
   function groupCreated(group: GatewayGroupCreate) {
     toast(`Group ${group.name} (${group.group_id}) created`, {
       position: "top-right",

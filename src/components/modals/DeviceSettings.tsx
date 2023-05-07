@@ -70,7 +70,7 @@ export function DeviceSettingsModal({
         deviceDob.getFullYear() > new Date().getFullYear() ||
           deviceDob.getFullYear() < 2018
       );
-      // await updateDeviceDob(deviceDob);
+      await instance.updateDeviceDob(deviceDob);
       setDeviceInfo((curr) => ({ ...curr, dob: deviceDob.getTime() / 1000 }));
       await trackDevice({
         ...info,

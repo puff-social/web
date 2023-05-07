@@ -763,8 +763,8 @@ export class Device extends EventEmitter {
     return await this.sendLoraxCommand(LoraxCommands.READ_SHORT, command, path);
   }
 
-  async sendLoraxValueShort(path: string, data: Buffer) {
-    const command = writeShortCmd(path, data);
+  async sendLoraxValueShort(path: string, data: Buffer, padding = true) {
+    const command = writeShortCmd(path, data, padding);
     await this.sendLoraxCommand(LoraxCommands.WRITE_SHORT, command, path);
   }
 
@@ -898,10 +898,12 @@ export class Device extends EventEmitter {
 
   async updateDeviceDob(date: Date) {
     if (this.isLorax) {
-      // await this.sendLoraxValueShort(
-      //   Characteristic.DEVICE_BIRTHDAY,
-      //   new Uint8Array(pack(date.getTime() / 1000, { bits: 32 }))
-      // );
+      const buff = Buffer.allocUnsafe(4);
+      buff.writeUInt32LE(date.getTime() / 1000);
+      await this.sendLoraxValueShort(
+        LoraxCharacteristicPathMap[Characteristic.DEVICE_BIRTHDAY],
+        buff
+      );
     } else {
       await this.writeRawValue(
         Characteristic.DEVICE_BIRTHDAY,

@@ -127,7 +127,6 @@ export default async function handler(req: NextRequest) {
       }
     );
   } catch (error) {
-    console.log(error, "error");
     return new ImageResponse(
       (
         <div

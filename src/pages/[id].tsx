@@ -376,10 +376,7 @@ export default function Group({
         });
 
         if (!data.away && !data.watcher && !data.excluded) {
-          console.log(data, "start?");
-
           (async () => {
-            console.log("sending", instance);
             await instance.sendCommand(DeviceCommand.BONDING);
             await instance.setLightMode(PuffLightMode.QueryReady);
           })();

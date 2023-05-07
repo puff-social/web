@@ -254,7 +254,6 @@ export class Gateway extends EventEmitter {
 
   send(op: Op, d?: any): void {
     if (this.ws.readyState != this.ws.OPEN) return;
-    if (op == Op.ResumeSession) console.log("Resuming session");
     const data =
       this.compression != "none"
         ? deflate(JSON.stringify({ op, d }))
@@ -275,7 +274,6 @@ export class Gateway extends EventEmitter {
         );
 
         if (this.session_token && this.session_id) {
-          console.log("resuming");
           this.send(Op.ResumeSession, {
             session_id: this.session_id,
             session_token: this.session_token,
@@ -384,7 +382,6 @@ export class Gateway extends EventEmitter {
             break;
           }
           case Event.SessionResumed: {
-            console.log("session resumed");
             this.session_id = data.d.session_id;
             this.session_id = data.d.session_id;
             this.emit("session_resumed", data.d);
@@ -433,7 +430,6 @@ export class Gateway extends EventEmitter {
     if (code != 4006) this.emit("close");
 
     if (code == 4001) {
-      console.log("RESUME HAS FAILED?");
       this.emit("resume_failed");
       return;
     }
