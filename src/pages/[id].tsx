@@ -615,8 +615,10 @@ export default function Group({
       setDeviceProfiles(profiles);
 
       const { poller, initState, deviceInfo } = await instance.startPolling();
-      const tracked = await trackDevice(deviceInfo);
-      setOurLeaderboardPosition(tracked.data.position);
+      try {
+        const tracked = await trackDevice(deviceInfo);
+        setOurLeaderboardPosition(tracked.data.position);
+      } catch (error) {}
       instance.once("gattdisconnect", async () => {
         setDeviceConnected(false);
 
