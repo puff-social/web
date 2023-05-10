@@ -290,6 +290,11 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
           )}
         </div>
 
+        <p className="pt-4 opacity-60 flex flex-wrap italic">
+          Your device will only show on the leaderboards if you've logged in
+          with your discord account
+        </p>
+
         <p className="pt-4 opacity-60 flex flex-wrap">
           Leaderboard entries are entered once total dabs counter is reported
           from device, and on device connection.{" "}
