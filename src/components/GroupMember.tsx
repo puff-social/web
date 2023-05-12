@@ -159,10 +159,10 @@ export function GroupMember(props: GroupMemberProps) {
     <div
       className={`flex justify-center items-center m-1 h-72 w-[440px] ${
         !!props.device
-          ? props.member?.user?.flags & UserFlags.supporter
-            ? "rounded-md bg-gradient-to-r from-green-500/60 to-yellow-600/60 p-px"
-            : props.member?.user?.flags & UserFlags.admin
+          ? props.member?.user?.flags & UserFlags.admin
             ? "rounded-md bg-gradient-to-r from-blue-500/60 to-purple-700/60 p-px"
+            : props.member?.user?.flags & UserFlags.supporter
+            ? "rounded-md bg-gradient-to-r from-green-500/60 to-yellow-600/60 p-px"
             : ""
           : ""
       }`}
