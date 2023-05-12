@@ -111,3 +111,35 @@ export async function getCurrentUser() {
   if (req.status != 200) throw { code: "invalid_authentication" };
   return (await req.json()) as APIResponse<{ user: User }>;
 }
+
+export async function loginWithPuffco(email: string, password: string) {
+  const req = await fetch(`${API_URL}/v1/auth/puffco`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  if (req.status != 200)
+    throw {
+      code: "invalid_auth",
+      data: await req
+        .json()
+        .then((r) => r)
+        .catch(() => null),
+    };
+  return (await req.json()) as APIResponse<{ user: User; token: string }>;
+}
+
+export async function updateUser(object: Partial<User>) {
+  const req = await fetch(`${API_URL}/v1/user`, {
+    method: "PATCH",
+    headers: {
+      ...(localStorage.getItem("puff-social-auth")
+        ? { authorization: localStorage.getItem("puff-social-auth") }
+        : {}),
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(object),
+  });
+  if (req.status != 200) throw { code: "invalid_user_patch" };
+  return (await req.json()) as APIResponse<{ user: User }>;
+}

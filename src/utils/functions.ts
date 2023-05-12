@@ -164,6 +164,10 @@ export function intArrayToMacAddress(uint8Array: Uint8Array): string {
 }
 
 if (typeof window != "undefined") {
+  window["Buffer"] = Buffer;
+  window["hexToFloat"] = hexToFloat;
+  window["decimalToHexString"] = decimalToHexString;
+  window["constructLoraxCommand"] = constructLoraxCommand;
   window["writeShortCmd"] = writeShortCmd;
   window["readShortCmd"] = readShortCmd;
 }

@@ -10,7 +10,7 @@ import { Op, gateway } from "../../utils/gateway";
 import { Person } from "../icons/Person";
 import { automaticRelativeDifference } from "../../utils/time";
 import { Mobile } from "../icons/Mobile";
-import { UserFlags } from "../../utils/constants";
+import { NameDisplay, UserFlags } from "../../utils/constants";
 import { Money } from "../icons/Money";
 import { Wrench } from "../icons/Wrench";
 
@@ -52,7 +52,11 @@ function GroupListMember({
       <span className="flex flex-col">
         <span className="flex flex-row items-center space-x-2">
           <p className="text-sm">
-            {member.user?.name || member.device_state.deviceName}
+            {member?.user?.name_display == NameDisplay.FirstName
+              ? member?.user?.first_name
+              : member?.user?.name_display == NameDisplay.FirstLast
+              ? `${member?.user?.first_name} ${member?.user?.last_name}`
+              : member?.user?.name || member.device_state.deviceName || "Guest"}
           </p>
           <p className="text-xs opacity-30">
             {formatter.format(joinTime.duration, joinTime.unit)}

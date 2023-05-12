@@ -17,6 +17,7 @@ import {
 import { ChamberType, ChargeSource } from "../utils/puffco/constants";
 import {
   EASTER_EGG_CYCLE_COUNTS,
+  NameDisplay,
   ProductModelMap,
   TEMPERATURE_MAX,
   TEMPERATURE_MIN,
@@ -388,7 +389,7 @@ export function GroupMember(props: GroupMemberProps) {
                   )}
                 </span>
                 <span className="space-x-2 flex flex-row items-center">
-                  {props.member.user ? (
+                  {props.member.user && props.member.user.image ? (
                     <img
                       className="rounded-full p-0.5 w-7 h-7"
                       src={`https://cdn.puff.social/avatars/${
@@ -405,9 +406,14 @@ export function GroupMember(props: GroupMemberProps) {
                     placement="bottom-start"
                   >
                     <h1 className="m-0 text-xl font-bold truncate">
-                      {props.member?.user?.name ||
-                        props.member?.device_state.deviceName ||
-                        "Unknown"}
+                      {props.member?.user?.name_display == NameDisplay.FirstName
+                        ? props.member?.user?.first_name
+                        : props.member?.user?.name_display ==
+                          NameDisplay.FirstLast
+                        ? `${props.member?.user?.first_name} ${props.member?.user?.last_name}`
+                        : props.member?.user?.name ||
+                          props.member?.device_state.deviceName ||
+                          "Unknown"}
                     </h1>
                   </Tippy>
                   {props.member?.user?.flags & UserFlags.supporter ? (

@@ -32,6 +32,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { selectSessionState, setSessionState } from "../state/slices/session";
 import { Device } from "../utils/puffco";
 import { Instagram } from "./icons/Instagram";
+import { LoginModal } from "./modals/Login";
+import { Account } from "./icons/Account";
+import { AccountSettingsModal } from "./modals/AccountSettings";
+import { NameDisplay } from "../utils/constants";
 
 interface ActionsProps {
   group?: GatewayGroup;
@@ -71,53 +75,8 @@ export function GroupActions({
 
   const router = useRouter();
 
-  const startDiscordOAuth = useCallback(async () => {
-    const oauth = await getDiscordOAuth();
-    const child = window.open(
-      oauth.data.url,
-      "Login with Discord",
-      "width=1000,height=820"
-    );
-
-    const int = setInterval(async () => {
-      try {
-        const search = new URLSearchParams(child.location.search);
-
-        if (child.closed) {
-          toast("Login canceled", {
-            position: "top-right",
-            duration: 2000,
-            icon: "❌",
-          });
-          clearInterval(int);
-        }
-
-        if (search.get("code")) {
-          const authed = await callbackDiscordOAuth(
-            search.get("code"),
-            search.get("state")
-          );
-
-          localStorage.setItem("puff-social-auth", authed.data.token);
-          toast("Logged in", {
-            position: "top-right",
-            duration: 2000,
-            icon: <Discord />,
-          });
-
-          if (localStorage.getItem("puff-social-auth"))
-            gateway.send(Op.LinkUser, {
-              token: authed.data.token,
-            });
-
-          dispatch(setSessionState({ user: authed.data.user }));
-
-          clearInterval(int);
-          if (!child.closed) child.close();
-        }
-      } catch (error) {}
-    }, 500);
-  }, []);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [accountSettingsOpen, setAccountSettingsOpen] = useState(false);
 
   async function logoutUser() {
     localStorage.removeItem("puff-social-auth");
@@ -134,7 +93,20 @@ export function GroupActions({
       className="flex flex-row drop-shadow-xl rounded-md py-2 flex-wrap"
       ref={reactionButton}
     >
-      {!!group ? (
+      {session.user ? (
+        <>
+          <AccountSettingsModal
+            modalOpen={accountSettingsOpen}
+            setModalOpen={setAccountSettingsOpen}
+          />
+        </>
+      ) : (
+        <>
+          <LoginModal modalOpen={loginOpen} setModalOpen={setLoginOpen} />
+        </>
+      )}
+
+      {group ? (
         <span className="pr-3 flex flex-row">
           {group.state == GroupState.Chilling ? (
             seshers > 0 &&
@@ -395,7 +367,14 @@ export function GroupActions({
           interactive
           content={
             session.user ? (
-              <span className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-72">
+              <span className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md space-y-2 p-2 w-72">
+                <span
+                  className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
+                  onClick={() => setAccountSettingsOpen(true)}
+                >
+                  <p>Account Settings</p>
+                  <Settings />
+                </span>
                 <span
                   className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
                   onClick={() => logoutUser()}
@@ -412,20 +391,40 @@ export function GroupActions({
         >
           <div
             className="flex items-center justify-center group rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-            onClick={() => startDiscordOAuth()}
+            onClick={() => (!session.user ? setLoginOpen(true) : false)}
           >
-            {session.user ? (
-              <img
-                className="rounded-full p-0.5 w-7 h-7"
-                src={`https://cdn.puff.social/avatars/${session.user.id}/${
-                  session.user.image
-                }.${session.user.image.startsWith("a_") ? "gif" : "png"}`}
-              />
+            {session.user && session.user.image ? (
+              <>
+                <img
+                  className="rounded-full p-0.5 w-7 h-7"
+                  src={`https://cdn.puff.social/avatars/${session.user.id}/${
+                    session.user.image
+                  }.${session.user.image.startsWith("a_") ? "gif" : "png"}`}
+                />
+                <p className="mx-1 text-sm opacity-50 group-hover:opacity-100 transition-all">
+                  {session.user.name_display == NameDisplay.FirstName
+                    ? session.user.first_name
+                    : session.user.name_display == NameDisplay.FirstLast
+                    ? `${session.user.first_name} ${session.user.last_name}`
+                    : session.user.name}
+                </p>
+              </>
+            ) : session.user ? (
+              <>
+                <Account />
+                <p className="mx-1 text-sm opacity-50 group-hover:opacity-100 transition-all">
+                  {session.user.name_display == NameDisplay.FirstName
+                    ? session.user.first_name
+                    : session.user.name_display == NameDisplay.FirstLast
+                    ? `${session.user.first_name} ${session.user.last_name}`
+                    : session.user.name}
+                </p>
+              </>
             ) : (
               <>
-                <Discord />{" "}
+                <Account />
                 <p className="mx-1 text-sm opacity-50 group-hover:opacity-100 transition-all">
-                  Login with Discord
+                  Login
                 </p>
               </>
             )}

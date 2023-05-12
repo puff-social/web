@@ -72,6 +72,9 @@ export interface User {
   flags: number;
   platform: string;
   platform_id: string;
+  name_display: number;
+  first_name?: string;
+  last_name?: string;
 }
 
 export interface LeaderboardEntry {

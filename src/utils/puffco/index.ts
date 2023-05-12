@@ -148,15 +148,8 @@ export class Device extends EventEmitter {
 
         // DEBUG ONLY
         if (typeof window != "undefined") {
-          window["LoraxCommands"] = LoraxCommands;
-          window["LoraxCharacteristic"] = LoraxCharacteristic;
-          window["Characteristic"] = Characteristic;
           window["unpack"] = unpack;
           window["pack"] = pack;
-          window["hexToFloat"] = hexToFloat;
-          window["decimalToHexString"] = decimalToHexString;
-          window["DeviceCommand"] = DeviceCommand;
-          window["constructLoraxCommand"] = constructLoraxCommand;
         }
 
         if (!this.isLorax) {

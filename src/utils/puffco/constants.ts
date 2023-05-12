@@ -290,3 +290,11 @@ export enum PuffLightMode {
   MarkedReady,
   Default,
 }
+
+if (typeof window != "undefined") {
+  window["DeviceCommand"] = DeviceCommand;
+  window["Characteristic"] = Characteristic;
+  window["LoraxCommands"] = LoraxCommands;
+  window["LoraxCharacteristic"] = LoraxCharacteristic;
+  window["LoraxCharacteristicPathMap"] = LoraxCharacteristicPathMap;
+}
