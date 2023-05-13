@@ -28,7 +28,7 @@ import { trackDevice } from "../utils/hash";
 import { GroupMeta } from "../components/GroupMeta";
 import { NextPageContext } from "next";
 import { getGroupById } from "../utils/api";
-import { APIGroup, User } from "../types/api";
+import { APIGroup, User, DeviceInformation } from "../types/api";
 import { GroupMember } from "../components/GroupMember";
 import { LeaderboardModal } from "../components/modals/Leaderboard";
 import { FeedbackModal } from "../components/modals/Feedback";
@@ -40,8 +40,7 @@ import {
 } from "../components/icons/Bluetooth";
 import { GroupActions } from "../components/GroupActions";
 import { PuffcoProfile } from "../types/puffco";
-import { DeviceInformation } from "../types/api";
-import { DeviceSettingsModal } from "../components/modals/DeviceSettings";
+import { DeviceSettingsModal } from "../components/modals/Device";
 import { Kick } from "../components/icons/Kick";
 import Link from "next/link";
 import { ChatBox } from "../components/Chat";

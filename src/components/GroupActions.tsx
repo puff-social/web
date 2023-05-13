@@ -36,6 +36,7 @@ import { LoginModal } from "./modals/Login";
 import { Account } from "./icons/Account";
 import { AccountSettingsModal } from "./modals/AccountSettings";
 import { NameDisplay } from "../utils/constants";
+import { InfoModal } from "./modals/Info";
 
 interface ActionsProps {
   group?: GatewayGroup;
@@ -76,6 +77,7 @@ export function GroupActions({
   const router = useRouter();
 
   const [loginOpen, setLoginOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
   const [accountSettingsOpen, setAccountSettingsOpen] = useState(false);
 
   async function logoutUser() {
@@ -105,6 +107,7 @@ export function GroupActions({
           <LoginModal modalOpen={loginOpen} setModalOpen={setLoginOpen} />
         </>
       )}
+      <InfoModal modalOpen={infoOpen} setModalOpen={setInfoOpen} />
 
       {group ? (
         <span className="pr-3 flex flex-row">
@@ -332,7 +335,7 @@ export function GroupActions({
       <Tippy content="Information" placement="bottom">
         <div
           className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-          onClick={() => window.open("/info")}
+          onClick={() => setInfoOpen(true)}
         >
           <Info />
         </div>
