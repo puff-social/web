@@ -173,7 +173,7 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                 </div>
                 <button
                   className="bg-blue-500 p-8 rounded-md w-96 mt-8 text-black dark:text-white"
-                  onClick={() => router.push("/")}
+                  onClick={() => setModalOpen(false)}
                 >
                   Enter puff.social
                 </button>
