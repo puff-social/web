@@ -1,7 +1,11 @@
 import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { Popover } from "@headlessui/react";
 
-import { BluetoothDisabled } from "./icons/Bluetooth";
+import {
+  Bluetooth,
+  BluetoothConnected,
+  BluetoothDisabled,
+} from "./icons/Bluetooth";
 import { Edit } from "./icons/Edit";
 import { Info } from "./icons/Info";
 import { LeaderboardIcon } from "./icons/LeaderboardIcon";
@@ -45,8 +49,10 @@ interface ActionsProps {
   instance?: Device;
   readyMembers?: string[];
   deviceConnected?: boolean;
+  connectDismissed?: boolean;
   deviceProfiles?: Record<number, PuffcoProfile>;
   disconnect?: Function;
+  connectToDevice?: Function;
   setGroupSettingsModalOpen?: Dispatch<SetStateAction<boolean>>;
   setDeviceSettingsModalOpen?: Dispatch<SetStateAction<boolean>>;
   setUserSettingsModalOpen: Dispatch<SetStateAction<boolean>>;
@@ -64,8 +70,10 @@ export function GroupActions({
   setDeviceSettingsModalOpen,
   setUserSettingsModalOpen,
   deviceConnected,
+  connectDismissed,
   deviceProfiles,
   disconnect,
+  connectToDevice,
   setFeedbackModalOpen,
   setLeaderboardOpen,
 }: ActionsProps) {
@@ -79,6 +87,11 @@ export function GroupActions({
   const [loginOpen, setLoginOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [accountSettingsOpen, setAccountSettingsOpen] = useState(false);
+
+  const [bluetooth] = useState<boolean>(() => {
+    if (typeof window == "undefined") return false;
+    return typeof window.navigator.bluetooth !== "undefined";
+  });
 
   async function logoutUser() {
     localStorage.removeItem("puff-social-auth");
@@ -110,205 +123,219 @@ export function GroupActions({
       <InfoModal modalOpen={infoOpen} setModalOpen={setInfoOpen} />
 
       {group ? (
-        <span className="pr-3 flex flex-row">
-          {group.state == GroupState.Chilling ? (
-            seshers > 0 &&
-            members.filter(
-              (mem) =>
-                mem.away &&
-                typeof mem.device_state == "object" &&
-                Object.keys(mem.device_state || {}).length > 0
-            ).length != seshers ? (
-              <Tippy content="Start a group sesh" placement="bottom">
-                <div
-                  className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl text-green-500 dark:text-green-200"
-                  onClick={() => gateway.send(Op.InquireHeating)}
-                >
-                  <Smoke />
-                </div>
-              </Tippy>
-            ) : (
-              <></>
-            )
-          ) : group.state == GroupState.Awaiting ? (
-            <>
-              {readyMembers.length > 0 ? (
-                <Tippy content="Start anyway" placement="bottom">
+        <>
+          {!deviceConnected && connectDismissed && bluetooth ? (
+            <Tippy content="Connect bluetooth" placement="bottom">
+              <div
+                className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+                onClick={() => connectToDevice(true)}
+              >
+                <Bluetooth />
+              </div>
+            </Tippy>
+          ) : (
+            <></>
+          )}
+          <span className="pr-3 flex flex-row">
+            {group.state == GroupState.Chilling ? (
+              seshers > 0 &&
+              members.filter(
+                (mem) =>
+                  mem.away &&
+                  typeof mem.device_state == "object" &&
+                  Object.keys(mem.device_state || {}).length > 0
+              ).length != seshers ? (
+                <Tippy content="Start a group sesh" placement="bottom">
                   <div
-                    className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl text-green-400"
-                    onClick={() => gateway.send(Op.StartWithReady)}
+                    className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl text-green-500 dark:text-green-200"
+                    onClick={() => gateway.send(Op.InquireHeating)}
                   >
-                    <Skip />
+                    <Smoke />
                   </div>
                 </Tippy>
               ) : (
                 <></>
-              )}
-              <Tippy content="Stop" placement="bottom">
+              )
+            ) : group.state == GroupState.Awaiting ? (
+              <>
+                {readyMembers.length > 0 ? (
+                  <Tippy content="Start anyway" placement="bottom">
+                    <div
+                      className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl text-green-400"
+                      onClick={() => gateway.send(Op.StartWithReady)}
+                    >
+                      <Skip />
+                    </div>
+                  </Tippy>
+                ) : (
+                  <></>
+                )}
+                <Tippy content="Stop" placement="bottom">
+                  <div
+                    className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl text-red-400"
+                    onClick={() => gateway.send(Op.StopAwaiting)}
+                  >
+                    <Stop />
+                  </div>
+                </Tippy>
+              </>
+            ) : (
+              <></>
+            )}
+            {gateway.session_id == group.owner_session_id ? (
+              <Tippy content="Edit Group" placement="bottom">
                 <div
-                  className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl text-red-400"
-                  onClick={() => gateway.send(Op.StopAwaiting)}
+                  className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
+                  onClick={() => setGroupSettingsModalOpen(true)}
                 >
-                  <Stop />
+                  <Edit />
                 </div>
               </Tippy>
-            </>
-          ) : (
-            <></>
-          )}
-          {gateway.session_id == group.owner_session_id ? (
-            <Tippy content="Edit Group" placement="bottom">
-              <div
-                className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-                onClick={() => setGroupSettingsModalOpen(true)}
-              >
-                <Edit />
-              </div>
-            </Tippy>
-          ) : (
-            <></>
-          )}
-          {deviceConnected ? (
-            <Tippy
-              arrow={false}
-              interactive
-              content={
-                <span className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md space-y-2 p-2 w-72">
-                  <Tippy
-                    trigger="click"
-                    interactive
-                    content={
-                      <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-72">
-                        <p className="text-lg font-bold">Profiles</p>
-                        <span className="flex flex-col flex-wrap">
-                          {Object.keys(deviceProfiles).map((key) => (
-                            <span
-                              key={key}
-                              className="select-none text-lg flex justify-between items-center rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 m-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
-                              onClick={async () => {
-                                await instance.switchProfile(Number(key));
-                                toast(
-                                  `Switched device profile to ${deviceProfiles[key].name}`
-                                );
-                              }}
-                            >
-                              <p className="">{deviceProfiles[key].name}</p>
-                              <span className="flex items-center space-x-2">
-                                <p className="text-sm">
-                                  {deviceProfiles[key].time}
-                                </p>
-                                <p className="opacity-40 text-sm">@</p>
-                                <p>
-                                  {Math.round(
-                                    deviceProfiles[key].temp * 1.8 + 32
-                                  )}
-                                  °
-                                </p>
-                              </span>
-                            </span>
-                          ))}
-                        </span>
-                      </div>
-                    }
-                  >
-                    <span className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between">
-                      <p>Switch Profile</p>
-                      <ArrowSwitch />
-                    </span>
-                  </Tippy>
-                  <span
-                    className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
-                    onClick={() => setDeviceSettingsModalOpen(true)}
-                  >
-                    <p>Device Settings</p>
-                    <DeviceSettings />
-                  </span>
-                  <span
-                    className="flex p-2 rounded-md text-red-400 dark:text-red-400 bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
-                    onClick={() => disconnect()}
-                  >
-                    <p>Disconnect</p>
-                    <BluetoothDisabled />
-                  </span>
-                </span>
-              }
-              placement="bottom-start"
-            >
-              <div className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl">
-                <PuffcoLogo
-                  style={{
-                    color:
-                      DeviceModelColors[
-                        ProductModelMap[instance.deviceModel || "0"]
-                      ],
-                  }}
-                />
-              </div>
-            </Tippy>
-          ) : (
-            <></>
-          )}
-          <Tippy content="Leave Group" placement="bottom">
-            <div
-              className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl text-red-400"
-              onClick={() => router.push("/")}
-            >
-              <Leave />
-            </div>
-          </Tippy>
-          <Tippy content="Group Reactions" placement="bottom">
-            <div>
+            ) : (
+              <></>
+            )}
+            {deviceConnected ? (
               <Tippy
                 arrow={false}
-                content={
-                  <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-72">
-                    <p className="text-lg font-bold">Reactions</p>
-                    <span className="flex flex-wrap">
-                      {[
-                        "👍",
-                        "✌️",
-                        "👋",
-                        "🤙",
-                        "😂",
-                        "😮‍💨",
-                        "🤬",
-                        "🤯",
-                        "🫠",
-                        "🫡",
-                        "💨",
-                        "🚬",
-                        "🗡️",
-                        "🕐",
-                        "⏭️",
-                        "⏳",
-                        "🎙️",
-                        "🔥",
-                      ].map((emoji) => (
-                        <span
-                          key={emoji}
-                          className="w-9 select-none text-lg flex justify-center items-center rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 m-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
-                          onClick={() => {
-                            gateway.send(Op.SendReaction, { emoji });
-                          }}
-                        >
-                          {emoji}
-                        </span>
-                      ))}
-                    </span>
-                  </div>
-                }
                 interactive
-                zIndex={50000}
+                content={
+                  <span className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md space-y-2 p-2 w-72">
+                    <Tippy
+                      trigger="click"
+                      interactive
+                      content={
+                        <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-72">
+                          <p className="text-lg font-bold">Profiles</p>
+                          <span className="flex flex-col flex-wrap">
+                            {Object.keys(deviceProfiles).map((key) => (
+                              <span
+                                key={key}
+                                className="select-none text-lg flex justify-between items-center rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 m-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
+                                onClick={async () => {
+                                  await instance.switchProfile(Number(key));
+                                  toast(
+                                    `Switched device profile to ${deviceProfiles[key].name}`
+                                  );
+                                }}
+                              >
+                                <p className="">{deviceProfiles[key].name}</p>
+                                <span className="flex items-center space-x-2">
+                                  <p className="text-sm">
+                                    {deviceProfiles[key].time}
+                                  </p>
+                                  <p className="opacity-40 text-sm">@</p>
+                                  <p>
+                                    {Math.round(
+                                      deviceProfiles[key].temp * 1.8 + 32
+                                    )}
+                                    °
+                                  </p>
+                                </span>
+                              </span>
+                            ))}
+                          </span>
+                        </div>
+                      }
+                    >
+                      <span className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between">
+                        <p>Switch Profile</p>
+                        <ArrowSwitch />
+                      </span>
+                    </Tippy>
+                    <span
+                      className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
+                      onClick={() => setDeviceSettingsModalOpen(true)}
+                    >
+                      <p>Device Settings</p>
+                      <DeviceSettings />
+                    </span>
+                    <span
+                      className="flex p-2 rounded-md text-red-400 dark:text-red-400 bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
+                      onClick={() => disconnect()}
+                    >
+                      <p>Disconnect</p>
+                      <BluetoothDisabled />
+                    </span>
+                  </span>
+                }
                 placement="bottom-start"
-                trigger="click"
               >
                 <div className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl">
-                  <Reaction />
+                  <PuffcoLogo
+                    style={{
+                      color:
+                        DeviceModelColors[
+                          ProductModelMap[instance.deviceModel || "0"]
+                        ],
+                    }}
+                  />
                 </div>
               </Tippy>
-            </div>
-          </Tippy>
-        </span>
+            ) : (
+              <></>
+            )}
+            <Tippy content="Leave Group" placement="bottom">
+              <div
+                className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl text-red-400"
+                onClick={() => router.push("/")}
+              >
+                <Leave />
+              </div>
+            </Tippy>
+            <Tippy content="Group Reactions" placement="bottom">
+              <div>
+                <Tippy
+                  arrow={false}
+                  content={
+                    <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-72">
+                      <p className="text-lg font-bold">Reactions</p>
+                      <span className="flex flex-wrap">
+                        {[
+                          "👍",
+                          "✌️",
+                          "👋",
+                          "🤙",
+                          "😂",
+                          "😮‍💨",
+                          "🤬",
+                          "🤯",
+                          "🫠",
+                          "🫡",
+                          "💨",
+                          "🚬",
+                          "🗡️",
+                          "🕐",
+                          "⏭️",
+                          "⏳",
+                          "🎙️",
+                          "🔥",
+                        ].map((emoji) => (
+                          <span
+                            key={emoji}
+                            className="w-9 select-none text-lg flex justify-center items-center rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 m-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
+                            onClick={() => {
+                              gateway.send(Op.SendReaction, { emoji });
+                            }}
+                          >
+                            {emoji}
+                          </span>
+                        ))}
+                      </span>
+                    </div>
+                  }
+                  interactive
+                  zIndex={50000}
+                  placement="bottom-start"
+                  trigger="click"
+                >
+                  <div className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl">
+                    <Reaction />
+                  </div>
+                </Tippy>
+              </div>
+            </Tippy>
+          </span>
+        </>
       ) : (
         <></>
       )}

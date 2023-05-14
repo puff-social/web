@@ -62,12 +62,13 @@ interface GroupMemberProps {
   connectToDevice?: Function;
   user?: User;
   headless?: boolean;
+  connectDismissed: boolean;
+  setConnectDismissed?: Dispatch<SetStateAction<boolean>>;
   setStrainModalOpen?: Dispatch<SetStateAction<boolean>>;
 }
 
 export function GroupMember(props: GroupMemberProps) {
   const userActionsButton = useRef<HTMLSpanElement>();
-  const [connectDismissed, setConnectDismissed] = useState(false);
   const [hoveringCard, setHoveringCard] = useState(false);
   const [currentState, setCurrentState] = useState<number>(props.device?.state);
   const [stateTimer, setStateTimer] = useState<number>(0);
@@ -127,6 +128,26 @@ export function GroupMember(props: GroupMemberProps) {
     return <></>;
   }
 
+  if (!bluetooth && props.us && !props.nobody && !props.connectDismissed)
+    return (
+      <div className="flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md m-1 px-8 w-[440px] h-72 justify-center items-center">
+        <span className="flex flex-col space-y-8 justify-between items-center">
+          <h3 className="text-center text-lg">Bluetooth not supported</h3>
+          <p className="text-center text-small break-normal px-2">
+            The browser you're using doesn't support bluetooth, switch to a
+            chromeium based browser like Google Chrome or Edge to connect a
+            device.
+          </p>
+          <button
+            className="w-32 self-center rounded-md bg-gray-700 hover:bg-gray-800 text-white p-1"
+            onClick={() => props.setConnectDismissed(true)}
+          >
+            Dismiss
+          </button>
+        </span>
+      </div>
+    );
+
   if (!bluetooth && props.us && props.nobody)
     return (
       <div className="flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md m-4 px-8 w-[440px] h-72 justify-center items-center">
@@ -153,12 +174,12 @@ export function GroupMember(props: GroupMemberProps) {
       </div>
     );
   else if (!bluetooth && props.us) return <></>;
-  if (props.us && !props.connected && connectDismissed) return <></>;
+  if (props.us && !props.connected && props.connectDismissed) return <></>;
 
   return (
     <div
       className={`flex justify-center items-center m-1 h-72 w-[440px] ${
-        !!props.device
+        props.device
           ? props.member?.user?.flags & UserFlags.admin
             ? "rounded-md bg-gradient-to-r from-blue-500/60 to-purple-700/60 p-px"
             : props.member?.user?.flags & UserFlags.supporter
@@ -564,7 +585,7 @@ export function GroupMember(props: GroupMemberProps) {
               </button>
               <button
                 className="w-32 self-center rounded-md bg-gray-700 hover:bg-gray-800 text-white p-1"
-                onClick={() => setConnectDismissed(true)}
+                onClick={() => props.setConnectDismissed(true)}
               >
                 Dismiss
               </button>

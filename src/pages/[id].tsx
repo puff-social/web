@@ -73,6 +73,8 @@ export default function Group({
   const [chatBoxOpen, setChatBoxOpen] = useState(false);
   const [chatUnread, setChatUnread] = useState(false);
 
+  const [connectDismissed, setConnectDismissed] = useState(false);
+
   const [ourLeaderboardPosition, setOurLeaderboardPosition] =
     useState<number>(0);
   const [usAway, setUsAway] = useState(false);
@@ -816,6 +818,8 @@ export default function Group({
                     setUserSettingsModalOpen={setUserSettingsModalOpen}
                     setFeedbackModalOpen={setFeedbackModalOpen}
                     setLeaderboardOpen={setLeaderboardOpen}
+                    connectDismissed={connectDismissed}
+                    connectToDevice={connectToDevice}
                   />
                 </>
               ) : (
@@ -851,6 +855,8 @@ export default function Group({
                 disconnected={usDisconnected}
                 headless={headless}
                 us
+                setConnectDismissed={setConnectDismissed}
+                connectDismissed={connectDismissed}
               />
               {groupMembers
                 .filter(
@@ -867,6 +873,8 @@ export default function Group({
                     group={group}
                     headless={headless}
                     key={member.session_id}
+                    setConnectDismissed={setConnectDismissed}
+                    connectDismissed={connectDismissed}
                   />
                 ))}
               {seshers == 1 ? (
