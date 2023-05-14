@@ -125,7 +125,7 @@ export function GroupActions({
       {group ? (
         <>
           {!deviceConnected && connectDismissed && bluetooth ? (
-            <Tippy content="Connect bluetooth" placement="bottom">
+            <Tippy content="Connect Device" placement="bottom">
               <div
                 className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
                 onClick={() => connectToDevice(true)}

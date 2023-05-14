@@ -98,11 +98,10 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                       </p>
 
                       <p>
-                        After getting the basic device functions triggering from
-                        my code and then working out pulling data from the
-                        devices, I put together a realtime socket server in
-                        Elixir (I used this as it's a great go-to for realtime
-                        concurrency and I'm familiar enough with it to
+                        After getting the essential device functions and data
+                        working from my code, I put together a realtime socket
+                        server in Elixir (I used this as it's a great go-to for
+                        realtime concurrency and I'm familiar enough with it to
                         accomplish the task) and then I put together this very
                         react web app (using Next.js, Tailwind, and a few other
                         tools. See the source below for more)
@@ -138,7 +137,7 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                         >
                           Discord
                         </a>{" "}
-                        and become apart of our growing community, maybe we can
+                        and become a part of our growing community, maybe we can
                         sesh up sometime :)
                       </p>
 
