@@ -1,11 +1,6 @@
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useRef, useState } from "react";
+import { Popover } from "@headlessui/react";
+
 import { BluetoothDisabled } from "./icons/Bluetooth";
 import { Edit } from "./icons/Edit";
 import { Info } from "./icons/Info";
@@ -27,7 +22,6 @@ import toast from "react-hot-toast";
 import { GiftBox } from "./icons/GiftBox";
 import { DeviceSettings } from "./icons/DeviceSettings";
 import { Discord } from "./icons/Discord";
-import { callbackDiscordOAuth, getDiscordOAuth } from "../utils/hash";
 import { useDispatch, useSelector } from "react-redux";
 import { selectSessionState, setSessionState } from "../state/slices/session";
 import { Device } from "../utils/puffco";
@@ -35,8 +29,14 @@ import { Instagram } from "./icons/Instagram";
 import { LoginModal } from "./modals/Login";
 import { Account } from "./icons/Account";
 import { AccountSettingsModal } from "./modals/AccountSettings";
-import { NameDisplay } from "../utils/constants";
+import {
+  DeviceModelColors,
+  NameDisplay,
+  ProductModelMap,
+} from "../utils/constants";
 import { InfoModal } from "./modals/Info";
+import { Hamburger } from "./icons/Hamburger";
+import { PuffcoLogo } from "./icons/Puffco";
 
 interface ActionsProps {
   group?: GatewayGroup;
@@ -119,7 +119,7 @@ export function GroupActions({
                 typeof mem.device_state == "object" &&
                 Object.keys(mem.device_state || {}).length > 0
             ).length != seshers ? (
-              <Tippy content="Start Sesh" placement="bottom">
+              <Tippy content="Start a group sesh" placement="bottom">
                 <div
                   className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl text-green-500 dark:text-green-200"
                   onClick={() => gateway.send(Op.InquireHeating)}
@@ -156,58 +156,6 @@ export function GroupActions({
           ) : (
             <></>
           )}
-          {[GroupState.Awaiting, GroupState.Chilling].includes(group.state) &&
-          deviceConnected ? (
-            <Tippy content="Device Profile" placement="bottom">
-              <div>
-                <Tippy
-                  content={
-                    <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-72">
-                      <p className="text-lg font-bold">Profiles</p>
-                      <span className="flex flex-col flex-wrap">
-                        {Object.keys(deviceProfiles).map((key) => (
-                          <span
-                            key={key}
-                            className="select-none text-lg flex justify-between items-center rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 m-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
-                            onClick={async () => {
-                              await instance.switchProfile(Number(key));
-                              toast(
-                                `Switched device profile to ${deviceProfiles[key].name}`
-                              );
-                            }}
-                          >
-                            <p className="">{deviceProfiles[key].name}</p>
-                            <span className="flex items-center space-x-2">
-                              <p className="text-sm">
-                                {deviceProfiles[key].time}
-                              </p>
-                              <p className="opacity-40 text-sm">@</p>
-                              <p>
-                                {Math.round(
-                                  deviceProfiles[key].temp * 1.8 + 32
-                                )}
-                                °
-                              </p>
-                            </span>
-                          </span>
-                        ))}
-                      </span>
-                    </div>
-                  }
-                  interactive
-                  zIndex={50000}
-                  placement="bottom-start"
-                  trigger="click"
-                >
-                  <div className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl">
-                    <ArrowSwitch />
-                  </div>
-                </Tippy>
-              </div>
-            </Tippy>
-          ) : (
-            <></>
-          )}
           {gateway.session_id == group.owner_session_id ? (
             <Tippy content="Edit Group" placement="bottom">
               <div
@@ -221,24 +169,80 @@ export function GroupActions({
             <></>
           )}
           {deviceConnected ? (
-            <Tippy content="Disconnect Device" placement="bottom">
-              <div
-                className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl text-red-400"
-                onClick={() => disconnect()}
-              >
-                <BluetoothDisabled />
-              </div>
-            </Tippy>
-          ) : (
-            <></>
-          )}
-          {deviceConnected ? (
-            <Tippy content="Device Settings" placement="bottom">
-              <div
-                className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-                onClick={() => setDeviceSettingsModalOpen(true)}
-              >
-                <DeviceSettings />
+            <Tippy
+              arrow={false}
+              interactive
+              content={
+                <span className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md space-y-2 p-2 w-72">
+                  <Tippy
+                    trigger="click"
+                    interactive
+                    content={
+                      <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-72">
+                        <p className="text-lg font-bold">Profiles</p>
+                        <span className="flex flex-col flex-wrap">
+                          {Object.keys(deviceProfiles).map((key) => (
+                            <span
+                              key={key}
+                              className="select-none text-lg flex justify-between items-center rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 m-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
+                              onClick={async () => {
+                                await instance.switchProfile(Number(key));
+                                toast(
+                                  `Switched device profile to ${deviceProfiles[key].name}`
+                                );
+                              }}
+                            >
+                              <p className="">{deviceProfiles[key].name}</p>
+                              <span className="flex items-center space-x-2">
+                                <p className="text-sm">
+                                  {deviceProfiles[key].time}
+                                </p>
+                                <p className="opacity-40 text-sm">@</p>
+                                <p>
+                                  {Math.round(
+                                    deviceProfiles[key].temp * 1.8 + 32
+                                  )}
+                                  °
+                                </p>
+                              </span>
+                            </span>
+                          ))}
+                        </span>
+                      </div>
+                    }
+                  >
+                    <span className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between">
+                      <p>Switch Profile</p>
+                      <ArrowSwitch />
+                    </span>
+                  </Tippy>
+                  <span
+                    className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
+                    onClick={() => setDeviceSettingsModalOpen(true)}
+                  >
+                    <p>Device Settings</p>
+                    <DeviceSettings />
+                  </span>
+                  <span
+                    className="flex p-2 rounded-md text-red-400 dark:text-red-400 bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
+                    onClick={() => disconnect()}
+                  >
+                    <p>Disconnect</p>
+                    <BluetoothDisabled />
+                  </span>
+                </span>
+              }
+              placement="bottom-start"
+            >
+              <div className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl">
+                <PuffcoLogo
+                  style={{
+                    color:
+                      DeviceModelColors[
+                        ProductModelMap[instance.deviceModel || "0"]
+                      ],
+                  }}
+                />
               </div>
             </Tippy>
           ) : (
@@ -316,52 +320,60 @@ export function GroupActions({
           <Settings />
         </div>
       </Tippy>
-      <Tippy content="Discord Server" placement="bottom">
-        <div
-          className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-          onClick={() => window.open("https://discord.gg/M4uYMyU7bC")}
-        >
-          <Discord />
-        </div>
-      </Tippy>
-      <Tippy content="Instagram" placement="bottom">
-        <div
-          className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-          onClick={() => window.open("https://instagram.com/puffdotsocial")}
-        >
-          <Instagram />
-        </div>
-      </Tippy>
-      <Tippy content="Information" placement="bottom">
-        <div
-          className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-          onClick={() => setInfoOpen(true)}
-        >
-          <Info />
-        </div>
-      </Tippy>
-      <Tippy content="Send Feedback" placement="bottom">
-        <div
-          className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-          onClick={() => setFeedbackModalOpen(true)}
-        >
-          <Mail />
-        </div>
-      </Tippy>
-      <Tippy content="Support Development" placement="bottom">
-        <div
-          className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
-          onClick={() => window.open("https://dstn.to/sponsor")}
-        >
-          <GiftBox />
-        </div>
-      </Tippy>
       <Tippy content="Dab Leaderboard" placement="bottom">
         <div
           className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
           onClick={() => setLeaderboardOpen(true)}
         >
           <LeaderboardIcon />
+        </div>
+      </Tippy>
+      <Tippy
+        arrow={false}
+        interactive
+        content={
+          <span className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md space-y-2 p-2 w-72">
+            <span
+              className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
+              onClick={() => setInfoOpen(true)}
+            >
+              <p>About</p>
+              <Info />
+            </span>
+            <span
+              className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
+              onClick={() => window.open("https://dstn.to/sponsor")}
+            >
+              <p>Support Development</p>
+              <GiftBox />
+            </span>
+            <span
+              className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
+              onClick={() => setFeedbackModalOpen(true)}
+            >
+              <p>Submit Feedback</p>
+              <Mail />
+            </span>
+            <span
+              className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
+              onClick={() => window.open("https://instagram.com/puffdotsocial")}
+            >
+              <p>Instagram</p>
+              <Instagram />
+            </span>
+            <span
+              className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
+              onClick={() => window.open("https://discord.gg/M4uYMyU7bC")}
+            >
+              <p>Discord</p>
+              <Discord />
+            </span>
+          </span>
+        }
+        placement="bottom-start"
+      >
+        <div className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl">
+          <Hamburger />
         </div>
       </Tippy>
       <span className="pl-3 flex flex-row">

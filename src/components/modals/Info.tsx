@@ -40,50 +40,54 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
               <Dialog.Panel className="w-full max-w-screen-xl transform overflow-hidden rounded-2xl bg-white dark:bg-neutral-800 text-black dark:text-white p-6 text-left align-middle shadow-xl transition-all">
                 <div className="flex flex-col rounded-md space-y-4 justify-center">
                   <p className="text-2xl font-bold">About</p>
-                  <p className="w-[700px]">
-                    <span className="font-bold">Firmware Note:</span> This
-                    should work with any device running firmware X or later, and
-                    has been validated to work with firmware{" "}
-                    <span className="font-bold text-teal-100 bg-gray-700 px-1 rounded-md">
-                      Y
-                    </span>
-                    ,{" "}
-                    <span className="font-bold text-teal-100 bg-gray-700 px-1 rounded-md">
-                      Z
-                    </span>
-                    ,{" "}
-                    <span className="font-bold text-teal-100 bg-gray-700 px-1 rounded-md">
-                      AA
-                    </span>
-                    ,{" "}
-                    <span className="font-bold text-teal-100 bg-gray-700 px-1 rounded-md">
-                      AC
-                    </span>{" "}
-                    and{" "}
-                    <span className="font-bold text-teal-100 bg-gray-700 px-1 rounded-md">
-                      AE
-                    </span>{" "}
-                  </p>
-                  <p className="w-[700px]">
-                    <span className="font-bold">Browser Note:</span> This will
-                    only work on browsers that support the Bluetooth API, so
-                    most likely if you don't use Google Chrome, you're probably
-                    only here to watch. (iOS can use the Path Browser, however
-                    it's fairly slow and there is a better option in the works
-                    soon)
-                  </p>
+                  <span className="flex flex-row space-x-2">
+                    <div className="flex flex-col bg-neutral-700 rounded-md p-2">
+                      <p className="font-bold">Device Firmware Note:</p>
+                      <p>
+                        This has been proven to work with any device running
+                        firmware X or later, and has been personally validated
+                        to work with firmwares{" "}
+                        <span className="font-bold text-teal-100 bg-gray-600 px-1 rounded-md">
+                          Y
+                        </span>
+                        ,{" "}
+                        <span className="font-bold text-teal-100 bg-gray-600 px-1 rounded-md">
+                          Z
+                        </span>
+                        ,{" "}
+                        <span className="font-bold text-teal-100 bg-gray-600 px-1 rounded-md">
+                          AA
+                        </span>
+                        ,{" "}
+                        <span className="font-bold text-teal-100 bg-gray-600 px-1 rounded-md">
+                          AC
+                        </span>{" "}
+                        and{" "}
+                        <span className="font-bold text-teal-100 bg-gray-600 px-1 rounded-md">
+                          AE
+                        </span>{" "}
+                      </p>
+                    </div>
+                    <div className="flex flex-col bg-neutral-700 rounded-md p-2">
+                      <p className="font-bold">Browser Note:</p>
+                      <p>
+                        Most browsers don't support the bluetooth API however
+                        most Chromium based browsers do, like Chrome, or Edge.
+                      </p>
+                    </div>
+                  </span>
 
                   <hr className="opacity-20" />
 
                   <span className="flex flex-row space-x-4">
-                    <span className="w-96">
-                      <img className="w-fit rounded-md" src="/puff.webp" />
+                    <span className="w-full">
+                      <img className="w-96 rounded-md" src="/puff.webp" />
                       <p className="flex text-sm italic opacity-40 break-words flex-wrap">
                         Older design is pictured, updating this graphic soon.
                       </p>
                     </span>
                     <span className="flex flex-col rounded-md space-y-4">
-                      <p className="w-[700px]">
+                      <p>
                         So I built this because a couple of friends and I would
                         count down starting our puffcos over discord, and after
                         some time we wanted an easier solution. I've dug into
@@ -93,7 +97,7 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                         functionality.
                       </p>
 
-                      <p className="w-[700px]">
+                      <p>
                         After getting the basic device functions triggering from
                         my code and then working out pulling data from the
                         devices, I put together a realtime socket server in
@@ -104,7 +108,7 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                         tools. See the source below for more)
                       </p>
 
-                      <p className="w-[700px]">
+                      <p>
                         If you encounter any issues, let us know in the discord
                         below or you can DM me on Twitter (
                         <a
@@ -125,7 +129,7 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                         )
                       </p>
 
-                      <p className="w-[700px]">
+                      <p>
                         Join our{" "}
                         <a
                           className="text-blue-700 dark:text-blue-400"
@@ -138,7 +142,7 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                         sesh up sometime :)
                       </p>
 
-                      <p className="w-[700px]">
+                      <p>
                         Follow our{" "}
                         <a
                           className="text-blue-700 dark:text-blue-400"
@@ -156,7 +160,7 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
 
                   <hr className="opacity-20" />
 
-                  <p className="w-[700px] flex flex-col">
+                  <p className="w flex flex-col">
                     The source for the application and server side code is open,
                     you can find the various repositories below.
                     <span className="pt-1">
@@ -191,12 +195,14 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                     </span>
                   </p>
 
-                  <p className="w-[700px] italic text-sm">
+                  <p className="w italic text-sm">
                     Shoutout to Puffco for being so awesome and allowing me to
                     run this platform, would love to work together on something
-                    in the future. React out if you wanna work together or wanna
-                    talk about how this works{" "}
-                    <a href="mailto:contact@puff.social">contact@puff.social</a>
+                    in the future. Reach out if you wanna work together or talk
+                    about how this all works{" "}
+                    <a href="mailto:contact@puff.social">contact@puff.social</a>{" "}
+                    (Would love to pick someones brain about this new protocol
+                    😉)
                   </p>
                 </div>
                 <button
