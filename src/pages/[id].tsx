@@ -878,7 +878,11 @@ export default function Group({
                   />
                 ))}
               {seshers == 1 ? (
-                <GroupMember nobodyelse headless={headless} />
+                <GroupMember
+                  nobodyelse
+                  headless={headless}
+                  connectDismissed={connectDismissed}
+                />
               ) : (
                 <></>
               )}
