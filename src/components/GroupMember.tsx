@@ -135,7 +135,7 @@ export function GroupMember(props: GroupMemberProps) {
           <h3 className="text-center text-lg">Bluetooth not supported</h3>
           <p className="text-center text-small break-normal px-2">
             The browser you're using doesn't support bluetooth, switch to a
-            chromeium based browser like Google Chrome or Edge to connect a
+            chromium based browser like Google Chrome or Edge to connect a
             device.
           </p>
           <button
