@@ -353,11 +353,15 @@ export function GroupMember(props: GroupMemberProps) {
                     props.device.activeColor.b}
                 </p>
                 <span className="flex flex-row space-x-2 items-center">
-                  <Tippy content="Leaderboard Position" placement="top-start">
-                    <div className="flex items-center rounded-md px-1 bg-white dark:bg-neutral-700 drop-shadow-xl text-black dark:text-white">
-                      <p className="opacity-70">#{leaderboardPos}</p>
-                    </div>
-                  </Tippy>
+                  {props.member?.user ? (
+                    <Tippy content="Leaderboard Position" placement="top-start">
+                      <div className="flex items-center rounded-md px-1 bg-white dark:bg-neutral-700 drop-shadow-xl text-black dark:text-white">
+                        <p className="opacity-70">#{leaderboardPos || "N/A"}</p>
+                      </div>
+                    </Tippy>
+                  ) : (
+                    <></>
+                  )}
                   {(props.us ? props.strain : props.member?.strain) ? (
                     <Tippy
                       content={props.us ? props.strain : props.member?.strain}
