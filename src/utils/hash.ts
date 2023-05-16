@@ -5,6 +5,7 @@ import {
   DiagData,
   User,
   DeviceInformation,
+  Connection,
 } from "../types/api";
 
 export const API_URL =
@@ -101,7 +102,11 @@ export async function callbackDiscordOAuth(code: string, state: string) {
     { method: "POST" }
   );
   if (req.status != 200) throw { code: "invalid_oauth_state" };
-  return (await req.json()) as APIResponse<{ user: User; token: string }>;
+  return (await req.json()) as APIResponse<{
+    user: User;
+    connection: Connection;
+    token: string;
+  }>;
 }
 
 export async function getCurrentUser() {
@@ -109,7 +114,10 @@ export async function getCurrentUser() {
     headers: { authorization: localStorage.getItem("puff-social-auth") },
   });
   if (req.status != 200) throw { code: "invalid_authentication" };
-  return (await req.json()) as APIResponse<{ user: User }>;
+  return (await req.json()) as APIResponse<{
+    user: User;
+    connection: Connection;
+  }>;
 }
 
 export async function loginWithPuffco(email: string, password: string) {
@@ -126,7 +134,11 @@ export async function loginWithPuffco(email: string, password: string) {
         .then((r) => r)
         .catch(() => null),
     };
-  return (await req.json()) as APIResponse<{ user: User; token: string }>;
+  return (await req.json()) as APIResponse<{
+    user: User;
+    connection: Connection;
+    token: string;
+  }>;
 }
 
 export async function updateUser(object: Partial<User>) {

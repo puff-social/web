@@ -1,13 +1,14 @@
 import { Fragment, useCallback, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Dialog, Transition } from "@headlessui/react";
 
-import { selectSessionState } from "../../state/slices/session";
-import { NameDisplay } from "../../utils/constants";
+import {
+  selectSessionState,
+  setSessionState,
+} from "../../state/slices/session";
 import { Checkmark } from "../icons/Checkmark";
 import { updateUser } from "../../utils/hash";
 import toast from "react-hot-toast";
-import { Tippy } from "../Tippy";
 
 interface Props {
   modalOpen: boolean;
@@ -16,19 +17,21 @@ interface Props {
 
 export function AccountSettingsModal({ modalOpen, setModalOpen }: Props) {
   const session = useSelector(selectSessionState);
+  const dispatch = useDispatch();
 
-  const [nameDisplayMode, setNameDisplayMode] = useState(
-    session.user.name_display
-  );
+  const [name] = useState(session.user.name);
+  const [display_name, setDisplayName] = useState(session.user.display_name);
+  const [bio, setBio] = useState(session.user.bio || "");
 
   const saveSettings = useCallback(async () => {
-    await updateUser({ name_display: nameDisplayMode });
+    await updateUser({ display_name, ...(bio ? { bio } : null) });
     toast("Updated account", {
       position: "top-right",
       duration: 2000,
       icon: <Checkmark />,
     });
-  }, [nameDisplayMode]);
+    dispatch(setSessionState({ user: { ...session.user, display_name, bio } }));
+  }, [name, display_name, bio]);
 
   return (
     <Transition appear show={modalOpen} as={Fragment}>
@@ -71,114 +74,48 @@ export function AccountSettingsModal({ modalOpen, setModalOpen }: Props) {
                 <div className="mt-2">
                   <span className="flex flex-col space-y-2">
                     <span className="flex flex-row justify-between">
-                      <p className="font-bold">Display Name</p>
+                      <p className="font-bold">Username</p>
                       <p className="font-bold opacity-40">
-                        {nameDisplayMode == NameDisplay.FirstName
-                          ? session.user.first_name
-                          : nameDisplayMode == NameDisplay.FirstLast
-                          ? `${session.user.first_name} ${session.user.last_name}`
-                          : session.user.name}
+                        {session.user.name}
                       </p>
                     </span>
-
                     <span className="flex flex-row justify-between">
                       <p className="font-bold">Account Platform</p>
                       <p className="font-bold opacity-40">
-                        {session.user.platform.replace(/(\w+)/g, function (x) {
-                          return x[0].toUpperCase() + x.substring(1);
-                        })}
+                        {session.connection.platform.replace(
+                          /(\w+)/g,
+                          function (x) {
+                            return x[0].toUpperCase() + x.substring(1);
+                          }
+                        )}
+                      </p>
+                    </span>
+                    <span className="flex flex-col space-y-2">
+                      <p className="font-bold">Display Name</p>
+                      <input
+                        className="flex p-2 rounded-md text-white dark:text-black"
+                        maxLength={48}
+                        value={display_name}
+                        onChange={({ target: { value } }) =>
+                          setDisplayName(value)
+                        }
+                      />
+                    </span>
+                    <span className="flex flex-col space-y-2">
+                      <p className="font-bold">Bio</p>
+                      <textarea
+                        className="flex p-2 rounded-md text-white dark:text-black"
+                        maxLength={768}
+                        value={bio || ""}
+                        onChange={({ target: { value } }) => setBio(value)}
+                      />
+                      <p className="opacity-50 text-right text-sm">
+                        {bio.length} / 768
                       </p>
                     </span>
                   </span>
 
                   <hr className="my-2" />
-
-                  <Tippy
-                    content="Disabled unless logged in with a puffco account"
-                    disabled={session.user.platform == "puffco"}
-                    placement="bottom"
-                    followCursor
-                    arrow
-                  >
-                    <span
-                      className={`flex flex-col space-y-2 justify-between ${
-                        session.user?.platform != "puffco"
-                          ? "brightness-50"
-                          : ""
-                      }`}
-                    >
-                      <p className="font-bold w-full">Display Name Behaviour</p>
-
-                      <span className="flex flex-row space-x-2 items-center">
-                        <span
-                          className={`p-4 bg-white dark:bg-stone-800 drop-shadow-lg ${
-                            session.user?.platform == "puffco"
-                              ? "hover:bg-gray-300 dark:hover:bg-stone-900"
-                              : ""
-                          } rounded-md w-full flex flex-row justify-between items-center`}
-                          onClick={() =>
-                            session.user?.platform == "puffco"
-                              ? setNameDisplayMode(NameDisplay.Default)
-                              : false
-                          }
-                        >
-                          <span className="flex flex-row items-center">
-                            <p>Default</p>
-                          </span>
-                          {nameDisplayMode == NameDisplay.Default ? (
-                            <Checkmark className="h-5 text-green-600 dark:text-green-500" />
-                          ) : (
-                            <></>
-                          )}
-                        </span>
-                      </span>
-
-                      <span className="flex flex-row space-x-2 items-center">
-                        <span
-                          className={`p-4 bg-white dark:bg-stone-800 drop-shadow-lg ${
-                            session.user?.platform == "puffco"
-                              ? "hover:bg-gray-300 dark:hover:bg-stone-900"
-                              : ""
-                          } rounded-md w-full flex flex-row justify-between items-center`}
-                          onClick={() =>
-                            session.user?.platform == "puffco"
-                              ? setNameDisplayMode(NameDisplay.FirstName)
-                              : false
-                          }
-                        >
-                          <span className="flex flex-row items-center">
-                            <p>First Name</p>
-                          </span>
-                          {nameDisplayMode == NameDisplay.FirstName ? (
-                            <Checkmark className="h-5 text-green-600 dark:text-green-500" />
-                          ) : (
-                            <></>
-                          )}
-                        </span>
-                        <span
-                          className={`p-4 bg-white dark:bg-stone-800 drop-shadow-lg ${
-                            session.user?.platform == "puffco"
-                              ? "hover:bg-gray-300 dark:hover:bg-stone-900"
-                              : ""
-                          } rounded-md w-full flex flex-row justify-between items-center`}
-                          onClick={() =>
-                            session.user?.platform == "puffco"
-                              ? setNameDisplayMode(NameDisplay.FirstLast)
-                              : false
-                          }
-                        >
-                          <span className="flex flex-row items-center">
-                            <p>First/Last</p>
-                          </span>
-                          {nameDisplayMode == NameDisplay.FirstLast ? (
-                            <Checkmark className="h-5 text-green-600 dark:text-green-500" />
-                          ) : (
-                            <></>
-                          )}
-                        </span>
-                      </span>
-                    </span>
-                  </Tippy>
 
                   <button
                     className="w-full self-center rounded-md bg-indigo-600 hover:bg-indigo-700 p-2 mt-3 text-white"

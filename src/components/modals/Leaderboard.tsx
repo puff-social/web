@@ -7,7 +7,7 @@ import { LeaderboardEntry } from "../../types/api";
 import { automaticRelativeDifference } from "../../utils/time";
 import { Tippy } from "../Tippy";
 import { ChargeSource } from "../../utils/puffco/constants";
-import { NameDisplay, ProductModelMap } from "../../utils/constants";
+import { ProductModelMap } from "../../utils/constants";
 import { PuffcoContainer } from "../puffco";
 import { PuffcoOperatingState } from "../../types/gateway";
 
@@ -61,11 +61,7 @@ function LeaderboardItem({
                   }.${lb.devices.users.image.startsWith("a_") ? "gif" : "png"}`}
                 />
                 <p className="opacity-60 italic truncate">
-                  {lb.devices.users.name_display == NameDisplay.FirstName
-                    ? lb.devices.users.first_name
-                    : lb.devices.users.name_display == NameDisplay.FirstLast
-                    ? `${lb.devices.users.first_name} ${lb.devices.users.last_name}`
-                    : lb.devices.users.name}
+                  {lb.devices.users.display_name}
                 </p>
               </>
             ) : (
@@ -73,11 +69,7 @@ function LeaderboardItem({
                 {lb.devices.user_id ? (
                   <>
                     <p className="opacity-60 italic truncate">
-                      {lb.devices.users.name_display == NameDisplay.FirstName
-                        ? lb.devices.users.first_name
-                        : lb.devices.users.name_display == NameDisplay.FirstLast
-                        ? `${lb.devices.users.first_name} ${lb.devices.users.last_name}`
-                        : lb.devices.users.name}
+                      {lb.devices.users.display_name}
                     </p>
                   </>
                 ) : (
@@ -228,14 +220,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                                               }`}
                                             />
                                             <p className="opacity-60 italic truncate">
-                                              {lb.devices.users.name_display ==
-                                              NameDisplay.FirstName
-                                                ? lb.devices.users.first_name
-                                                : lb.devices.users
-                                                    .name_display ==
-                                                  NameDisplay.FirstLast
-                                                ? `${lb.devices.users.first_name} ${lb.devices.users.last_name}`
-                                                : lb.devices.users.name}
+                                              {lb.devices.users.display_name}
                                             </p>
                                           </>
                                         ) : (
@@ -243,16 +228,10 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                                             {lb.devices.users.id ? (
                                               <>
                                                 <p className="opacity-60 italic truncate">
-                                                  {lb.devices.users
-                                                    .name_display ==
-                                                  NameDisplay.FirstName
-                                                    ? lb.devices.users
-                                                        .first_name
-                                                    : lb.devices.users
-                                                        .name_display ==
-                                                      NameDisplay.FirstLast
-                                                    ? `${lb.devices.users.first_name} ${lb.devices.users.last_name}`
-                                                    : lb.devices.users.name}
+                                                  {
+                                                    lb.devices.users
+                                                      .display_name
+                                                  }
                                                 </p>
                                               </>
                                             ) : (

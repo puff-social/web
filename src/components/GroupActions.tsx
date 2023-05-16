@@ -33,11 +33,7 @@ import { Instagram } from "./icons/Instagram";
 import { LoginModal } from "./modals/Login";
 import { Account } from "./icons/Account";
 import { AccountSettingsModal } from "./modals/AccountSettings";
-import {
-  DeviceModelColors,
-  NameDisplay,
-  ProductModelMap,
-} from "../utils/constants";
+import { DeviceModelColors, ProductModelMap } from "../utils/constants";
 import { InfoModal } from "./modals/Info";
 import { Hamburger } from "./icons/Hamburger";
 import { PuffcoLogo } from "./icons/Puffco";
@@ -100,7 +96,7 @@ export function GroupActions({
       duration: 2000,
       icon: <Leave />,
     });
-    dispatch(setSessionState({ user: null }));
+    dispatch(setSessionState({ user: null, connection: null }));
   }
 
   return (
@@ -444,22 +440,14 @@ export function GroupActions({
                   }.${session.user.image.startsWith("a_") ? "gif" : "png"}`}
                 />
                 <p className="mx-1 text-sm opacity-50 group-hover:opacity-100 transition-all">
-                  {session.user.name_display == NameDisplay.FirstName
-                    ? session.user.first_name
-                    : session.user.name_display == NameDisplay.FirstLast
-                    ? `${session.user.first_name} ${session.user.last_name}`
-                    : session.user.name}
+                  {session.user.display_name}
                 </p>
               </>
             ) : session.user ? (
               <>
                 <Account />
                 <p className="mx-1 text-sm opacity-50 group-hover:opacity-100 transition-all">
-                  {session.user.name_display == NameDisplay.FirstName
-                    ? session.user.first_name
-                    : session.user.name_display == NameDisplay.FirstLast
-                    ? `${session.user.first_name} ${session.user.last_name}`
-                    : session.user.name}
+                  {session.user.display_name}
                 </p>
               </>
             ) : (

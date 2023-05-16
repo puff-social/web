@@ -244,7 +244,7 @@ export default function Group({
   }
 
   function groupMemberJoin(member: GroupUserJoin) {
-    toast(`${member.user?.name || "Guest"} joined`, {
+    toast(`${member.user?.display_name || "Guest"} joined`, {
       position: "top-right",
     });
     setGroupMembers((curr) => [...curr, member]);
@@ -254,9 +254,16 @@ export default function Group({
     setGroupMembers((curr) => {
       const member = curr.find((mem) => mem.session_id == session_id);
       if (member)
-        toast(`${member.user?.name || "Guest"} left`, {
-          position: "top-right",
-        });
+        toast(
+          `${
+            member.user?.display_name ||
+            member.device_state?.deviceName ||
+            "Guest"
+          } left`,
+          {
+            position: "top-right",
+          }
+        );
       return [...curr.filter((mem) => mem.session_id != session_id)];
     });
   }
@@ -338,10 +345,17 @@ export default function Group({
             },
           });
 
-          toast(`${member.user?.name || "Guest"}: ${emoji}`, {
-            position: "top-right",
-            duration: 1000,
-          });
+          toast(
+            `${
+              member.user?.display_name ||
+              member.device_state?.deviceName ||
+              "Guest"
+            }: ${emoji}`,
+            {
+              position: "top-right",
+              duration: 1000,
+            }
+          );
         }
 
         return curr;
@@ -370,11 +384,18 @@ export default function Group({
         const initiator = groupMembers.find(
           (mem) => mem.session_id == data.session_id
         );
-        toast(`${initiator.user?.name || "Guest"} wants to start`, {
-          icon: "🔥",
-          duration: 5000,
-          position: "top-right",
-        });
+        toast(
+          `${
+            initiator.user?.name ||
+            initiator.device_state?.deviceName ||
+            "Guest"
+          } wants to start`,
+          {
+            icon: "🔥",
+            duration: 5000,
+            position: "top-right",
+          }
+        );
 
         if (!data.away && !data.watcher && !data.excluded) {
           (async () => {
@@ -406,11 +427,18 @@ export default function Group({
           curr.includes(data.session_id) ? curr : [...curr, data.session_id]
         );
 
-        toast(`${initiator.user?.name || "Guest"} is ready`, {
-          icon: "✅",
-          duration: 5000,
-          position: "top-right",
-        });
+        toast(
+          `${
+            initiator.user?.name ||
+            initiator.device_state?.deviceName ||
+            "Guest"
+          } is ready`,
+          {
+            icon: "✅",
+            duration: 5000,
+            position: "top-right",
+          }
+        );
         return groupMembers;
       });
     },
@@ -429,11 +457,18 @@ export default function Group({
         ]);
 
         if (initiator)
-          toast(`${initiator.user?.name || "Guest"} is no longer ready`, {
-            icon: "🚫",
-            duration: 5000,
-            position: "top-right",
-          });
+          toast(
+            `${
+              initiator.user?.name ||
+              initiator.device_state?.deviceName ||
+              "Guest"
+            } is no longer ready`,
+            {
+              icon: "🚫",
+              duration: 5000,
+              position: "top-right",
+            }
+          );
         return groupMembers;
       });
     },
@@ -460,7 +495,9 @@ export default function Group({
           `${
             data.session_id == gateway.session_id
               ? ourUser?.name
-              : initiator.user?.name || "Guest"
+              : initiator.user?.name ||
+                initiator.device_state?.deviceName ||
+                "Guest"
           } made the group ${data.visibility}`,
           {
             icon: data.visibility == "public" ? "🌍" : "🔒",

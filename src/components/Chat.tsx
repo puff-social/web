@@ -83,11 +83,8 @@ export function ChatBox(props: Props) {
                 <span>
                   {props.members.find(
                     (mem) => mem.session_id == message.author_session_id
-                  )?.user?.name ||
-                    props.members.find(
-                      (mem) => mem.session_id == message.author_session_id
-                    )?.name ||
-                    props.user?.name ||
+                  )?.user?.display_name ||
+                    props.user?.display_name ||
                     "Unknown User"}
                 </span>
                 <span>

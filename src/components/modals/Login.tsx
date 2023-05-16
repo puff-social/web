@@ -60,7 +60,12 @@ function LoginMode({
           token: login.data.token,
         });
 
-      dispatch(setSessionState({ user: login.data.user }));
+      dispatch(
+        setSessionState({
+          user: login.data.user,
+          connection: login.data.connection,
+        })
+      );
 
       setLoginErrors([]);
       setSubmitting(false);
@@ -276,7 +281,12 @@ export function LoginModal({ modalOpen, setModalOpen }: Props) {
               token: authed.data.token,
             });
 
-          dispatch(setSessionState({ user: authed.data.user }));
+          dispatch(
+            setSessionState({
+              user: authed.data.user,
+              connection: authed.data.connection,
+            })
+          );
 
           clearInterval(int);
           if (!child.closed) child.close();

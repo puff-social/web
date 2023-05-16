@@ -68,13 +68,19 @@ export interface DiagData {
 export interface User {
   id: string;
   name: string;
+  display_name: string;
   image: string;
+  banner: string;
   flags: number;
+  bio: string;
+}
+
+export interface Connection {
+  id: string;
   platform: string;
   platform_id: string;
-  name_display: number;
-  first_name?: string;
-  last_name?: string;
+  user_id: string;
+  verified: boolean;
 }
 
 export interface LeaderboardEntry {
