@@ -105,12 +105,12 @@ export function AccountSettingsModal({ modalOpen, setModalOpen }: Props) {
                       <p className="font-bold">Bio</p>
                       <textarea
                         className="flex p-2 rounded-md text-white dark:text-black"
-                        maxLength={768}
+                        maxLength={256}
                         value={bio || ""}
                         onChange={({ target: { value } }) => setBio(value)}
                       />
                       <p className="opacity-50 text-right text-sm">
-                        {bio.length} / 768
+                        {bio.length} / 256
                       </p>
                     </span>
                   </span>
