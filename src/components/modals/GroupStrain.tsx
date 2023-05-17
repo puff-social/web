@@ -1,8 +1,9 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { useCallback, useState, Fragment } from "react";
+import { Op } from "@puff-social/commons";
 import toast from "react-hot-toast";
 
-import { gateway, Op } from "../../utils/gateway";
+import { gateway } from "../../utils/gateway";
 
 export function GroupStrainModal({ modalOpen, setModalOpen, strain }: any) {
   const closeModal = useCallback(() => {

@@ -6,13 +6,13 @@ import { Kick } from "../icons/Kick";
 import { Crown } from "../icons/Crown";
 import { Tippy } from "../Tippy";
 import { Cross } from "../icons/Cross";
-import { Op, gateway } from "../../utils/gateway";
+import { gateway } from "../../utils/gateway";
 import { Person } from "../icons/Person";
 import { automaticRelativeDifference } from "../../utils/time";
 import { Mobile } from "../icons/Mobile";
-import { UserFlags } from "../../utils/constants";
 import { Money } from "../icons/Money";
 import { Wrench } from "../icons/Wrench";
+import { Op, UserFlags } from "@puff-social/commons";
 
 export interface ModalProps {
   modalOpen: boolean;
@@ -210,7 +210,11 @@ export function GroupMembersModal({
                 new Date(b.group_joined).getTime()
             )
             .map((member) => (
-              <GroupListMember member={member} group={group} />
+              <GroupListMember
+                key={member.session_id}
+                member={member}
+                group={group}
+              />
             ))}
         </div>
       </div>

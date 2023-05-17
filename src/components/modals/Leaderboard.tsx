@@ -6,10 +6,12 @@ import { getLeaderboard } from "../../utils/hash";
 import { LeaderboardEntry } from "../../types/api";
 import { automaticRelativeDifference } from "../../utils/time";
 import { Tippy } from "../Tippy";
-import { ChargeSource } from "../../utils/puffco/constants";
-import { ProductModelMap } from "../../utils/constants";
 import { PuffcoContainer } from "../puffco";
-import { PuffcoOperatingState } from "../../types/gateway";
+import {
+  ChargeSource,
+  ProductModelMap,
+  PuffcoOperatingState,
+} from "@puff-social/commons/dist/puffco/constants";
 
 const formatter = new Intl.RelativeTimeFormat("en", {
   style: "short",
@@ -46,7 +48,7 @@ function LeaderboardItem({
                 width={24}
                 className="ml-1"
                 src={`/emojis/${ProductModelMap[
-                  lb.devices.model || 48
+                  lb.devices.model || "48"
                 ].toLowerCase()}.png`}
               />
             </span>

@@ -14,9 +14,9 @@ import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
 import { trackDevice } from "../../utils/hash";
 import Tippy from "@tippyjs/react";
-import { ProductModelMap } from "../../utils/constants";
 import { ChamberTypeMap } from "../../utils/puffco/constants";
 import { Info } from "../icons/Info";
+import { ProductModelMap } from "@puff-social/commons/dist/puffco/constants";
 
 interface Props {
   instance: Device;

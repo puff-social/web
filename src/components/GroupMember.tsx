@@ -12,12 +12,9 @@ import {
   GatewayGroupMember,
   GatewayMemberDeviceState,
   PuffcoOperatingMap,
-  PuffcoOperatingState,
 } from "../types/gateway";
-import { ChamberType, ChargeSource } from "../utils/puffco/constants";
 import {
   EASTER_EGG_CYCLE_COUNTS,
-  ProductModelMap,
   TEMPERATURE_MAX,
   TEMPERATURE_MIN,
 } from "../utils/constants";
@@ -31,7 +28,7 @@ import { Crown } from "./icons/Crown";
 import { Icon3D } from "./icons/3DIcon";
 import { Dots } from "./icons/Dots";
 import { Kick } from "./icons/Kick";
-import { Op, gateway } from "../utils/gateway";
+import { gateway } from "../utils/gateway";
 import { getLeaderboardDevice } from "../utils/hash";
 import { ShareIcon } from "./icons/Share";
 import { Away, UnAway } from "./icons/Away";
@@ -40,8 +37,14 @@ import { Leaf } from "./icons/Leaf";
 import { PlugDisconnected } from "./icons/Plug";
 import { User } from "../types/api";
 import { Mobile } from "./icons/Mobile";
-import { UserFlags } from "../utils/constants";
 import { Money } from "./icons/Money";
+import { Op, UserFlags } from "@puff-social/commons";
+import {
+  ChamberType,
+  ChargeSource,
+  ProductModelMap,
+  PuffcoOperatingState,
+} from "@puff-social/commons/dist/puffco/constants";
 
 interface GroupMemberProps {
   name?: string;
@@ -190,8 +193,6 @@ export function GroupMember(props: GroupMemberProps) {
     >
       <div
         className={`group flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md px-4 h-full w-[440px] justify-center items-center overflow-hidden ${
-          props.member?.user?.flags & UserFlags.supporter ? "" : ""
-        } ${
           (props.us ? props.away : props.member?.away) ? "brightness-75" : ""
         }`}
         onMouseEnter={() => setHoveringCard(true)}

@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { Transition } from "@headlessui/react";
 import { Toaster, ToastIcon, toast, resolveValue } from "react-hot-toast";
 
@@ -7,14 +7,13 @@ import "tippy.js/dist/tippy.css";
 import "../assets/app.css";
 
 import { gateway } from "../utils/gateway";
-import { APIGroup, User } from "../types/api";
+import { APIGroup } from "../types/api";
 import PlausibleProvider from "next-plausible";
 import { getCurrentUser } from "../utils/hash";
 import { GatewayError, GatewayGroupCreate } from "../types/gateway";
 import { wrapper } from "../state/store";
 import { useDispatch } from "react-redux";
 import { setSessionState } from "../state/slices/session";
-import { DismissableNotices } from "../components/modals/DismissableNotice";
 
 function App({ Component, pageProps }) {
   const router = useRouter();

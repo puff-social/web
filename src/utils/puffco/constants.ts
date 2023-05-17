@@ -227,23 +227,11 @@ export const DeviceProfileReverse = [
   new Uint8Array([0, 0, 64, 64]),
 ];
 
-export enum ChamberType {
-  None,
-  Normal = 1,
-  "3D" = 3,
-}
-
 export const ChamberTypeMap = {
   0: "None",
   1: "Normal",
   3: "3D",
 };
-
-export enum ChargeSource {
-  USB,
-  Wireless,
-  None = 3,
-}
 
 export enum ColorMode {
   Preserve = 0,

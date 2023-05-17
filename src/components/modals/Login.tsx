@@ -9,13 +9,11 @@ import {
   loginWithPuffco,
 } from "../../utils/hash";
 import toast from "react-hot-toast";
-import {
-  selectSessionState,
-  setSessionState,
-} from "../../state/slices/session";
-import { gateway, Op } from "../../utils/gateway";
-import { useSelector, useDispatch } from "react-redux";
+import { setSessionState } from "../../state/slices/session";
+import { gateway } from "../../utils/gateway";
+import { useDispatch } from "react-redux";
 import { ChevronLeft } from "../icons/ChevronLeft";
+import { Op } from "@puff-social/commons";
 
 interface Props {
   modalOpen: boolean;
@@ -236,7 +234,6 @@ export function LoginModal({ modalOpen, setModalOpen }: Props) {
   const [loginMode, setLoginMode] = useState("initial");
   const [submitting, setSubmitting] = useState(false);
 
-  const session = useSelector(selectSessionState);
   const dispatch = useDispatch();
 
   const startDiscordOAuth = useCallback(async () => {

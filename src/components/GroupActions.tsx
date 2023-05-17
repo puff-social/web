@@ -1,11 +1,6 @@
 import { Dispatch, SetStateAction, useRef, useState } from "react";
-import { Popover } from "@headlessui/react";
 
-import {
-  Bluetooth,
-  BluetoothConnected,
-  BluetoothDisabled,
-} from "./icons/Bluetooth";
+import { Bluetooth, BluetoothDisabled } from "./icons/Bluetooth";
 import { Edit } from "./icons/Edit";
 import { Info } from "./icons/Info";
 import { LeaderboardIcon } from "./icons/LeaderboardIcon";
@@ -14,7 +9,7 @@ import { Settings } from "./icons/Settings";
 import { Smoke } from "./icons/Smoke";
 import { Stop } from "./icons/Stop";
 import { GatewayGroup, GatewayGroupMember, GroupState } from "../types/gateway";
-import { Op, gateway } from "../utils/gateway";
+import { gateway } from "../utils/gateway";
 import { Reaction } from "./icons/Reaction";
 import { Tippy } from "./Tippy";
 import { Leave } from "./icons/Leave";
@@ -33,10 +28,12 @@ import { Instagram } from "./icons/Instagram";
 import { LoginModal } from "./modals/Login";
 import { Account } from "./icons/Account";
 import { AccountSettingsModal } from "./modals/AccountSettings";
-import { DeviceModelColors, ProductModelMap } from "../utils/constants";
+import { DeviceModelColors } from "../utils/constants";
 import { InfoModal } from "./modals/Info";
 import { Hamburger } from "./icons/Hamburger";
 import { PuffcoLogo } from "./icons/Puffco";
+import { ProductModelMap } from "@puff-social/commons/dist/puffco/constants";
+import { Op } from "@puff-social/commons";
 
 interface ActionsProps {
   group?: GatewayGroup;

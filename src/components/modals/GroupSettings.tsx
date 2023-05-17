@@ -3,11 +3,12 @@ import { Fragment } from "react";
 import toast from "react-hot-toast";
 import { useCallback, useState } from "react";
 
-import { gateway, Op } from "../../utils/gateway";
+import { gateway } from "../../utils/gateway";
 import { Checkmark } from "../icons/Checkmark";
 import { GatewayGroup } from "../../types/gateway";
 import { useRouter } from "next/router";
 import { Lock, Unlock } from "../icons/Lock";
+import { Op } from "@puff-social/commons";
 
 export interface ModalProps {
   modalOpen: boolean;

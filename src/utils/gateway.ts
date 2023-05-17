@@ -18,62 +18,7 @@ import {
   GroupHeatBegin,
   GroupHeatInquire,
 } from "../types/gateway";
-
-export enum Op {
-  Hello,
-  Join,
-  CreateGroup,
-  Event,
-  SendDeviceState,
-  UpdateGroup,
-  UpdateUser,
-  LeaveGroup,
-  InquireHeating,
-  StartWithReady,
-  DisconnectDevice,
-  SendMessage,
-  StopAwaiting,
-  ResumeSession,
-  SendReaction,
-  DeleteGroup,
-  TransferOwnership,
-  KickFromGroup,
-  AwayState,
-  GroupStrain,
-  LinkUser,
-  SetMobile,
-  Heartbeat = 420,
-}
-
-enum Event {
-  JoinedGroup = "JOINED_GROUP",
-  GroupCreate = "GROUP_CREATE",
-  GroupDelete = "GROUP_DELETE",
-  GroupUpdate = "GROUP_UPDATE",
-  GroupUserJoin = "GROUP_USER_JOIN",
-  GroupUserLeft = "GROUP_USER_LEFT",
-  GroupUserUpdate = "GROUP_USER_UPDATE",
-  GroupUserDeviceUpdate = "GROUP_USER_DEVICE_UPDATE",
-  GroupJoinError = "GROUP_JOIN_ERROR",
-  GroupHeatBegin = "GROUP_START_HEATING",
-  GroupHeatInquiry = "GROUP_HEAT_INQUIRY",
-  GroupUserReady = "GROUP_USER_READY",
-  GroupUserUnready = "GROUP_USER_UNREADY",
-  GroupActionError = "GROUP_ACTION_ERROR",
-  GroupVisibilityChange = "GROUP_VISIBILITY_CHANGE",
-  PublicGroupsUpdate = "PUBLIC_GROUPS_UPDATE",
-  GroupCreateError = "GROUP_CREATE_ERROR",
-  UserUpdateError = "USER_UPDATE_ERROR",
-  GroupUserDeviceDisconnect = "GROUP_USER_DEVICE_DISCONNECT",
-  GroupReaction = "GROUP_REACTION",
-  GroupMessage = "GROUP_MESSAGE",
-  GroupUserKicked = "GROUP_USER_KICKED",
-  GroupUserAwayState = "GROUP_USER_AWAY_STATE",
-  UserLinkError = "USER_LINK_ERROR",
-  RateLimited = "RATE_LIMITED",
-  InternalError = "INTERNAL_ERROR",
-  SessionResumed = "SESSION_RESUMED",
-}
+import { Event, Op } from "@puff-social/commons";
 
 interface SocketData {
   session_id?: string;

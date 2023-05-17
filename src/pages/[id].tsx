@@ -18,11 +18,10 @@ import {
   GroupUserDeviceUpdate,
   GroupUserJoin,
   GroupUserLeft,
-  PuffcoOperatingState,
 } from "../types/gateway";
 import { Device } from "../utils/puffco";
 import { DeviceCommand, PuffLightMode } from "../utils/puffco/constants";
-import { gateway, Op } from "../utils/gateway";
+import { gateway } from "../utils/gateway";
 import { UserSettingsModal } from "../components/modals/UserSettings";
 import { trackDevice } from "../utils/hash";
 import { GroupMeta } from "../components/GroupMeta";
@@ -49,6 +48,8 @@ import { GroupHeader } from "../components/group/Header";
 import { GroupMembersModal } from "../components/modals/GroupMembers";
 import { GroupStrainModal } from "../components/modals/GroupStrain";
 import { PlugConnected, PlugDisconnected } from "../components/icons/Plug";
+import { PuffcoOperatingState } from "@puff-social/commons/dist/puffco/constants";
+import { Op } from "@puff-social/commons";
 
 const instance = new Device();
 if (typeof window != "undefined") window["instance"] = instance;
@@ -71,7 +72,7 @@ export default function Group({
   const [groupMembers, setGroupMembers] = useState<GatewayGroupMember[]>([]);
 
   const [chatBoxOpen, setChatBoxOpen] = useState(false);
-  const [chatUnread, setChatUnread] = useState(false);
+  // const [chatUnread, setChatUnread] = useState(false);
 
   const [connectDismissed, setConnectDismissed] = useState(false);
 
@@ -527,7 +528,7 @@ export default function Group({
     gateway.send(Op.DisconnectDevice);
   }, [deviceConnected]);
 
-  function groupMessage() {}
+  // function groupMessage() {}
 
   function gatewayClosed() {
     setUsDisconnected(true);
@@ -635,10 +636,10 @@ export default function Group({
   }, [updatedGroup]);
 
   useEffect(() => {
-    gateway.on("group_message", groupMessage);
-    return () => {
-      gateway.removeListener("group_message", groupMessage);
-    };
+    // gateway.on("group_message", groupMessage);
+    // return () => {
+    //   gateway.removeListener("group_message", groupMessage);
+    // };
   }, [chatBoxOpen]);
 
   useEffect(() => {
@@ -761,7 +762,7 @@ export default function Group({
   }, [groupMembers, deviceConnected]);
 
   function closeChatBox(event: KeyboardEvent) {
-    event.code == "Escape" ? setChatBoxOpen(false) : null;
+    return event.code == "Escape" ? setChatBoxOpen(false) : false;
   }
 
   return !initGroup ? (
@@ -977,7 +978,7 @@ export default function Group({
           <div />
           <div className="flex flex-col justify-center items-center text-center text-black dark:text-white">
             <h2 className="text-xl m-4">
-              {!!groupJoinErrorMessage
+              {groupJoinErrorMessage
                 ? groupJoinErrorMessage
                 : `Connecting to ${initGroup.name}...`}
             </h2>

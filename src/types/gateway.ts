@@ -1,24 +1,10 @@
-import { ChamberType, ChargeSource } from "../utils/puffco/constants";
 import { User } from "./api";
-
-export interface Colors {
-  r: number;
-  g: number;
-  b: number;
-}
-
-export enum PuffcoOperatingState {
-  INIT_MEMORY,
-  MASTER_OFF = 3,
-  SLEEP,
-  IDLE,
-  TEMP_SELECT,
-  HEAT_CYCLE_PREHEAT,
-  HEAT_CYCLE_ACTIVE,
-  HEAT_CYCLE_FADE,
-  INIT_VERSION_DISPLAY,
-  INIT_BATTERY_DISPLAY,
-}
+import {
+  ChamberType,
+  ChargeSource,
+  Colors,
+  DeviceState,
+} from "@puff-social/commons/dist/puffco/constants";
 
 export const PuffcoOperatingMap = [
   "Memory",
@@ -34,22 +20,6 @@ export const PuffcoOperatingMap = [
   "Idle", // Battery
   "Idle", // Version
 ];
-
-export interface PuffcoState {
-  temperature: number;
-  battery: number;
-  brightness: number;
-  totalDabs: number;
-  charging: "USB" | "None" | "Wireless";
-  profileColor: Colors;
-  activeColor: Colors;
-  state: PuffcoOperatingState;
-  chargeSource: ChargeSource;
-  deviceName: string;
-  profile: GatewayDeviceProfile;
-  chamberType: ChamberType;
-  deviceModel: string;
-}
 
 export interface GatewayGroupCreate {
   group_id: string;
@@ -134,7 +104,7 @@ export interface GroupUserUpdate {
 }
 
 export interface GroupUserDeviceUpdate {
-  device_state: PuffcoState;
+  device_state: DeviceState;
   group_id: string;
   session_id: string;
 }

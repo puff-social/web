@@ -5,9 +5,10 @@ import {
   GroupChatMessage,
 } from "../types/gateway";
 import { ChatEmojiIcon, ChatSendIcon } from "./icons/Chat";
-import { Op, gateway } from "../utils/gateway";
+import { gateway } from "../utils/gateway";
 import toast from "react-hot-toast";
 import { User } from "../types/api";
+import { Op } from "@puff-social/commons";
 
 interface Props {
   group: GatewayGroup;
