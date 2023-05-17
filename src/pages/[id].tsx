@@ -293,9 +293,13 @@ export default function Group({
             emojis: [emoji],
             emojiCount: 10,
             physics: {
-              gravity: -0.35,
+              gravity: -0.25,
               framerate: 40,
               opacityDecay: 22,
+              fontSize: {
+                min: 15,
+                max: 45,
+              },
               initialVelocities: {
                 y: {
                   max: 1,
@@ -319,11 +323,15 @@ export default function Group({
         } else {
           emojisplosion({
             emojis: [emoji],
-            emojiCount: 10,
+            emojiCount: 5,
             physics: {
               gravity: -0.45,
               framerate: 40,
               opacityDecay: 22,
+              fontSize: {
+                min: 10,
+                max: 25,
+              },
               initialVelocities: {
                 y: {
                   max: 0,
