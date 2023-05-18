@@ -273,7 +273,7 @@ packages:
     dev: false
 
   /@puff-social/commons/1.0.0:
-    resolution: {integrity: sha512-nvhpR4xhxQylrq85BN4//736fD4oeaaEJjXo1oZ6vV0O62qERlUq762+v5esUXn16iYo4QNozCRGH9MQwn45zg==, tarball: download/@puff-social/commons/1.0.0/9270c6d4adb739d8412d98f65434f76c00d8a49c}
+    resolution: {integrity: sha512-7i+fwVGS1X+Hv4FmMSacQWkRx/i1IZ7fk76a6PcsbOuiDqr150w4twts4I0MJkY+gke7cHmOltdZc8SnTNd8gQ==, tarball: download/@puff-social/commons/1.0.0/8efa34deb2bad4473158c65e5873b6ee726bebcb}
     dependencies:
       '@prisma/client': 4.14.0
       envsafe: 2.0.3
