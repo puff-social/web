@@ -99,12 +99,11 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
 
                       <p>
                         After getting the essential device functions and data
-                        working from my code, I put together a realtime socket
-                        server in Elixir (I used this as it's a great go-to for
-                        realtime concurrency and I'm familiar enough with it to
-                        accomplish the task) and then I put together this very
-                        react web app (using Next.js, Tailwind, and a few other
-                        tools. See the source below for more)
+                        fetching working from my code, I put together a realtime
+                        socket server to handle synchronization and then I put
+                        together this very basic react web app (using Next.js,
+                        Tailwind, and a few other tools. See the source below
+                        for more)
                       </p>
 
                       <p>
@@ -162,24 +161,30 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                   <p className="w flex flex-col">
                     The source for the application and server side code is open,
                     you can find the various repositories below.
-                    <span className="pt-1">
-                      Web:{" "}
-                      <a
-                        className="text-blue-700 dark:text-blue-400"
-                        target="_blank"
-                        href="https://github.com/dustinrouillard/puffsocial-web"
-                      >
-                        dustinrouillard/puffsocial-web
-                      </a>
+                    <span className="pt-1 flex flex-col">
+                      <span>
+                        Web:{" "}
+                        <a
+                          className="text-blue-700 dark:text-blue-400"
+                          target="_blank"
+                          href="https://github.com/dustinrouillard/puffsocial-web"
+                        >
+                          dustinrouillard/puffsocial-web
+                        </a>{" "}
+                      </span>
+                      <span className="italic opacity-50 mb-1">
+                        (Moving this to the org later on, don't want to pay for
+                        vercel)
+                      </span>
                     </span>
                     <span>
                       API:{" "}
                       <a
                         className="text-blue-700 dark:text-blue-400"
                         target="_blank"
-                        href="https://github.com/dustinrouillard/puffsocial-api"
+                        href="https://github.com/puff-social/api"
                       >
-                        dustinrouillard/puffsocial-api
+                        puff-social/api
                       </a>
                     </span>
                     <span>
@@ -187,9 +192,19 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                       <a
                         className="text-blue-700 dark:text-blue-400"
                         target="_blank"
-                        href="https://github.com/dustinrouillard/puffsocial-gateway"
+                        href="https://github.com/puff-social/gateway"
                       >
-                        dustinrouillard/puffsocial-gateway
+                        puff-social/gateway
+                      </a>
+                    </span>
+                    <span>
+                      Commons (Shared Library):{" "}
+                      <a
+                        className="text-blue-700 dark:text-blue-400"
+                        target="_blank"
+                        href="https://github.com/puff-social/commons"
+                      >
+                        puff-social/commons
                       </a>
                     </span>
                   </p>
