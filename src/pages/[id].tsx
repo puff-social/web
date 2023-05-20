@@ -381,8 +381,10 @@ export default function Group({
         toast("1...", { duration: 900, position: "top-right" });
         toast("Dab", { duration: 1000, position: "top-right" });
 
-        if (!data.away && !data.watcher && !data.excluded)
-          instance.sendCommand(DeviceCommand.HEAT_CYCLE_BEGIN);
+        const start = async () =>
+          instance.sendCommand(DeviceCommand.HEAT_CYCLE_BEGIN).catch(start);
+
+        if (!data.away && !data.watcher && !data.excluded) start();
       }, 1000);
     }, 1000);
   }
