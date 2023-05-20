@@ -41,7 +41,7 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                 <div className="flex flex-col rounded-md space-y-4 justify-center">
                   <p className="text-2xl font-bold">About</p>
                   <span className="flex flex-row space-x-2">
-                    <div className="flex flex-col bg-neutral-700 rounded-md p-2">
+                    <div className="flex flex-col bg-neutral-200 dark:bg-neutral-700 rounded-md p-2">
                       <p className="font-bold">Device Firmware Note:</p>
                       <p>
                         This has been proven to work with any device running
@@ -68,7 +68,7 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                         </span>{" "}
                       </p>
                     </div>
-                    <div className="flex flex-col bg-neutral-700 rounded-md p-2">
+                    <div className="flex flex-col bg-neutral-200 dark:bg-neutral-700 rounded-md p-2">
                       <p className="font-bold">Browser Note:</p>
                       <p>
                         Most browsers don't support the bluetooth API however
@@ -132,7 +132,7 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                         <a
                           className="text-blue-700 dark:text-blue-400"
                           target="_blank"
-                          href="https://discord.gg/M4uYMyU7bC"
+                          href="/discord"
                         >
                           Discord
                         </a>{" "}
@@ -145,7 +145,7 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                         <a
                           className="text-blue-700 dark:text-blue-400"
                           target="_blank"
-                          href="https://discord.gg/M4uYMyU7bC"
+                          href="/instagram"
                         >
                           Instagram
                         </a>{" "}

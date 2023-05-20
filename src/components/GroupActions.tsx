@@ -34,6 +34,7 @@ import { Hamburger } from "./icons/Hamburger";
 import { PuffcoLogo } from "./icons/Puffco";
 import { ProductModelMap } from "@puff-social/commons/dist/puffco/constants";
 import { Op } from "@puff-social/commons";
+import { DonationModal } from "./modals/Donation";
 
 interface ActionsProps {
   group?: GatewayGroup;
@@ -79,6 +80,7 @@ export function GroupActions({
 
   const [loginOpen, setLoginOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [donationsOpen, setDonationsOpen] = useState(false);
   const [accountSettingsOpen, setAccountSettingsOpen] = useState(false);
 
   const [bluetooth] = useState<boolean>(() => {
@@ -114,6 +116,10 @@ export function GroupActions({
         </>
       )}
       <InfoModal modalOpen={infoOpen} setModalOpen={setInfoOpen} />
+      <DonationModal
+        modalOpen={donationsOpen}
+        setModalOpen={setDonationsOpen}
+      />
 
       {group ? (
         <>
@@ -362,7 +368,7 @@ export function GroupActions({
             </span>
             <span
               className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
-              onClick={() => window.open("https://dstn.to/sponsor")}
+              onClick={() => setDonationsOpen(true)}
             >
               <p>Support Development</p>
               <GiftBox />
@@ -376,14 +382,14 @@ export function GroupActions({
             </span>
             <span
               className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
-              onClick={() => window.open("https://instagram.com/puffdotsocial")}
+              onClick={() => window.open("/instagram")}
             >
               <p>Instagram</p>
               <Instagram />
             </span>
             <span
               className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
-              onClick={() => window.open("https://discord.gg/M4uYMyU7bC")}
+              onClick={() => window.open("/discord")}
             >
               <p>Discord</p>
               <Discord />
