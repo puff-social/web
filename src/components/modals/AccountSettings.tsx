@@ -21,17 +21,26 @@ export function AccountSettingsModal({ modalOpen, setModalOpen }: Props) {
 
   const [name] = useState(session.user.name);
   const [display_name, setDisplayName] = useState(session.user.display_name);
+  const [location, setLocation] = useState(session.user.location || "");
   const [bio, setBio] = useState(session.user.bio || "");
 
   const saveSettings = useCallback(async () => {
-    await updateUser({ display_name, ...(bio ? { bio } : null) });
+    await updateUser({
+      display_name,
+      ...(bio ? { bio } : null),
+      ...(location ? { location } : null),
+    });
     toast("Updated account", {
       position: "top-right",
       duration: 2000,
       icon: <Checkmark />,
     });
-    dispatch(setSessionState({ user: { ...session.user, display_name, bio } }));
-  }, [name, display_name, bio]);
+    dispatch(
+      setSessionState({
+        user: { ...session.user, display_name, bio, location },
+      })
+    );
+  }, [name, display_name, bio, location]);
 
   return (
     <Transition appear show={modalOpen} as={Fragment}>
@@ -102,16 +111,32 @@ export function AccountSettingsModal({ modalOpen, setModalOpen }: Props) {
                       />
                     </span>
                     <span className="flex flex-col space-y-2">
-                      <p className="font-bold">Bio</p>
-                      <textarea
+                      <span className="flex items-center justify-between">
+                        <p className="font-bold">Location</p>
+                        <p className="opacity-50 text-right text-sm">
+                          {location.length} / 30
+                        </p>
+                      </span>
+                      <input
                         className="flex p-2 rounded-md text-white dark:text-black"
+                        maxLength={30}
+                        value={location}
+                        onChange={({ target: { value } }) => setLocation(value)}
+                      />
+                    </span>
+                    <span className="flex flex-col space-y-2">
+                      <span className="flex items-center justify-between">
+                        <p className="font-bold">Bio</p>
+                        <p className="opacity-50 text-right text-sm">
+                          {bio.length} / 256
+                        </p>
+                      </span>
+                      <textarea
+                        className="flex w-full p-2 pb-5 rounded-md text-white dark:text-black"
                         maxLength={256}
                         value={bio || ""}
                         onChange={({ target: { value } }) => setBio(value)}
                       />
-                      <p className="opacity-50 text-right text-sm">
-                        {bio.length} / 256
-                      </p>
                     </span>
                   </span>
 

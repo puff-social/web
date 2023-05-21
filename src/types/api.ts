@@ -73,6 +73,7 @@ export interface User {
   banner: string;
   flags: number;
   bio: string;
+  location: string;
 }
 
 export interface Connection {
