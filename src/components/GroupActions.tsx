@@ -59,7 +59,6 @@ export function GroupActions({
   seshers,
   members,
   instance,
-  readyMembers,
   setGroupSettingsModalOpen,
   setDeviceSettingsModalOpen,
   setUserSettingsModalOpen,
@@ -157,7 +156,7 @@ export function GroupActions({
               )
             ) : group.state == GroupState.Awaiting ? (
               <>
-                {readyMembers.length > 0 ? (
+                {group.ready.length > 0 ? (
                   <Tippy content="Start anyway" placement="bottom">
                     <div
                       className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl text-green-400"

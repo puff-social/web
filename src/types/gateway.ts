@@ -53,7 +53,7 @@ export enum GroupState {
 export interface GatewayGroup {
   group_id: string;
   members: GatewayGroupMember[];
-  ready_members: string[];
+  ready: string[];
   name: string;
   state: GroupState;
   visibility: string;

@@ -50,6 +50,9 @@ import { GroupStrainModal } from "../components/modals/GroupStrain";
 import { PlugConnected, PlugDisconnected } from "../components/icons/Plug";
 import { PuffcoOperatingState } from "@puff-social/commons/dist/puffco/constants";
 import { Op } from "@puff-social/commons";
+import { useDispatch, useSelector } from "react-redux";
+import { selectGroupState, setGroupState } from "../state/slices/group";
+import { validState } from "../utils/state";
 
 const instance = new Device();
 if (typeof window != "undefined") window["instance"] = instance;
@@ -65,16 +68,13 @@ export default function Group({
 
   const membersList = useRef<HTMLDivElement>();
 
+  const { connected, connectDismissed, group } = useSelector(selectGroupState);
+  const dispatch = useDispatch();
+
   const [deviceConnected, setDeviceConnected] = useState(false);
-  const [groupConnected, setGroupConnected] = useState(false);
-  const [group, setGroup] = useState<GatewayGroup>();
   const [groupJoinErrorMessage, setGroupJoinErrorMessage] = useState<string>();
-  const [groupMembers, setGroupMembers] = useState<GatewayGroupMember[]>([]);
 
   const [chatBoxOpen, setChatBoxOpen] = useState(false);
-  // const [chatUnread, setChatUnread] = useState(false);
-
-  const [connectDismissed, setConnectDismissed] = useState(false);
 
   const [ourLeaderboardPosition, setOurLeaderboardPosition] =
     useState<number>(0);
@@ -83,7 +83,6 @@ export default function Group({
   const [ourUser, setOurUser] = useState<User>();
   const [usDisconnected, setUsDisconnected] = useState<boolean>(false);
 
-  const [readyMembers, setReadyMembers] = useState<string[]>([]);
   const [deviceProfiles, setDeviceProfiles] = useState<
     Record<number, PuffcoProfile>
   >({});
@@ -110,26 +109,8 @@ export default function Group({
       : false
   );
 
-  function validState(state: GatewayMemberDeviceState) {
-    if (!state) return false;
-    const required = [
-      "temperature",
-      "battery",
-      "totalDabs",
-      "state",
-      "deviceModel",
-    ];
-    for (const key of required)
-      if (typeof state[key] == "undefined") return false;
-    return true;
-  }
-
   async function joinedGroup(group: GatewayGroup) {
-    setGroupJoinErrorMessage("");
-    setGroupConnected(true);
-    setGroup(group);
-    setGroupMembers(group.members);
-    setReadyMembers(group.ready_members);
+    dispatch(setGroupState({ joinErrorMessage: undefined, connected: true }));
   }
 
   const deletedGroup = useCallback(() => {
@@ -151,13 +132,13 @@ export default function Group({
         ([GroupState.Awaiting, GroupState.Seshing].includes(group.state) &&
           newGroup.state == GroupState.Chilling)
       ) {
-        setReadyMembers([]);
+        // setReadyMembers([]);
         instance.setLightMode(PuffLightMode.Default);
       }
 
-      setGroup(newGroup);
+      dispatch(setGroupState({ group: { ...group, ...newGroup } }));
     },
-    [readyMembers, group, deviceConnected, myDevice]
+    [group, deviceConnected, myDevice]
   );
 
   const sessionResumeFailed = useCallback(async () => {
@@ -185,35 +166,34 @@ export default function Group({
       await instance.setLightMode(PuffLightMode.Default);
     }
 
-    setReadyMembers((curr) => [
-      ...curr.filter((item) => item != gateway.session_id),
-    ]);
+    // setReadyMembers((curr) => [
+    //   ...curr.filter((item) => item != gateway.session_id),
+    // ]);
   }, [group]);
 
   function groupMemberUpdated(member: GatewayGroupMember) {
-    if (member.session_id == gateway.session_id) {
-      if (typeof member.strain != "undefined") setOurStrain(member.strain);
-      if (typeof member.user != "undefined") setOurUser(member.user);
-      if (typeof member.disconnected != "undefined")
-        setUsDisconnected(member.disconnected);
-    }
-
-    setGroupMembers((curr) => {
-      const existing = curr.find((mem) => mem.session_id == member.session_id);
-      if (!existing) return curr;
-      for (const key in member) existing[key] = member[key];
-      return [...curr];
-    });
+    // if (member.session_id == gateway.session_id) {
+    //   if (typeof member.strain != "undefined") setOurStrain(member.strain);
+    //   if (typeof member.user != "undefined") setOurUser(member.user);
+    //   if (typeof member.disconnected != "undefined")
+    //     setUsDisconnected(member.disconnected);
+    // }
+    // setGroupMembers((curr) => {
+    //   const existing = curr.find((mem) => mem.session_id == member.session_id);
+    //   if (!existing) return curr;
+    //   for (const key in member) existing[key] = member[key];
+    //   return [...curr];
+    // });
   }
 
   function groupUserAwayState(state: GatewayGroupUserAwayState) {
-    if (state.session_id == gateway.session_id) setUsAway(state.state);
-    setGroupMembers((curr) => {
-      const existing = curr.find((mem) => mem.session_id == state.session_id);
-      if (!existing) return curr;
-      existing.away = state.state;
-      return [...curr];
-    });
+    // if (state.session_id == gateway.session_id) setUsAway(state.state);
+    // setGroupMembers((curr) => {
+    //   const existing = curr.find((mem) => mem.session_id == state.session_id);
+    //   if (!existing) return curr;
+    //   existing.away = state.state;
+    //   return [...curr];
+    // });
   }
 
   function groupMemberDeviceUpdated({
@@ -221,52 +201,52 @@ export default function Group({
     session_id,
   }: GroupUserDeviceUpdate) {
     if (!device_state) return;
-    setGroupMembers((curr) => {
-      const existing = curr.find((mem) => mem.session_id == session_id);
-      if (typeof existing.device_state == "undefined")
-        existing.device_state = device_state;
-      if (!existing || typeof existing.device_state != "object") return curr;
-      for (const key in device_state)
-        existing.device_state[key] = device_state[key];
-      return [...curr];
-    });
+    // setGroupMembers((curr) => {
+    //   const existing = curr.find((mem) => mem.session_id == session_id);
+    //   if (typeof existing.device_state == "undefined")
+    //     existing.device_state = device_state;
+    //   if (!existing || typeof existing.device_state != "object") return curr;
+    //   for (const key in device_state)
+    //     existing.device_state[key] = device_state[key];
+    //   return [...curr];
+    // });
   }
 
   function groupMemberDeviceDisconnected({
     session_id,
   }: GroupUserDeviceUpdate) {
-    setGroupMembers((curr) => {
-      const existing = curr.find((mem) => mem.session_id == session_id);
-      if (!existing || typeof existing.device_state != "object") return curr;
-      for (const key in existing.device_state)
-        delete existing.device_state[key];
-      return [...curr];
-    });
+    // setGroupMembers((curr) => {
+    //   const existing = curr.find((mem) => mem.session_id == session_id);
+    //   if (!existing || typeof existing.device_state != "object") return curr;
+    //   for (const key in existing.device_state)
+    //     delete existing.device_state[key];
+    //   return [...curr];
+    // });
   }
 
   function groupMemberJoin(member: GroupUserJoin) {
     toast(`${member.user?.display_name || "Guest"} joined`, {
       position: "top-right",
     });
-    setGroupMembers((curr) => [...curr, member]);
+    // setGroupMembers((curr) => [...curr, member]);
   }
 
   function groupMemberLeft({ session_id }: GroupUserLeft) {
-    setGroupMembers((curr) => {
-      const member = curr.find((mem) => mem.session_id == session_id);
-      if (member)
-        toast(
-          `${
-            member.user?.display_name ||
-            member.device_state?.deviceName ||
-            "Guest"
-          } left`,
-          {
-            position: "top-right",
-          }
-        );
-      return [...curr.filter((mem) => mem.session_id != session_id)];
-    });
+    // setGroupMembers((curr) => {
+    //   const member = curr.find((mem) => mem.session_id == session_id);
+    //   if (member)
+    //     toast(
+    //       `${
+    //         member.user?.display_name ||
+    //         member.device_state?.deviceName ||
+    //         "Guest"
+    //       } left`,
+    //       {
+    //         position: "top-right",
+    //       }
+    //     );
+    //   return [...curr.filter((mem) => mem.session_id != session_id)];
+    // });
   }
 
   function groupUserKicked() {
@@ -280,97 +260,95 @@ export default function Group({
 
   const groupReaction = useCallback(
     async ({ emoji, author_session_id }: GroupReaction) => {
-      setGroupMembers((curr) => {
-        const member = curr.find((mem) => mem.session_id == author_session_id);
-        if (
-          author_session_id == gateway.session_id
-            ? validState(myDevice)
-            : member && validState(member.device_state)
-        ) {
-          const children = membersList.current.children;
-          const element = children.namedItem(author_session_id);
+      const member = group.members.find(
+        (mem) => mem.session_id == author_session_id
+      );
+      if (
+        author_session_id == gateway.session_id
+          ? validState(myDevice)
+          : member && validState(member.device_state)
+      ) {
+        const children = membersList.current.children;
+        const element = children.namedItem(author_session_id);
 
-          emojisplosion({
-            emojis: [emoji],
-            emojiCount: 10,
-            physics: {
-              gravity: -0.25,
-              framerate: 40,
-              opacityDecay: 22,
-              fontSize: {
-                min: 15,
-                max: 45,
-              },
-              initialVelocities: {
-                y: {
-                  max: 1,
-                  min: -10,
-                },
-                x: {
-                  max: 1,
-                  min: -25,
-                },
-                rotation: {
-                  max: 10,
-                  min: 0,
-                },
-              },
+        emojisplosion({
+          emojis: [emoji],
+          emojiCount: 10,
+          physics: {
+            gravity: -0.25,
+            framerate: 40,
+            opacityDecay: 22,
+            fontSize: {
+              min: 15,
+              max: 45,
             },
-            position: {
-              x: element.getBoundingClientRect().x + element.clientWidth,
-              y: element.getBoundingClientRect().y + element.clientHeight,
-            },
-          });
-        } else {
-          emojisplosion({
-            emojis: [emoji],
-            emojiCount: 5,
-            physics: {
-              gravity: -0.45,
-              framerate: 40,
-              opacityDecay: 22,
-              fontSize: {
-                min: 10,
-                max: 25,
+            initialVelocities: {
+              y: {
+                max: 1,
+                min: -10,
               },
-              initialVelocities: {
-                y: {
-                  max: 0,
-                  min: 50,
-                },
-                x: {
-                  max: 1,
-                  min: -20,
-                },
-                rotation: {
-                  max: 0,
-                  min: 0,
-                },
+              x: {
+                max: 1,
+                min: -25,
+              },
+              rotation: {
+                max: 10,
+                min: 0,
               },
             },
-            position: {
-              x: window.innerWidth,
-              y: 0,
+          },
+          position: {
+            x: element.getBoundingClientRect().x + element.clientWidth,
+            y: element.getBoundingClientRect().y + element.clientHeight,
+          },
+        });
+      } else {
+        emojisplosion({
+          emojis: [emoji],
+          emojiCount: 5,
+          physics: {
+            gravity: -0.45,
+            framerate: 40,
+            opacityDecay: 22,
+            fontSize: {
+              min: 10,
+              max: 25,
             },
-          });
+            initialVelocities: {
+              y: {
+                max: 0,
+                min: 50,
+              },
+              x: {
+                max: 1,
+                min: -20,
+              },
+              rotation: {
+                max: 0,
+                min: 0,
+              },
+            },
+          },
+          position: {
+            x: window.innerWidth,
+            y: 0,
+          },
+        });
 
-          toast(
-            `${
-              member.user?.display_name ||
-              member.device_state?.deviceName ||
-              "Guest"
-            }: ${emoji}`,
-            {
-              position: "top-right",
-              duration: 1000,
-            }
-          );
-        }
-
-        return curr;
-      });
+        toast(
+          `${
+            member.user?.display_name ||
+            member.device_state?.deviceName ||
+            "Guest"
+          }: ${emoji}`,
+          {
+            position: "top-right",
+            duration: 1000,
+          }
+        );
+      }
     },
-    [groupMembers, deviceConnected]
+    [group?.members, deviceConnected]
   );
 
   async function startDab(data: GroupHeatBegin) {
@@ -391,105 +369,94 @@ export default function Group({
 
   const inquireDab = useCallback(
     (data: GroupHeatInquire) => {
-      setGroupMembers((groupMembers) => {
-        const initiator = groupMembers.find(
-          (mem) => mem.session_id == data.session_id
-        );
-        toast(
-          `${
-            initiator.user?.name ||
-            initiator.device_state?.deviceName ||
-            "Guest"
-          } wants to start`,
-          {
-            icon: "🔥",
-            duration: 5000,
-            position: "top-right",
-          }
-        );
-
-        if (!data.away && !data.watcher && !data.excluded) {
-          (async () => {
-            await instance.sendCommand(DeviceCommand.BONDING);
-            await instance.setLightMode(PuffLightMode.QueryReady);
-          })();
-
-          toast(`Confirm by pressing your button`, {
-            icon: "🔘",
-            duration: 8000,
-            position: "top-right",
-          });
+      console.log(group.members, "group members");
+      const initiator = group.members.find(
+        (mem) => mem.session_id == data.session_id
+      );
+      toast(
+        `${
+          initiator.user?.name || initiator.device_state?.deviceName || "Guest"
+        } wants to start`,
+        {
+          icon: "🔥",
+          duration: 5000,
+          position: "top-right",
         }
+      );
 
-        return groupMembers;
-      });
+      if (!data.away && !data.watcher && !data.excluded) {
+        (async () => {
+          await instance.sendCommand(DeviceCommand.BONDING);
+          await instance.setLightMode(PuffLightMode.QueryReady);
+        })();
+
+        toast(`Confirm by pressing your button`, {
+          icon: "🔘",
+          duration: 8000,
+          position: "top-right",
+        });
+      }
     },
-    [groupMembers]
+    [group?.members]
   );
 
   const groupMemberReady = useCallback(
     (data: GroupActionInitiator) => {
-      setGroupMembers((groupMembers) => {
-        const initiator = groupMembers.find(
-          (mem) => mem.session_id == data.session_id
-        );
+      const initiator = group.members.find(
+        (mem) => mem.session_id == data.session_id
+      );
 
-        setReadyMembers((curr) =>
-          curr.includes(data.session_id) ? curr : [...curr, data.session_id]
-        );
+      // setReadyMembers((curr) =>
+      //   curr.includes(data.session_id) ? curr : [...curr, data.session_id]
+      // );
 
+      toast(
+        `${
+          initiator.user?.name || initiator.device_state?.deviceName || "Guest"
+        } is ready`,
+        {
+          icon: "✅",
+          duration: 5000,
+          position: "top-right",
+        }
+      );
+    },
+    [group?.members]
+  );
+
+  const groupMemberUnready = useCallback(
+    (data: GroupActionInitiator) => {
+      const initiator = group.members.find(
+        (mem) => mem.session_id == data.session_id
+      );
+
+      // setReadyMembers((curr) => [
+      //   ...curr.filter((item) => item != data.session_id),
+      // ]);
+
+      if (initiator)
         toast(
           `${
             initiator.user?.name ||
             initiator.device_state?.deviceName ||
             "Guest"
-          } is ready`,
+          } is no longer ready`,
           {
-            icon: "✅",
+            icon: "🚫",
             duration: 5000,
             position: "top-right",
           }
         );
-        return groupMembers;
-      });
     },
-    [groupMembers]
-  );
-
-  const groupMemberUnready = useCallback(
-    (data: GroupActionInitiator) => {
-      setGroupMembers((groupMembers) => {
-        const initiator = groupMembers.find(
-          (mem) => mem.session_id == data.session_id
-        );
-
-        setReadyMembers((curr) => [
-          ...curr.filter((item) => item != data.session_id),
-        ]);
-
-        if (initiator)
-          toast(
-            `${
-              initiator.user?.name ||
-              initiator.device_state?.deviceName ||
-              "Guest"
-            } is no longer ready`,
-            {
-              icon: "🚫",
-              duration: 5000,
-              position: "top-right",
-            }
-          );
-        return groupMembers;
-      });
-    },
-    [groupMembers]
+    [group?.members]
   );
 
   function groupJoinError(error: GatewayError) {
     switch (error.code) {
       case "INVALID_GROUP_ID": {
-        setGroupJoinErrorMessage("Unknown or invalid group ID");
+        dispatch(
+          setGroupState({ joinErrorMessage: "Unknown or invalid group ID" })
+        );
         break;
       }
     }
@@ -497,29 +464,26 @@ export default function Group({
 
   const groupChangeVisibility = useCallback(
     (data: GroupActionInitiator & { visibility: string }) => {
-      setGroupMembers((groupMembers) => {
-        const initiator = groupMembers.find(
-          (mem) => mem.session_id == data.session_id
-        );
+      const initiator = group.members.find(
+        (mem) => mem.session_id == data.session_id
+      );
 
-        toast(
-          `${
-            data.session_id == gateway.session_id
-              ? ourUser?.name
-              : initiator.user?.name ||
-                initiator.device_state?.deviceName ||
-                "Guest"
-          } made the group ${data.visibility}`,
-          {
-            icon: data.visibility == "public" ? "🌍" : "🔒",
-            duration: 5000,
-            position: "top-right",
-          }
-        );
-        return groupMembers;
-      });
+      toast(
+        `${
+          data.session_id == gateway.session_id
+            ? ourUser?.name
+            : initiator.user?.name ||
+              initiator.device_state?.deviceName ||
+              "Guest"
+        } made the group ${data.visibility}`,
+        {
+          icon: data.visibility == "public" ? "🌍" : "🔒",
+          duration: 5000,
+          position: "top-right",
+        }
+      );
     },
-    [groupMembers]
+    [group?.members]
   );
 
   const disconnect = useCallback(async () => {
@@ -542,6 +506,13 @@ export default function Group({
   }
 
   useEffect(() => {
+    gateway.on("group_heat_inquiry", inquireDab);
+    return () => {
+      gateway.removeListener("group_heat_inquiry", inquireDab);
+    };
+  }, [group?.members]);
+
+  useEffect(() => {
     if (initGroup && initGroup.group_id) {
       if (firstVisit) {
         if (typeof localStorage != "undefined")
@@ -562,13 +533,12 @@ export default function Group({
           }
         );
       }
-      gateway.on("joined_group", joinedGroup);
       gateway.on("group_join_error", groupJoinError);
       gateway.on("group_user_update", groupMemberUpdated);
       gateway.on("group_user_device_update", groupMemberDeviceUpdated);
       gateway.on("group_user_device_disconnect", groupMemberDeviceDisconnected);
       gateway.on("group_heat_begin", startDab);
-      gateway.on("group_heat_inquiry", inquireDab);
+
       gateway.on("group_visibility_change", groupChangeVisibility);
 
       gateway.on("group_user_ready", groupMemberReady);
@@ -582,16 +552,11 @@ export default function Group({
 
       if (gateway.ws.readyState == gateway.ws.OPEN)
         gateway.send(Op.Join, { group_id: initGroup.group_id });
-      else
-        gateway.once("init", () => {
-          gateway.send(Op.Join, { group_id: initGroup.group_id });
-        });
 
       return () => {
-        setReadyMembers([]);
+        // setReadyMembers([]);
         gateway.send(Op.LeaveGroup);
         disconnect();
-        gateway.removeListener("joined_group", joinedGroup);
         gateway.removeListener("group_join_error", groupJoinError);
 
         gateway.removeListener("group_user_update", groupMemberUpdated);
@@ -603,7 +568,7 @@ export default function Group({
           "group_user_device_disconnect",
           groupMemberDeviceDisconnected
         );
-        gateway.removeListener("group_heat_inquiry", inquireDab);
+
         gateway.removeListener(
           "group_visibility_change",
           groupChangeVisibility
@@ -637,12 +602,7 @@ export default function Group({
     };
   }, [updatedGroup]);
 
-  useEffect(() => {
-    // gateway.on("group_message", groupMessage);
-    // return () => {
-    //   gateway.removeListener("group_message", groupMessage);
-    // };
-  }, [chatBoxOpen]);
+  useEffect(() => {}, [chatBoxOpen]);
 
   useEffect(() => {
     gateway.on("group_delete", deletedGroup);
@@ -701,32 +661,28 @@ export default function Group({
             trackDevice({ ...deviceInfo, totalDabs: data.totalDabs });
             return deviceInfo;
           });
-        setGroup((currGroup) => {
-          if (
-            currGroup.state == GroupState.Awaiting &&
-            data.state == PuffcoOperatingState.TEMP_SELECT
-          ) {
-            instance.setLightMode(PuffLightMode.MarkedReady);
-          }
+        if (
+          group.state == GroupState.Awaiting &&
+          data.state == PuffcoOperatingState.TEMP_SELECT
+        ) {
+          instance.setLightMode(PuffLightMode.MarkedReady);
+        }
 
-          if (
-            currGroup.state == GroupState.Chilling &&
-            data.state == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
-            groupStartOnBatteryCheck
-          ) {
-            setTimeout(() => gateway.send(Op.InquireHeating));
-          }
+        if (
+          group.state == GroupState.Chilling &&
+          data.state == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
+          groupStartOnBatteryCheck
+        ) {
+          setTimeout(() => gateway.send(Op.InquireHeating));
+        }
 
-          if (
-            currGroup.state == GroupState.Awaiting &&
-            data.state == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
-            groupStartOnBatteryCheck
-          ) {
-            setTimeout(() => gateway.send(Op.StartWithReady));
-          }
-
-          return currGroup;
-        });
+        if (
+          group.state == GroupState.Awaiting &&
+          data.state == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
+          groupStartOnBatteryCheck
+        ) {
+          setTimeout(() => gateway.send(Op.StartWithReady));
+        }
         setMyDevice((curr) => {
           return { ...curr, ...data };
         });
@@ -752,16 +708,16 @@ export default function Group({
   const [watchers, setWatchers] = useState(0);
 
   useEffect(() => {
-    const currentSeshers = groupMembers.filter((mem) =>
+    const currentSeshers = group?.members.filter((mem) =>
       validState(mem.device_state)
     ).length;
-    const currentWatchers = groupMembers.filter(
+    const currentWatchers = group?.members.filter(
       (mem) => !validState(mem.device_state)
     ).length;
 
     setSeshers(currentSeshers);
     setWatchers(currentWatchers);
-  }, [groupMembers, deviceConnected]);
+  }, [group?.members, deviceConnected]);
 
   function closeChatBox(event: KeyboardEvent) {
     return event.code == "Escape" ? setChatBoxOpen(false) : false;
@@ -820,12 +776,12 @@ export default function Group({
         <></>
       )}
 
-      {groupMembers && group ? (
+      {group && group.members ? (
         <GroupMembersModal
           modalOpen={groupMembersModalOpen}
           setModalOpen={setGroupMembersModalOpen}
           group={group}
-          members={groupMembers}
+          members={group.members}
         />
       ) : (
         <></>
@@ -839,7 +795,7 @@ export default function Group({
         setModalOpen={setFeedbackModalOpen}
       />
 
-      {groupConnected ? (
+      {group ? (
         <NoSSR>
           {!headless ? (
             <div className="flex flex-col m-4 z-10">
@@ -855,9 +811,8 @@ export default function Group({
                   <GroupActions
                     group={group}
                     seshers={seshers}
-                    members={groupMembers}
+                    members={group.members}
                     instance={instance}
-                    readyMembers={readyMembers}
                     deviceConnected={deviceConnected}
                     deviceProfiles={deviceProfiles}
                     disconnect={disconnect}
@@ -888,7 +843,7 @@ export default function Group({
                 device={myDevice}
                 strain={ourStrain}
                 leaderboardPosition={ourLeaderboardPosition}
-                ready={readyMembers.includes(gateway.session_id)}
+                ready={group.ready.includes(gateway.session_id)}
                 connectToDevice={connectToDevice}
                 connected={deviceConnected}
                 nobody={seshers == 0}
@@ -897,16 +852,18 @@ export default function Group({
                 group={group}
                 away={usAway}
                 user={ourUser}
-                member={groupMembers.find(
+                member={group.members.find(
                   (mem) => mem.session_id == gateway.session_id
                 )}
                 disconnected={usDisconnected}
                 headless={headless}
                 us
-                setConnectDismissed={setConnectDismissed}
+                setConnectDismissed={(val: boolean) =>
+                  dispatch(setGroupState({ connectDismissed: val }))
+                }
                 connectDismissed={connectDismissed}
               />
-              {groupMembers
+              {group.members
                 .filter(
                   (mem) =>
                     validState(mem.device_state) &&
@@ -915,13 +872,15 @@ export default function Group({
                 .map((member) => (
                   <GroupMember
                     device={member.device_state}
-                    ready={readyMembers.includes(member.session_id)}
+                    ready={group.ready.includes(member.session_id)}
                     member={member}
                     owner={group.owner_session_id == member.session_id}
                     group={group}
                     headless={headless}
                     key={member.session_id}
-                    setConnectDismissed={setConnectDismissed}
+                    setConnectDismissed={(val: boolean) =>
+                      dispatch(setGroupState({ connectDismissed: val }))
+                    }
                     connectDismissed={connectDismissed}
                   />
                 ))}
@@ -947,7 +906,7 @@ export default function Group({
                     chatBoxOpen={chatBoxOpen}
                     group={group}
                     user={ourUser}
-                    members={groupMembers}
+                    members={group.members}
                   />
                 }
                 visible={chatBoxOpen}

@@ -1,5 +1,7 @@
 import { EventEmitter } from "events";
 import { inflate, deflate } from "pako";
+
+import { store } from "../state/store";
 import { APIGroup } from "../types/api";
 import {
   GatewayError,
@@ -19,6 +21,14 @@ import {
   GroupHeatInquire,
 } from "../types/gateway";
 import { Event, Op } from "@puff-social/commons";
+import {
+  addGroupMember,
+  removeGroupMember,
+  resetGroupState,
+  setGroupState,
+  updateGroupMember,
+  updateGroupMemberDevice,
+} from "../state/slices/group";
 
 interface SocketData {
   session_id?: string;
@@ -129,7 +139,7 @@ export class Gateway extends EventEmitter {
   constructor(
     url = "wss://rosin.puff.social",
     encoding = "json",
-    compression = "zlib"
+    compression = "none"
   ) {
     super();
 
@@ -155,6 +165,7 @@ export class Gateway extends EventEmitter {
 
     if (typeof window != "undefined") {
       window.addEventListener("beforeunload", () => {
+        store.dispatch(resetGroupState());
         this.send(Op.LeaveGroup);
         this.ws.close(4006);
       });
@@ -243,6 +254,7 @@ export class Gateway extends EventEmitter {
       case Op.Event:
         switch (data.t) {
           case Event.JoinedGroup: {
+            store.dispatch(setGroupState({ group: data.d }));
             this.emit("joined_group", data.d);
             break;
           }
@@ -259,18 +271,24 @@ export class Gateway extends EventEmitter {
             break;
           }
           case Event.GroupUserJoin: {
+            store.dispatch(addGroupMember(data.d as GroupUserJoin));
             this.emit("group_user_join", data.d);
             break;
           }
           case Event.GroupUserLeft: {
+            store.dispatch(removeGroupMember(data.d.session_id));
             this.emit("group_user_left", data.d);
             break;
           }
           case Event.GroupUserUpdate: {
+            store.dispatch(updateGroupMember(data.d as GroupUserJoin));
             this.emit("group_user_update", data.d);
             break;
           }
           case Event.GroupUserDeviceUpdate: {
+            store.dispatch(
+              updateGroupMemberDevice(data.d as GroupUserDeviceUpdate)
+            );
             this.emit("group_user_device_update", data.d);
             break;
           }
@@ -287,6 +305,17 @@ export class Gateway extends EventEmitter {
             break;
           }
           case Event.GroupJoinError: {
+            const parsed = data.d as unknown as GatewayError;
+            switch (parsed.code) {
+              case "INVALID_GROUP_ID": {
+                store.dispatch(
+                  setGroupState({
+                    joinErrorMessage: "Unknown or invalid group ID",
+                  })
+                );
+                break;
+              }
+            }
             this.emit("group_join_error", data.d);
             break;
           }
@@ -311,6 +340,12 @@ export class Gateway extends EventEmitter {
             break;
           }
           case Event.GroupUserDeviceDisconnect: {
+            store.dispatch(
+              updateGroupMemberDevice({
+                ...data.d,
+                device_state: null,
+              } as GroupUserDeviceUpdate)
+            );
             this.emit("group_user_device_disconnect", data.d);
             break;
           }
@@ -395,14 +430,9 @@ export class Gateway extends EventEmitter {
 
 export const SOCKET_URL =
   typeof location != "undefined" &&
-  ["localhost", "dev.puff.social"].includes(location.hostname)
-    ? location.hostname == "dev.puff.social"
+  ["localhost", "beta.puff.social"].includes(location.hostname)
+    ? location.hostname == "beta.puff.social"
       ? "wss://flower.puff.social"
       : "ws://127.0.0.1:9000"
     : "wss://rosin.puff.social";
-export const gateway =
-  typeof window != "undefined" &&
-  (["ws://127.0.0.1:9000", "wss://flower.puff.social"].includes(SOCKET_URL) ||
-  ["stage.puff.social", "127.0.0.1"].includes(location.hostname)
-    ? new Gateway(SOCKET_URL, "json", "none")
-    : new Gateway(SOCKET_URL));
+export const gateway = typeof window != "undefined" && new Gateway(SOCKET_URL);
