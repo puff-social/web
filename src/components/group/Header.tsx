@@ -10,6 +10,7 @@ import { Lock } from "../icons/Lock";
 import { useSelector } from "react-redux";
 import { selectGroupState } from "../../state/slices/group";
 import { validState } from "../../utils/state";
+import { EASTER_EGG_CYCLE_COUNTS } from "../../utils/constants";
 
 interface Props {
   group: GatewayGroup;
@@ -51,7 +52,11 @@ export function GroupHeader({
           </span>
         </Tippy>
       </h1>
-      <p className="text-black dark:text-white font-bold">
+      <p
+        className={`text-black dark:text-white font-bold ${
+          EASTER_EGG_CYCLE_COUNTS.includes(group.sesh_counter) ? "rainbow" : ""
+        }`}
+      >
         {group.sesh_counter == 0
           ? "No seshes yet!"
           : `${group.sesh_counter.toLocaleString()} seshes this group`}
