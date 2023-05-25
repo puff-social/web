@@ -141,17 +141,6 @@ export default function Group({
     [group, deviceConnected, myDevice]
   );
 
-  const sessionResumeFailed = useCallback(async () => {
-    toast("Failed to resume socket session", {
-      position: "top-right",
-      duration: 2000,
-      icon: "❌",
-    });
-
-    if (!headless) router.push("/");
-    else router.reload();
-  }, []);
-
   const sessionResumed = useCallback(async () => {
     setUsDisconnected(false);
     toast("Socket reconnected", {
@@ -588,10 +577,8 @@ export default function Group({
 
   useEffect(() => {
     gateway.on("session_resumed", sessionResumed);
-    gateway.on("resume_failed", sessionResumeFailed);
     return () => {
       gateway.removeListener("session_resumed", sessionResumed);
-      gateway.removeListener("resume_failed", sessionResumeFailed);
     };
   }, [sessionResumed]);
 

@@ -130,9 +130,11 @@ export interface Gateway {
     listener: (group: GatewayGroupUserAwayState) => void
   ): this;
   on(event: "internal_error", listener: (error: any) => void): this;
+  on(event: "syntax_error", listener: (error: any) => void): this;
   on(event: "rate_limited", listener: () => void): this;
   on(event: "session_resumed", listener: () => void): this;
-  on(event: "resume_failed", listener: () => void): this;
+  on(event: "resume_failed", listener: (code: string) => void): this;
+  on(event: "op_deprecated", listener: () => void): this;
   on(event: "user_update_error", listener: (error: GatewayError) => void): this;
 }
 export class Gateway extends EventEmitter {
@@ -363,8 +365,16 @@ export class Gateway extends EventEmitter {
           }
           case Event.SessionResumed: {
             this.session_id = data.d.session_id;
-            this.session_id = data.d.session_id;
             this.emit("session_resumed", data.d);
+            break;
+          }
+          case Event.Deprecated: {
+            this.emit("op_deprecated");
+            break;
+          }
+          case Event.SessionResumeError: {
+            const { code } = data.d as typeof data.d & { code: string };
+            this.emit("resume_failed", code);
             break;
           }
           case Event.GroupUserKicked: {
@@ -381,6 +391,10 @@ export class Gateway extends EventEmitter {
           }
           case Event.InternalError: {
             this.emit("internal_error", data.d);
+            break;
+          }
+          case Event.InvalidSyntax: {
+            this.emit("syntax_error", data.d);
             break;
           }
         }
@@ -408,11 +422,6 @@ export class Gateway extends EventEmitter {
 
   private closed(code: number, reason: string): void {
     if (code != 4006) this.emit("close");
-
-    if (code == 4001) {
-      this.emit("resume_failed");
-      return;
-    }
 
     console.log(
       `%c${
