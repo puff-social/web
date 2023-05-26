@@ -236,6 +236,7 @@ export class Gateway extends EventEmitter {
             session_id: this.session_id,
             session_token: this.session_token,
           });
+          this.session_token = data.d.session_token;
         } else {
           this.session_id = data.d.session_id;
           this.session_token = data.d.session_token;
@@ -445,3 +446,5 @@ export const SOCKET_URL =
       : "ws://127.0.0.1:9000"
     : "wss://rosin.puff.social";
 export const gateway = typeof window != "undefined" && new Gateway(SOCKET_URL);
+
+if (typeof window != "undefined") window["gateway"] = gateway;
