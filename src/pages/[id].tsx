@@ -541,6 +541,10 @@ export default function Group({
 
       if (gateway.ws.readyState == gateway.ws.OPEN)
         gateway.send(Op.Join, { group_id: initGroup.group_id });
+      else
+        gateway.once("init", () => {
+          gateway.send(Op.Join, { group_id: initGroup.group_id });
+        });
 
       return () => {
         // setReadyMembers([]);

@@ -56,6 +56,7 @@ export interface Gateway {
   encoding: string; // 'etf' | 'json'
   compression: string; // 'zlib' | 'none'
 
+  on(event: "init", listener: () => void): this;
   on(event: "connected", listener: () => void): this;
   on(event: "hello", listener: () => void): this;
   on(event: "close", listener: () => void): this;
