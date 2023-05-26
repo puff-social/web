@@ -102,7 +102,7 @@ export function AccountSettingsModal({ modalOpen, setModalOpen }: Props) {
                     <span className="flex flex-col space-y-2">
                       <p className="font-bold">Display Name</p>
                       <input
-                        className="flex p-2 rounded-md text-white dark:text-black"
+                        className="flex p-2 rounded-md dark:text-black"
                         maxLength={48}
                         value={display_name}
                         onChange={({ target: { value } }) =>
@@ -118,7 +118,7 @@ export function AccountSettingsModal({ modalOpen, setModalOpen }: Props) {
                         </p>
                       </span>
                       <input
-                        className="flex p-2 rounded-md text-white dark:text-black"
+                        className="flex p-2 rounded-md dark:text-black"
                         maxLength={30}
                         value={location}
                         onChange={({ target: { value } }) => setLocation(value)}
@@ -132,7 +132,7 @@ export function AccountSettingsModal({ modalOpen, setModalOpen }: Props) {
                         </p>
                       </span>
                       <textarea
-                        className="flex w-full p-2 pb-5 rounded-md text-white dark:text-black"
+                        className="flex w-full p-2 pb-5 rounded-md dark:text-black"
                         maxLength={256}
                         value={bio || ""}
                         onChange={({ target: { value } }) => setBio(value)}
