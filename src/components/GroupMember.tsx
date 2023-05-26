@@ -390,7 +390,10 @@ export function GroupMember(props: GroupMemberProps) {
                       content={`Currently in voice : ${props.member?.voice.name}`}
                       placement="top-start"
                     >
-                      <a target="_blank" href="/discord">
+                      <a
+                        target="_blank"
+                        href={props.member?.voice.link || "/discord"}
+                      >
                         <div className="flex items-center opacity-40 cursor">
                           <VoiceWaves />
                         </div>
