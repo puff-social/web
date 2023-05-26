@@ -45,6 +45,7 @@ import {
   ProductModelMap,
   PuffcoOperatingState,
 } from "@puff-social/commons/dist/puffco/constants";
+import { VoiceWaves } from "./icons/Voice";
 
 interface GroupMemberProps {
   strain?: string;
@@ -224,20 +225,24 @@ export function GroupMember(props: GroupMemberProps) {
                           onClick={() => {
                             toast(
                               `Marked you as ${
-                                props.member.away ? "no longer away" : "away"
+                                props.member?.away ? "no longer away" : "away"
                               }`,
                               {
                                 position: "top-right",
                                 duration: 2500,
-                                icon: props.member.away ? <UnAway /> : <Away />,
+                                icon: props.member?.away ? (
+                                  <UnAway />
+                                ) : (
+                                  <Away />
+                                ),
                               }
                             );
                             gateway.send(Op.UpdateUser, {
-                              away: !props.member.away,
+                              away: !props.member?.away,
                             });
                           }}
                         >
-                          {props.member.away ? (
+                          {props.member?.away ? (
                             <>
                               <p>Unset away state</p>
                               <UnAway />
@@ -281,7 +286,7 @@ export function GroupMember(props: GroupMemberProps) {
                           className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
                           onClick={() =>
                             gateway.send(Op.TransferOwnership, {
-                              session_id: props.member.session_id,
+                              session_id: props.member?.session_id,
                             })
                           }
                         >
@@ -292,7 +297,7 @@ export function GroupMember(props: GroupMemberProps) {
                           className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
                           onClick={() =>
                             gateway.send(Op.KickFromGroup, {
-                              session_id: props.member.session_id,
+                              session_id: props.member?.session_id,
                             })
                           }
                         >
@@ -324,7 +329,7 @@ export function GroupMember(props: GroupMemberProps) {
                 id={
                   props.us
                     ? "self"
-                    : `${props.member.session_id}-${props.device.deviceMac}`
+                    : `${props.member?.session_id}-${props.device.deviceMac}`
                 }
                 svgClassName="w-40 h-full"
                 className="-z-50 min-w-[40%]"
@@ -376,6 +381,20 @@ export function GroupMember(props: GroupMemberProps) {
                       <div className="flex items-center">
                         <Away className="text-yellow-700" />
                       </div>
+                    </Tippy>
+                  ) : (
+                    <></>
+                  )}
+                  {props.member?.voice ? (
+                    <Tippy
+                      content={`Currently in voice : ${props.member?.voice.name}`}
+                      placement="top-start"
+                    >
+                      <a target="_blank" href="/discord">
+                        <div className="flex items-center opacity-40 cursor">
+                          <VoiceWaves />
+                        </div>
+                      </a>
                     </Tippy>
                   ) : (
                     <></>

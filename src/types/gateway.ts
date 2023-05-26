@@ -1,3 +1,4 @@
+import { VoiceChannelState } from "@puff-social/commons";
 import { User } from "./api";
 import {
   ChamberType,
@@ -74,6 +75,7 @@ export interface GatewayGroupMember {
   mobile?: boolean;
   away?: boolean;
   user?: User;
+  voice?: VoiceChannelState;
 }
 
 export interface GatewayDeviceProfile {
