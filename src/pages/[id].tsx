@@ -837,7 +837,10 @@ export default function Group({
                 ready={group.ready.includes(gateway.session_id)}
                 connectToDevice={connectToDevice}
                 connected={deviceConnected}
-                nobody={seshers == 0}
+                nobody={
+                  group.members.filter((mem) => validState(mem.device_state))
+                    .length == 0
+                }
                 owner={group.owner_session_id == gateway.session_id}
                 setStrainModalOpen={setStrainSetModalOpen}
                 group={group}
@@ -875,7 +878,8 @@ export default function Group({
                     connectDismissed={connectDismissed}
                   />
                 ))}
-              {seshers == 1 ? (
+              {group.members.filter((mem) => validState(mem.device_state))
+                .length == 1 ? (
                 <GroupMember
                   nobodyelse
                   headless={headless}

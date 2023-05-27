@@ -789,7 +789,7 @@ export class Device extends EventEmitter {
       await this.sendLoraxValueShort(
         LoraxCharacteristicPathMap[characteristic || Characteristic.COMMAND],
         Buffer.from("LORAX" in command ? command.LORAX : command)
-      );
+      ).catch(() => this.sendCommand(command, characteristic));
     else
       await this.writeRawValue(
         characteristic || Characteristic.COMMAND,
@@ -808,49 +808,59 @@ export class Device extends EventEmitter {
     }
   }
 
-  async getValue(characteristic: string, bytes = 4): Promise<Buffer> {
+  async getValue(
+    characteristic: string,
+    bytes = 4
+  ): Promise<Buffer | undefined> {
     return new Promise(async (resolve, reject) => {
       if (this.isLorax) {
-        const req = await this.getLoraxValueShort(
-          LoraxCharacteristicPathMap[characteristic]
-            ? LoraxCharacteristicPathMap[characteristic]
-            : characteristic
-        );
+        try {
+          const req = await this.getLoraxValueShort(
+            LoraxCharacteristicPathMap[characteristic]
+              ? LoraxCharacteristicPathMap[characteristic]
+              : characteristic
+          );
 
-        const func = async (ev: Event) => {
-          const {
-            value: { buffer },
-          }: { value: DataView } = ev.target as any;
-          const data = processLoraxReply(buffer);
-          const msg = this.loraxMessages.get(data.seq);
-          msg.response = { data: data.data, error: !!data.error };
+          const func = async (ev: Event) => {
+            const {
+              value: { buffer },
+            }: { value: DataView } = ev.target as any;
+            const data = processLoraxReply(buffer);
+            const msg = this.loraxMessages.get(data.seq);
+            msg.response = { data: data.data, error: !!data.error };
 
-          if (
-            msg.op == LoraxCommands.READ_SHORT &&
-            msg.seq == req.seq &&
-            msg.path ==
-              (LoraxCharacteristicPathMap[characteristic]
-                ? LoraxCharacteristicPathMap[characteristic]
-                : characteristic)
-          ) {
-            if (msg.response.error)
-              console.log(
-                "Got error'd reply to",
-                msg.op,
-                msg.seq,
-                msg.path,
-                msg.response.data,
-                data.error
+            if (
+              msg.op == LoraxCommands.READ_SHORT &&
+              msg.seq == req.seq &&
+              msg.path ==
+                (LoraxCharacteristicPathMap[characteristic]
+                  ? LoraxCharacteristicPathMap[characteristic]
+                  : characteristic)
+            ) {
+              if (msg.response.error)
+                console.log(
+                  "Got error'd reply to",
+                  msg.op,
+                  msg.seq,
+                  msg.path,
+                  msg.response.data,
+                  data.error
+                );
+              this.loraxReply.removeEventListener(
+                "characteristicvaluechanged",
+                func
               );
-            this.loraxReply.removeEventListener(
-              "characteristicvaluechanged",
-              func
-            );
-            return resolve(msg.response.data);
-          }
-        };
+              return resolve(msg.response.data);
+            }
+          };
 
-        this.loraxReply.addEventListener("characteristicvaluechanged", func);
+          this.loraxReply.addEventListener("characteristicvaluechanged", func);
+        } catch (error) {
+          console.log(
+            `Failed to get value for ${characteristic} - ${LoraxCharacteristicPathMap[characteristic]}`
+          );
+          return undefined;
+        }
       } else {
         if (characteristic == Characteristic.SERIAL_NUMBER)
           reject({ code: "blocked_characteristic" });
