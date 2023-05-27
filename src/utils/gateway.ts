@@ -237,11 +237,10 @@ export class Gateway extends EventEmitter {
             session_id: this.session_id,
             session_token: this.session_token,
           });
-          this.session_token = data.d.session_token;
-        } else {
-          this.session_id = data.d.session_id;
-          this.session_token = data.d.session_token;
         }
+
+        this.session_id = data.d.session_id;
+        this.session_token = data.d.session_token;
 
         if (
           typeof localStorage != "undefined" &&
@@ -280,8 +279,8 @@ export class Gateway extends EventEmitter {
             break;
           }
           case Event.GroupUserLeft: {
-            store.dispatch(removeGroupMember(data.d.session_id));
             this.emit("group_user_left", data.d);
+            store.dispatch(removeGroupMember(data.d.session_id));
             break;
           }
           case Event.GroupUserUpdate: {

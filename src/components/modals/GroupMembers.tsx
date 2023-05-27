@@ -194,7 +194,7 @@ export function GroupMembersModal({
         </div>
 
         <div className="flex flex-col w-80 max-h-96 overflow-y-scroll pr-2 space-y-1">
-          {[...members]
+          {[...group.members]
             .sort((member) =>
               typeof member.device_state == "object" &&
               Object.keys(member.device_state || {}).length > 0

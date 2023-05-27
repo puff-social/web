@@ -51,7 +51,11 @@ import { PlugConnected, PlugDisconnected } from "../components/icons/Plug";
 import { PuffcoOperatingState } from "@puff-social/commons/dist/puffco/constants";
 import { Op } from "@puff-social/commons";
 import { useDispatch, useSelector } from "react-redux";
-import { selectGroupState, setGroupState } from "../state/slices/group";
+import {
+  selectGroupState,
+  setGroupState,
+  updateGroupMemberDevice,
+} from "../state/slices/group";
 import { validState } from "../utils/state";
 
 const instance = new Device();
@@ -154,88 +158,43 @@ export default function Group({
     } else {
       await instance.setLightMode(PuffLightMode.Default);
     }
-
-    // setReadyMembers((curr) => [
-    //   ...curr.filter((item) => item != gateway.session_id),
-    // ]);
   }, [group]);
 
-  function groupMemberUpdated(member: GatewayGroupMember) {
-    // if (member.session_id == gateway.session_id) {
-    //   if (typeof member.strain != "undefined") setOurStrain(member.strain);
-    //   if (typeof member.user != "undefined") setOurUser(member.user);
-    //   if (typeof member.disconnected != "undefined")
-    //     setUsDisconnected(member.disconnected);
-    // }
-    // setGroupMembers((curr) => {
-    //   const existing = curr.find((mem) => mem.session_id == member.session_id);
-    //   if (!existing) return curr;
-    //   for (const key in member) existing[key] = member[key];
-    //   return [...curr];
-    // });
-  }
+  function groupMemberUpdated(member: GatewayGroupMember) {}
 
-  function groupUserAwayState(state: GatewayGroupUserAwayState) {
-    // if (state.session_id == gateway.session_id) setUsAway(state.state);
-    // setGroupMembers((curr) => {
-    //   const existing = curr.find((mem) => mem.session_id == state.session_id);
-    //   if (!existing) return curr;
-    //   existing.away = state.state;
-    //   return [...curr];
-    // });
-  }
+  function groupUserAwayState(state: GatewayGroupUserAwayState) {}
 
   function groupMemberDeviceUpdated({
     device_state,
     session_id,
   }: GroupUserDeviceUpdate) {
     if (!device_state) return;
-    // setGroupMembers((curr) => {
-    //   const existing = curr.find((mem) => mem.session_id == session_id);
-    //   if (typeof existing.device_state == "undefined")
-    //     existing.device_state = device_state;
-    //   if (!existing || typeof existing.device_state != "object") return curr;
-    //   for (const key in device_state)
-    //     existing.device_state[key] = device_state[key];
-    //   return [...curr];
-    // });
   }
 
   function groupMemberDeviceDisconnected({
     session_id,
-  }: GroupUserDeviceUpdate) {
-    // setGroupMembers((curr) => {
-    //   const existing = curr.find((mem) => mem.session_id == session_id);
-    //   if (!existing || typeof existing.device_state != "object") return curr;
-    //   for (const key in existing.device_state)
-    //     delete existing.device_state[key];
-    //   return [...curr];
-    // });
-  }
+  }: GroupUserDeviceUpdate) {}
 
   function groupMemberJoin(member: GroupUserJoin) {
     toast(`${member.user?.display_name || "Guest"} joined`, {
       position: "top-right",
     });
-    // setGroupMembers((curr) => [...curr, member]);
   }
 
   function groupMemberLeft({ session_id }: GroupUserLeft) {
-    // setGroupMembers((curr) => {
-    //   const member = curr.find((mem) => mem.session_id == session_id);
-    //   if (member)
-    //     toast(
-    //       `${
-    //         member.user?.display_name ||
-    //         member.device_state?.deviceName ||
-    //         "Guest"
-    //       } left`,
-    //       {
-    //         position: "top-right",
-    //       }
-    //     );
-    //   return [...curr.filter((mem) => mem.session_id != session_id)];
-    // });
+    const member = group.members.find((mem) => mem.session_id == session_id);
+    console.log("a user left", session_id, group.members, member);
+    if (member)
+      toast(
+        `${
+          member.user?.display_name ||
+          member.device_state?.deviceName ||
+          "Guest"
+        } left`,
+        {
+          position: "top-right",
+        }
+      );
   }
 
   function groupUserKicked() {
@@ -674,9 +633,23 @@ export default function Group({
         ) {
           setTimeout(() => gateway.send(Op.StartWithReady));
         }
-        setMyDevice((curr) => {
-          return { ...curr, ...data };
+
+        console.log({
+          group_id: group.id,
+          session_id: gateway.session_id,
+          device_state: data,
         });
+
+        dispatch(
+          updateGroupMemberDevice({
+            group_id: group.id,
+            session_id: gateway.session_id,
+            device_state: data,
+          })
+        );
+
+        setMyDevice((curr) => ({ ...curr, ...data }));
+
         gateway.send(Op.SendDeviceState, data);
       });
     } catch (error) {
