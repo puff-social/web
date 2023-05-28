@@ -784,17 +784,27 @@ export class Device extends EventEmitter {
     command: { LORAX: Uint8Array; OLD: Uint8Array } | Uint8Array,
     characteristic?: string
   ) {
-    if (!this.service) return;
-    if (this.isLorax)
-      await this.sendLoraxValueShort(
-        LoraxCharacteristicPathMap[characteristic || Characteristic.COMMAND],
-        Buffer.from("LORAX" in command ? command.LORAX : command)
-      ).catch(() => this.sendCommand(command, characteristic));
-    else
-      await this.writeRawValue(
-        characteristic || Characteristic.COMMAND,
-        "OLD" in command ? command.OLD : command
-      );
+    let attempts = 0;
+    const func = async (attempt) => {
+      if (attempt > 5) return;
+      if (!this.service) return;
+      if (this.isLorax)
+        await this.sendLoraxValueShort(
+          LoraxCharacteristicPathMap[characteristic || Characteristic.COMMAND],
+          Buffer.from("LORAX" in command ? command.LORAX : command)
+        ).catch(() => {
+          console.log("already in progress");
+          attempts++;
+          return func(attempts).catch(() => {});
+        });
+      else
+        await this.writeRawValue(
+          characteristic || Characteristic.COMMAND,
+          "OLD" in command ? command.OLD : command
+        );
+    };
+
+    return func(attempts);
   }
 
   async writeRawValue(characteristic: string, value: Uint8Array) {

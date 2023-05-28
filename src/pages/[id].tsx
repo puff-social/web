@@ -59,7 +59,7 @@ import {
   setGroupState,
   updateGroupMemberDevice,
 } from "../state/slices/group";
-import { validState } from "../utils/state";
+import { validState } from "@puff-social/commons/dist/puffco";
 
 const instance = new Device();
 if (typeof window != "undefined") window["instance"] = instance;

@@ -35,7 +35,7 @@ import { PuffcoLogo } from "./icons/Puffco";
 import { ProductModelMap } from "@puff-social/commons/dist/puffco/constants";
 import { Op } from "@puff-social/commons";
 import { DonationModal } from "./modals/Donation";
-import { validState } from "../utils/state";
+import { validState } from "@puff-social/commons/dist/puffco";
 
 interface ActionsProps {
   group?: GatewayGroup;

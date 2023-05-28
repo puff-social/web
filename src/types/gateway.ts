@@ -85,7 +85,7 @@ export interface GatewayDeviceProfile {
 }
 
 export interface GatewayMemberDeviceState {
-  deviceMac?: string;
+  deviceMac: string;
   activeColor: Colors;
   brightness: number;
   battery: number;

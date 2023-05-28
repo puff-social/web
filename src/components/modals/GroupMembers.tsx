@@ -13,6 +13,7 @@ import { Mobile } from "../icons/Mobile";
 import { Money } from "../icons/Money";
 import { Wrench } from "../icons/Wrench";
 import { Op, UserFlags } from "@puff-social/commons";
+import { validState } from "@puff-social/commons/dist/puffco";
 
 export interface ModalProps {
   modalOpen: boolean;
@@ -62,7 +63,7 @@ function GroupListMember({
         </span>
         <p className="text-xs opacity-40">
           {typeof member.device_state == "object" &&
-          Object.keys(member.device_state || {}).length > 0
+          validState(member.device_state)
             ? "Sesher"
             : "Watcher"}
         </p>
