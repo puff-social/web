@@ -600,12 +600,6 @@ export default function Group({
       setMyDevice((curr) => ({ ...curr, ...initState }));
       gateway.send(Op.SendDeviceState, initState);
 
-      console.log({
-        group_id: group.id,
-        session_id: gateway.session_id,
-        device_state: initState,
-      });
-
       dispatch(
         updateGroupMemberDevice({
           group_id: group.id,
@@ -642,12 +636,6 @@ export default function Group({
         ) {
           setTimeout(() => gateway.send(Op.StartWithReady));
         }
-
-        console.log({
-          group_id: group.id,
-          session_id: gateway.session_id,
-          device_state: data,
-        });
 
         dispatch(
           updateGroupMemberDevice({
