@@ -354,10 +354,6 @@ export default function Group({
         (mem) => mem.session_id == data.session_id
       );
 
-      // setReadyMembers((curr) =>
-      //   curr.includes(data.session_id) ? curr : [...curr, data.session_id]
-      // );
-
       toast(
         `${
           initiator.user?.name || initiator.device_state?.deviceName || "Guest"
@@ -377,10 +373,6 @@ export default function Group({
       const initiator = group.members.find(
         (mem) => mem.session_id == data.session_id
       );
-
-      // setReadyMembers((curr) => [
-      //   ...curr.filter((item) => item != data.session_id),
-      // ]);
 
       if (initiator)
         toast(
@@ -506,7 +498,6 @@ export default function Group({
         });
 
       return () => {
-        // setReadyMembers([]);
         gateway.send(Op.LeaveGroup);
         disconnect();
         gateway.removeListener("group_join_error", groupJoinError);

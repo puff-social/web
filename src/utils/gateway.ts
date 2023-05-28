@@ -46,6 +46,7 @@ export interface Gateway {
   ws: WebSocket;
   heartbeat: NodeJS.Timer;
 
+  new_session_id: string;
   session_id: string;
   session_token: string;
 
@@ -233,6 +234,8 @@ export class Gateway extends EventEmitter {
         );
 
         if (this.session_token && this.session_id) {
+          this.new_session_id = data.d.session_id;
+
           this.send(Op.ResumeSession, {
             session_id: this.session_id,
             session_token: this.session_token,
@@ -375,6 +378,8 @@ export class Gateway extends EventEmitter {
           }
           case Event.SessionResumeError: {
             const { code } = data.d as typeof data.d & { code: string };
+            this.session_id = this.new_session_id;
+            delete this.new_session_id;
             this.emit("resume_failed", code);
             break;
           }

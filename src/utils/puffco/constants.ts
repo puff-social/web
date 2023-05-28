@@ -203,6 +203,14 @@ export const DeviceCommand = {
     LORAX: new Uint8Array([7]),
     OLD: new Uint8Array([0, 0, 224, 64]),
   },
+  HEAT_CYCLE_STOP: {
+    LORAX: new Uint8Array([8]),
+    OLD: new Uint8Array([0, 0, 0, 65]),
+  },
+  HEAT_CYCLE_BOOST: {
+    LORAX: new Uint8Array([9]),
+    OLD: new Uint8Array([0, 0, 16, 65]),
+  },
   FACTORY_TEST: {
     LORAX: new Uint8Array([10]),
     OLD: new Uint8Array([0, 0, 224, 64]),
