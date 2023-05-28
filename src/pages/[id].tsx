@@ -48,7 +48,10 @@ import { GroupHeader } from "../components/group/Header";
 import { GroupMembersModal } from "../components/modals/GroupMembers";
 import { GroupStrainModal } from "../components/modals/GroupStrain";
 import { PlugConnected, PlugDisconnected } from "../components/icons/Plug";
-import { PuffcoOperatingState } from "@puff-social/commons/dist/puffco/constants";
+import {
+  DeviceState,
+  PuffcoOperatingState,
+} from "@puff-social/commons/dist/puffco/constants";
 import { Op } from "@puff-social/commons";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -596,6 +599,21 @@ export default function Group({
       setDeviceInfo(deviceInfo as DeviceInformation);
       setMyDevice((curr) => ({ ...curr, ...initState }));
       gateway.send(Op.SendDeviceState, initState);
+
+      console.log({
+        group_id: group.id,
+        session_id: gateway.session_id,
+        device_state: initState,
+      });
+
+      dispatch(
+        updateGroupMemberDevice({
+          group_id: group.id,
+          session_id: gateway.session_id,
+          device_state: initState as DeviceState,
+        })
+      );
+
       poller.on("data", async (data) => {
         if (data.totalDabs)
           setDeviceInfo((deviceInfo) => {
@@ -644,17 +662,12 @@ export default function Group({
         gateway.send(Op.SendDeviceState, data);
       });
     } catch (error) {
-      if ("code" in error) {
-        switch (error.code) {
-          case "ac_firmware": {
-            toast(
-              "Your device has Firmware AC and is not supported currently, we're trying to work with puffco to support this ASAP!",
-              { position: "top-right", duration: 5000, icon: "‼" }
-            );
-            break;
-          }
-        }
-      }
+      toast("Failed to connect to your device.", {
+        position: "top-right",
+        duration: 5000,
+        icon: "‼",
+      });
+
       console.error(error);
     }
   }, [group]);
@@ -758,14 +771,11 @@ export default function Group({
                 <>
                   <GroupHeader
                     group={group}
-                    watchers={watchers}
-                    seshers={seshers}
                     setGroupMembersModalOpen={setGroupMembersModalOpen}
                   />
 
                   <GroupActions
                     group={group}
-                    seshers={seshers}
                     members={group.members}
                     instance={instance}
                     deviceConnected={deviceConnected}

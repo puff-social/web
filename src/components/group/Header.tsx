@@ -14,16 +14,10 @@ import { EASTER_EGG_CYCLE_COUNTS } from "../../utils/constants";
 
 interface Props {
   group: GatewayGroup;
-  seshers: number;
-  watchers: number;
   setGroupMembersModalOpen: Function;
 }
 
-export function GroupHeader({
-  seshers,
-  watchers,
-  setGroupMembersModalOpen,
-}: Props) {
+export function GroupHeader({ setGroupMembersModalOpen }: Props) {
   const { group } = useSelector(selectGroupState);
 
   return (
