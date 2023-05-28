@@ -13,7 +13,7 @@ export function GroupStrainModal({ modalOpen, setModalOpen, strain }: any) {
   const [currentStrain, setCurrentStrain] = useState(() => strain);
 
   const saveSettings = useCallback(() => {
-    gateway.send(Op.GroupStrain, { strain: currentStrain });
+    gateway.send(Op.UpdateUser, { strain: currentStrain });
     toast("Updated strain for this group", {
       position: "top-right",
     });

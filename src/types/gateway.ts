@@ -1,3 +1,4 @@
+import { VoiceChannelState } from "@puff-social/commons";
 import { User } from "./api";
 import {
   ChamberType,
@@ -53,7 +54,7 @@ export enum GroupState {
 export interface GatewayGroup {
   group_id: string;
   members: GatewayGroupMember[];
-  ready_members: string[];
+  ready: string[];
   name: string;
   state: GroupState;
   visibility: string;
@@ -74,6 +75,7 @@ export interface GatewayGroupMember {
   mobile?: boolean;
   away?: boolean;
   user?: User;
+  voice?: VoiceChannelState;
 }
 
 export interface GatewayDeviceProfile {

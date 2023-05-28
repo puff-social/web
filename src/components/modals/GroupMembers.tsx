@@ -53,7 +53,7 @@ function GroupListMember({
         <span className="flex flex-row items-center space-x-2">
           <p className="text-sm">
             {member?.user?.display_name ||
-              member.device_state.deviceName ||
+              member.device_state?.deviceName ||
               "Guest"}
           </p>
           <p className="text-xs opacity-30">
@@ -194,7 +194,7 @@ export function GroupMembersModal({
         </div>
 
         <div className="flex flex-col w-80 max-h-96 overflow-y-scroll pr-2 space-y-1">
-          {members
+          {[...group.members]
             .sort((member) =>
               typeof member.device_state == "object" &&
               Object.keys(member.device_state || {}).length > 0

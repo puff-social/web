@@ -12,8 +12,8 @@ export const API_URL =
   (typeof location != "undefined" &&
     ["localhost", "dev.puff.social"].includes(location.hostname)) ||
   process.env.DEV == "1"
-    ? typeof location != "undefined" && location.hostname == "dev.puff.social"
-      ? "https://kief.puff.social"
+    ? typeof location != "undefined" && location.hostname == "beta.puff.social"
+      ? "https://hash.puff.social"
       : "http://127.0.0.1:8000"
     : "https://hash.puff.social";
 

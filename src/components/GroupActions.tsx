@@ -35,10 +35,10 @@ import { PuffcoLogo } from "./icons/Puffco";
 import { ProductModelMap } from "@puff-social/commons/dist/puffco/constants";
 import { Op } from "@puff-social/commons";
 import { DonationModal } from "./modals/Donation";
+import { validState } from "../utils/state";
 
 interface ActionsProps {
   group?: GatewayGroup;
-  seshers?: number;
   members?: GatewayGroupMember[];
   instance?: Device;
   readyMembers?: string[];
@@ -56,10 +56,8 @@ interface ActionsProps {
 
 export function GroupActions({
   group,
-  seshers,
   members,
   instance,
-  readyMembers,
   setGroupSettingsModalOpen,
   setDeviceSettingsModalOpen,
   setUserSettingsModalOpen,
@@ -137,13 +135,16 @@ export function GroupActions({
           )}
           <span className="pr-3 flex flex-row">
             {group.state == GroupState.Chilling ? (
-              seshers > 0 &&
+              group.members.filter((mem) => validState(mem.device_state))
+                .length > 0 &&
               members.filter(
                 (mem) =>
                   mem.away &&
                   typeof mem.device_state == "object" &&
                   Object.keys(mem.device_state || {}).length > 0
-              ).length != seshers ? (
+              ).length !=
+                group.members.filter((mem) => validState(mem.device_state))
+                  .length ? (
                 <Tippy content="Start a group sesh" placement="bottom">
                   <div
                     className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl text-green-500 dark:text-green-200"
@@ -157,7 +158,7 @@ export function GroupActions({
               )
             ) : group.state == GroupState.Awaiting ? (
               <>
-                {readyMembers.length > 0 ? (
+                {group.ready.length > 0 ? (
                   <Tippy content="Start anyway" placement="bottom">
                     <div
                       className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl text-green-400"

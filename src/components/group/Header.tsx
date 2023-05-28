@@ -7,20 +7,19 @@ import { Smoke, AltSmoke } from "../icons/Smoke";
 
 import { GatewayGroup, GroupState } from "../../types/gateway";
 import { Lock } from "../icons/Lock";
+import { useSelector } from "react-redux";
+import { selectGroupState } from "../../state/slices/group";
+import { validState } from "../../utils/state";
+import { EASTER_EGG_CYCLE_COUNTS } from "../../utils/constants";
 
 interface Props {
   group: GatewayGroup;
-  seshers: number;
-  watchers: number;
   setGroupMembersModalOpen: Function;
 }
 
-export function GroupHeader({
-  group,
-  seshers,
-  watchers,
-  setGroupMembersModalOpen,
-}: Props) {
+export function GroupHeader({ setGroupMembersModalOpen }: Props) {
+  const { group } = useSelector(selectGroupState);
+
   return (
     <div className="flex flex-col">
       <h1 className="flex flex-row text-4xl text-black dark:text-white font-bold items-center">
@@ -47,7 +46,11 @@ export function GroupHeader({
           </span>
         </Tippy>
       </h1>
-      <p className="text-black dark:text-white font-bold">
+      <p
+        className={`text-black dark:text-white font-bold ${
+          EASTER_EGG_CYCLE_COUNTS.includes(group.sesh_counter) ? "rainbow" : ""
+        }`}
+      >
         {group.sesh_counter == 0
           ? "No seshes yet!"
           : `${group.sesh_counter.toLocaleString()} seshes this group`}
@@ -58,11 +61,21 @@ export function GroupHeader({
           onClick={() => setGroupMembersModalOpen(true)}
         >
           <span className="flex flex-row items-center text-black dark:text-white font-bold space-x-1">
-            <p>{seshers}</p>
+            <p>
+              {
+                group.members.filter((mem) => validState(mem.device_state))
+                  .length
+              }
+            </p>
             <AltSmoke />
           </span>
           <span className="flex flex-row items-center text-black dark:text-white font-bold space-x-1">
-            <p>{watchers}</p>
+            <p>
+              {
+                group.members.filter((mem) => !validState(mem.device_state))
+                  .length
+              }
+            </p>
             <Eye />
           </span>
         </span>

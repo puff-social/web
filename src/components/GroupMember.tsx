@@ -45,9 +45,9 @@ import {
   ProductModelMap,
   PuffcoOperatingState,
 } from "@puff-social/commons/dist/puffco/constants";
+import { VoiceWaves } from "./icons/Voice";
 
 interface GroupMemberProps {
-  name?: string;
   strain?: string;
   group?: GatewayGroup;
   device?: GatewayMemberDeviceState;
@@ -193,7 +193,7 @@ export function GroupMember(props: GroupMemberProps) {
     >
       <div
         className={`group flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md px-4 h-full w-[440px] justify-center items-center overflow-hidden ${
-          (props.us ? props.away : props.member?.away) ? "brightness-75" : ""
+          props.member?.away ? "brightness-75" : ""
         }`}
         onMouseEnter={() => setHoveringCard(true)}
         onMouseLeave={() => setHoveringCard(false)}
@@ -225,30 +225,24 @@ export function GroupMember(props: GroupMemberProps) {
                           onClick={() => {
                             toast(
                               `Marked you as ${
-                                (props.us ? props.away : props.member.away)
-                                  ? "no longer away"
-                                  : "away"
+                                props.member?.away ? "no longer away" : "away"
                               }`,
                               {
                                 position: "top-right",
                                 duration: 2500,
-                                icon: (
-                                  props.us ? props.away : props.member.away
-                                ) ? (
+                                icon: props.member?.away ? (
                                   <UnAway />
                                 ) : (
                                   <Away />
                                 ),
                               }
                             );
-                            gateway.send(Op.AwayState, {
-                              state: props.us
-                                ? !props.away
-                                : !props.member.away,
+                            gateway.send(Op.UpdateUser, {
+                              away: !props.member?.away,
                             });
                           }}
                         >
-                          {(props.us ? props.away : props.member.away) ? (
+                          {props.member?.away ? (
                             <>
                               <p>Unset away state</p>
                               <UnAway />
@@ -292,7 +286,7 @@ export function GroupMember(props: GroupMemberProps) {
                           className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
                           onClick={() =>
                             gateway.send(Op.TransferOwnership, {
-                              session_id: props.member.session_id,
+                              session_id: props.member?.session_id,
                             })
                           }
                         >
@@ -303,7 +297,7 @@ export function GroupMember(props: GroupMemberProps) {
                           className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
                           onClick={() =>
                             gateway.send(Op.KickFromGroup, {
-                              session_id: props.member.session_id,
+                              session_id: props.member?.session_id,
                             })
                           }
                         >
@@ -335,7 +329,7 @@ export function GroupMember(props: GroupMemberProps) {
                 id={
                   props.us
                     ? "self"
-                    : `${props.member.session_id}-${props.device.deviceMac}`
+                    : `${props.member?.session_id}-${props.device.deviceMac}`
                 }
                 svgClassName="w-40 h-full"
                 className="-z-50 min-w-[40%]"
@@ -362,11 +356,8 @@ export function GroupMember(props: GroupMemberProps) {
                   ) : (
                     <></>
                   )}
-                  {(props.us ? props.strain : props.member?.strain) ? (
-                    <Tippy
-                      content={props.us ? props.strain : props.member?.strain}
-                      placement="top-start"
-                    >
+                  {props.member?.strain ? (
+                    <Tippy content={props.member?.strain} placement="top-start">
                       <div className="flex items-center">
                         <Leaf className="text-green-600" />
                       </div>
@@ -385,7 +376,7 @@ export function GroupMember(props: GroupMemberProps) {
                   ) : (
                     <></>
                   )}
-                  {(props.us ? props.away : props.member.away) ? (
+                  {props.member?.away ? (
                     <Tippy content="Away" placement="top-start">
                       <div className="flex items-center">
                         <Away className="text-yellow-700" />
@@ -394,7 +385,24 @@ export function GroupMember(props: GroupMemberProps) {
                   ) : (
                     <></>
                   )}
-                  {props.member.mobile ? (
+                  {props.member?.voice ? (
+                    <Tippy
+                      content={`Currently in voice : ${props.member?.voice.name}`}
+                      placement="top-start"
+                    >
+                      <a
+                        target="_blank"
+                        href={props.member?.voice.link || "/discord"}
+                      >
+                        <div className="flex items-center opacity-40 cursor">
+                          <VoiceWaves />
+                        </div>
+                      </a>
+                    </Tippy>
+                  ) : (
+                    <></>
+                  )}
+                  {props.member?.mobile ? (
                     <Tippy content="Mobile" placement="top-start">
                       <div className="flex items-center">
                         <Mobile className="text-black dark:text-white opacity-50" />
@@ -414,13 +422,15 @@ export function GroupMember(props: GroupMemberProps) {
                   )}
                 </span>
                 <span className="space-x-2 flex flex-row items-center">
-                  {props.member.user && props.member.user.image ? (
+                  {props.member?.user && props.member?.user.image ? (
                     <img
                       className="rounded-full p-0.5 w-7 h-7"
                       src={`https://cdn.puff.social/avatars/${
-                        props.member.user.id
-                      }/${props.member.user.image}.${
-                        props.member.user.image.startsWith("a_") ? "gif" : "png"
+                        props.member?.user.id
+                      }/${props.member?.user.image}.${
+                        props.member?.user.image.startsWith("a_")
+                          ? "gif"
+                          : "png"
                       }`}
                     />
                   ) : (
@@ -432,7 +442,7 @@ export function GroupMember(props: GroupMemberProps) {
                   >
                     <h1 className="m-0 text-xl font-bold truncate">
                       {props.member?.user?.display_name ||
-                        props.member?.device_state.deviceName ||
+                        props.member?.device_state?.deviceName ||
                         "Unknown"}
                     </h1>
                   </Tippy>

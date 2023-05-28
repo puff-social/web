@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { Transition } from "@headlessui/react";
 import { Toaster, ToastIcon, toast, resolveValue } from "react-hot-toast";
 
@@ -58,6 +58,13 @@ function App({ Component, pageProps }) {
     });
   }
 
+  function syntaxError(error: any) {
+    console.log(error);
+    toast("Syntax error with data sent to Rosin, check console.", {
+      position: "top-right",
+    });
+  }
+
   async function getAndCheckAuth() {
     const auth = localStorage.getItem("puff-social-auth");
     if (auth) {
@@ -71,6 +78,17 @@ function App({ Component, pageProps }) {
     }
   }
 
+  const sessionResumeFailed = useCallback(async () => {
+    toast("Failed to resume socket session", {
+      position: "top-right",
+      duration: 2000,
+      icon: "❌",
+    });
+
+    if (!headless) router.push("/");
+    else router.reload();
+  }, []);
+
   useEffect(() => {
     getAndCheckAuth();
 
@@ -79,13 +97,18 @@ function App({ Component, pageProps }) {
 
     gateway.on("group_create", groupCreated);
     gateway.on("internal_error", internalError);
+    gateway.on("syntax_error", syntaxError);
     gateway.on("group_create_error", groupCreateError);
     gateway.on("user_update_error", userUpdateError);
+    gateway.on("resume_failed", sessionResumeFailed);
+
     return () => {
       gateway.removeListener("group_create", groupCreated);
       gateway.removeListener("internal_error", internalError);
+      gateway.removeListener("syntax_error", syntaxError);
       gateway.removeListener("group_create_error", groupCreateError);
       gateway.removeListener("user_update_error", userUpdateError);
+      gateway.removeListener("resume_failed", sessionResumeFailed);
     };
   }, []);
 

@@ -1,5 +1,7 @@
 import { EventEmitter } from "events";
 import { inflate, deflate } from "pako";
+
+import { store } from "../state/store";
 import { APIGroup } from "../types/api";
 import {
   GatewayError,
@@ -19,6 +21,14 @@ import {
   GroupHeatInquire,
 } from "../types/gateway";
 import { Event, Op } from "@puff-social/commons";
+import {
+  addGroupMember,
+  removeGroupMember,
+  resetGroupState,
+  setGroupState,
+  updateGroupMember,
+  updateGroupMemberDevice,
+} from "../state/slices/group";
 
 interface SocketData {
   session_id?: string;
@@ -36,6 +46,7 @@ export interface Gateway {
   ws: WebSocket;
   heartbeat: NodeJS.Timer;
 
+  new_session_id: string;
   session_id: string;
   session_token: string;
 
@@ -46,6 +57,7 @@ export interface Gateway {
   encoding: string; // 'etf' | 'json'
   compression: string; // 'zlib' | 'none'
 
+  on(event: "init", listener: () => void): this;
   on(event: "connected", listener: () => void): this;
   on(event: "hello", listener: () => void): this;
   on(event: "close", listener: () => void): this;
@@ -120,16 +132,18 @@ export interface Gateway {
     listener: (group: GatewayGroupUserAwayState) => void
   ): this;
   on(event: "internal_error", listener: (error: any) => void): this;
+  on(event: "syntax_error", listener: (error: any) => void): this;
   on(event: "rate_limited", listener: () => void): this;
   on(event: "session_resumed", listener: () => void): this;
-  on(event: "resume_failed", listener: () => void): this;
+  on(event: "resume_failed", listener: (code: string) => void): this;
+  on(event: "op_deprecated", listener: () => void): this;
   on(event: "user_update_error", listener: (error: GatewayError) => void): this;
 }
 export class Gateway extends EventEmitter {
   constructor(
     url = "wss://rosin.puff.social",
     encoding = "json",
-    compression = "zlib"
+    compression = "none"
   ) {
     super();
 
@@ -155,6 +169,7 @@ export class Gateway extends EventEmitter {
 
     if (typeof window != "undefined") {
       window.addEventListener("beforeunload", () => {
+        store.dispatch(resetGroupState());
         this.send(Op.LeaveGroup);
         this.ws.close(4006);
       });
@@ -219,14 +234,16 @@ export class Gateway extends EventEmitter {
         );
 
         if (this.session_token && this.session_id) {
+          this.new_session_id = data.d.session_id;
+
           this.send(Op.ResumeSession, {
             session_id: this.session_id,
             session_token: this.session_token,
           });
-        } else {
-          this.session_id = data.d.session_id;
-          this.session_token = data.d.session_token;
         }
+
+        this.session_id = data.d.session_id;
+        this.session_token = data.d.session_token;
 
         if (
           typeof localStorage != "undefined" &&
@@ -243,6 +260,7 @@ export class Gateway extends EventEmitter {
       case Op.Event:
         switch (data.t) {
           case Event.JoinedGroup: {
+            store.dispatch(setGroupState({ group: data.d }));
             this.emit("joined_group", data.d);
             break;
           }
@@ -259,18 +277,24 @@ export class Gateway extends EventEmitter {
             break;
           }
           case Event.GroupUserJoin: {
+            store.dispatch(addGroupMember(data.d as GroupUserJoin));
             this.emit("group_user_join", data.d);
             break;
           }
           case Event.GroupUserLeft: {
             this.emit("group_user_left", data.d);
+            store.dispatch(removeGroupMember(data.d.session_id));
             break;
           }
           case Event.GroupUserUpdate: {
+            store.dispatch(updateGroupMember(data.d as GroupUserJoin));
             this.emit("group_user_update", data.d);
             break;
           }
           case Event.GroupUserDeviceUpdate: {
+            store.dispatch(
+              updateGroupMemberDevice(data.d as GroupUserDeviceUpdate)
+            );
             this.emit("group_user_device_update", data.d);
             break;
           }
@@ -287,6 +311,17 @@ export class Gateway extends EventEmitter {
             break;
           }
           case Event.GroupJoinError: {
+            const parsed = data.d as unknown as GatewayError;
+            switch (parsed.code) {
+              case "INVALID_GROUP_ID": {
+                store.dispatch(
+                  setGroupState({
+                    joinErrorMessage: "Unknown or invalid group ID",
+                  })
+                );
+                break;
+              }
+            }
             this.emit("group_join_error", data.d);
             break;
           }
@@ -311,6 +346,12 @@ export class Gateway extends EventEmitter {
             break;
           }
           case Event.GroupUserDeviceDisconnect: {
+            store.dispatch(
+              updateGroupMemberDevice({
+                ...data.d,
+                device_state: null,
+              } as GroupUserDeviceUpdate)
+            );
             this.emit("group_user_device_disconnect", data.d);
             break;
           }
@@ -328,8 +369,18 @@ export class Gateway extends EventEmitter {
           }
           case Event.SessionResumed: {
             this.session_id = data.d.session_id;
-            this.session_id = data.d.session_id;
             this.emit("session_resumed", data.d);
+            break;
+          }
+          case Event.Deprecated: {
+            this.emit("op_deprecated");
+            break;
+          }
+          case Event.SessionResumeError: {
+            const { code } = data.d as typeof data.d & { code: string };
+            this.session_id = this.new_session_id;
+            delete this.new_session_id;
+            this.emit("resume_failed", code);
             break;
           }
           case Event.GroupUserKicked: {
@@ -346,6 +397,10 @@ export class Gateway extends EventEmitter {
           }
           case Event.InternalError: {
             this.emit("internal_error", data.d);
+            break;
+          }
+          case Event.InvalidSyntax: {
+            this.emit("syntax_error", data.d);
             break;
           }
         }
@@ -374,11 +429,6 @@ export class Gateway extends EventEmitter {
   private closed(code: number, reason: string): void {
     if (code != 4006) this.emit("close");
 
-    if (code == 4001) {
-      this.emit("resume_failed");
-      return;
-    }
-
     console.log(
       `%c${
         SOCKET_URL.includes("puff.social")
@@ -395,14 +445,11 @@ export class Gateway extends EventEmitter {
 
 export const SOCKET_URL =
   typeof location != "undefined" &&
-  ["localhost", "dev.puff.social"].includes(location.hostname)
-    ? location.hostname == "dev.puff.social"
+  ["localhost", "beta.puff.social"].includes(location.hostname)
+    ? location.hostname == "beta.puff.social"
       ? "wss://flower.puff.social"
       : "ws://127.0.0.1:9000"
     : "wss://rosin.puff.social";
-export const gateway =
-  typeof window != "undefined" &&
-  (["ws://127.0.0.1:9000", "wss://flower.puff.social"].includes(SOCKET_URL) ||
-  ["stage.puff.social", "127.0.0.1"].includes(location.hostname)
-    ? new Gateway(SOCKET_URL, "json", "none")
-    : new Gateway(SOCKET_URL));
+export const gateway = typeof window != "undefined" && new Gateway(SOCKET_URL);
+
+if (typeof window != "undefined") window["gateway"] = gateway;
