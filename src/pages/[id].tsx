@@ -7,8 +7,6 @@ import { Tippy } from "../components/Tippy";
 import {
   GatewayError,
   GatewayGroup,
-  GatewayGroupMember,
-  GatewayGroupUserAwayState,
   GatewayMemberDeviceState,
   GroupActionInitiator,
   GroupHeatBegin,
@@ -143,17 +141,9 @@ export default function Group({
     }
   }, [group]);
 
-  function groupMemberUpdated(member: GatewayGroupMember) {}
-
-  function groupUserAwayState(state: GatewayGroupUserAwayState) {}
-
   function groupMemberDeviceUpdated({ device_state }: GroupUserDeviceUpdate) {
     if (!device_state) return;
   }
-
-  function groupMemberDeviceDisconnected({
-    session_id,
-  }: GroupUserDeviceUpdate) {}
 
   function groupMemberJoin(member: GroupUserJoin) {
     toast(`${member.user?.display_name || "Guest"} joined`, {
@@ -453,9 +443,7 @@ export default function Group({
         );
       }
       gateway.on("group_join_error", groupJoinError);
-      gateway.on("group_user_update", groupMemberUpdated);
       gateway.on("group_user_device_update", groupMemberDeviceUpdated);
-      gateway.on("group_user_device_disconnect", groupMemberDeviceDisconnected);
       gateway.on("group_heat_begin", startDab);
 
       gateway.on("group_visibility_change", groupChangeVisibility);
@@ -465,7 +453,6 @@ export default function Group({
       gateway.on("group_user_join", groupMemberJoin);
       gateway.on("group_user_left", groupMemberLeft);
       gateway.on("group_user_kicked", groupUserKicked);
-      gateway.on("group_user_away_state", groupUserAwayState);
 
       gateway.on("close", gatewayClosed);
 
@@ -481,14 +468,9 @@ export default function Group({
         disconnect();
         gateway.removeListener("group_join_error", groupJoinError);
 
-        gateway.removeListener("group_user_update", groupMemberUpdated);
         gateway.removeListener(
           "group_user_device_update",
           groupMemberDeviceUpdated
-        );
-        gateway.removeListener(
-          "group_user_device_disconnect",
-          groupMemberDeviceDisconnected
         );
 
         gateway.removeListener(
@@ -501,7 +483,6 @@ export default function Group({
         gateway.removeListener("group_user_join", groupMemberJoin);
         gateway.removeListener("group_user_left", groupMemberLeft);
         gateway.removeListener("group_user_kicked", groupUserKicked);
-        gateway.removeListener("group_user_away_state", groupUserAwayState);
 
         gateway.removeListener("close", gatewayClosed);
       };

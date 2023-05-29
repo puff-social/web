@@ -37,7 +37,7 @@ import {
   SILLABS_VERISON,
   DeviceCommand,
 } from "./constants";
-import { AppState, store } from "../../state/store";
+import { store } from "../../state/store";
 import { GroupState as GroupStateInterface } from "../../state/slices/group";
 import { PuffcoOperatingState } from "@puff-social/commons/dist/puffco";
 import { Op } from "@puff-social/commons/dist/constants";
