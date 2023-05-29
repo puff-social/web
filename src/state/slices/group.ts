@@ -84,6 +84,10 @@ export const group = createSlice({
         }
       } catch (error) {}
     },
+    updateGroupState(state, action: PayloadAction<GroupState>) {
+      for (const key of Object.keys(action.payload))
+        state.group[key] = action.payload[key];
+    },
     setGroupState(state, action: PayloadAction<GroupState>) {
       for (const key of Object.keys(action.payload))
         state[key] = action.payload[key];
@@ -105,6 +109,7 @@ export const group = createSlice({
 
 export const {
   setGroupState,
+  updateGroupState,
   resetGroupState,
   addGroupMember,
   updateGroupMember,

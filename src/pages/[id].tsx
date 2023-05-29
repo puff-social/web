@@ -48,10 +48,7 @@ import { GroupHeader } from "../components/group/Header";
 import { GroupMembersModal } from "../components/modals/GroupMembers";
 import { GroupStrainModal } from "../components/modals/GroupStrain";
 import { PlugConnected, PlugDisconnected } from "../components/icons/Plug";
-import {
-  DeviceState,
-  PuffcoOperatingState,
-} from "@puff-social/commons/dist/puffco/constants";
+import { DeviceState } from "@puff-social/commons/dist/puffco/constants";
 import { Op } from "@puff-social/commons";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -61,7 +58,7 @@ import {
 } from "../state/slices/group";
 import { validState } from "@puff-social/commons/dist/puffco";
 
-const instance = new Device();
+export const instance = new Device();
 if (typeof window != "undefined") window["instance"] = instance;
 
 export default function Group({
@@ -75,7 +72,7 @@ export default function Group({
 
   const membersList = useRef<HTMLDivElement>();
 
-  const { connected, connectDismissed, group } = useSelector(selectGroupState);
+  const { connectDismissed, group } = useSelector(selectGroupState);
   const dispatch = useDispatch();
 
   const [deviceConnected, setDeviceConnected] = useState(false);
@@ -131,23 +128,6 @@ export default function Group({
     else router.reload();
   }, [group, headless]);
 
-  const updatedGroup = useCallback(
-    (newGroup: GatewayGroup) => {
-      if (
-        ([GroupState.Chilling, GroupState.Seshing].includes(newGroup.state) &&
-          group.state == GroupState.Awaiting) ||
-        ([GroupState.Awaiting, GroupState.Seshing].includes(group.state) &&
-          newGroup.state == GroupState.Chilling)
-      ) {
-        // setReadyMembers([]);
-        instance.setLightMode(PuffLightMode.Default);
-      }
-
-      dispatch(setGroupState({ group: { ...group, ...newGroup } }));
-    },
-    [group, deviceConnected, myDevice]
-  );
-
   const sessionResumed = useCallback(async () => {
     setUsDisconnected(false);
     toast("Socket reconnected", {
@@ -167,10 +147,7 @@ export default function Group({
 
   function groupUserAwayState(state: GatewayGroupUserAwayState) {}
 
-  function groupMemberDeviceUpdated({
-    device_state,
-    session_id,
-  }: GroupUserDeviceUpdate) {
+  function groupMemberDeviceUpdated({ device_state }: GroupUserDeviceUpdate) {
     if (!device_state) return;
   }
 
@@ -320,7 +297,6 @@ export default function Group({
 
   const inquireDab = useCallback(
     (data: GroupHeatInquire) => {
-      console.log(group.members, "group members");
       const initiator = group.members.find(
         (mem) => mem.session_id == data.session_id
       );
@@ -539,13 +515,6 @@ export default function Group({
     };
   }, [sessionResumed]);
 
-  useEffect(() => {
-    gateway.on("group_update", updatedGroup);
-    return () => {
-      gateway.removeListener("group_update", updatedGroup);
-    };
-  }, [updatedGroup]);
-
   useEffect(() => {}, [chatBoxOpen]);
 
   useEffect(() => {
@@ -588,13 +557,6 @@ export default function Group({
         position: "top-right",
       });
 
-      if (group.state == GroupState.Awaiting) {
-        await instance.setLightMode(PuffLightMode.QueryReady);
-        await instance.sendCommand(DeviceCommand.BONDING);
-      } else {
-        await instance.setLightMode(PuffLightMode.Default);
-      }
-
       setDeviceConnected(true);
       setDeviceInfo(deviceInfo as DeviceInformation);
       setMyDevice((curr) => ({ ...curr, ...initState }));
@@ -614,28 +576,6 @@ export default function Group({
             trackDevice({ ...deviceInfo, totalDabs: data.totalDabs });
             return deviceInfo;
           });
-        if (
-          group.state == GroupState.Awaiting &&
-          data.state == PuffcoOperatingState.TEMP_SELECT
-        ) {
-          instance.setLightMode(PuffLightMode.MarkedReady);
-        }
-
-        if (
-          group.state == GroupState.Chilling &&
-          data.state == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
-          groupStartOnBatteryCheck
-        ) {
-          setTimeout(() => gateway.send(Op.InquireHeating));
-        }
-
-        if (
-          group.state == GroupState.Awaiting &&
-          data.state == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
-          groupStartOnBatteryCheck
-        ) {
-          setTimeout(() => gateway.send(Op.StartWithReady));
-        }
 
         dispatch(
           updateGroupMemberDevice({
@@ -659,21 +599,6 @@ export default function Group({
       console.error(error);
     }
   }, [group]);
-
-  const [seshers, setSeshers] = useState(0);
-  const [watchers, setWatchers] = useState(0);
-
-  useEffect(() => {
-    const currentSeshers = group?.members.filter((mem) =>
-      validState(mem.device_state)
-    ).length;
-    const currentWatchers = group?.members.filter(
-      (mem) => !validState(mem.device_state)
-    ).length;
-
-    setSeshers(currentSeshers);
-    setWatchers(currentWatchers);
-  }, [group?.members, deviceConnected]);
 
   function closeChatBox(event: KeyboardEvent) {
     return event.code == "Escape" ? setChatBoxOpen(false) : false;

@@ -19,16 +19,21 @@ import {
   GatewayGroupUserAwayState,
   GroupHeatBegin,
   GroupHeatInquire,
+  GroupState,
 } from "../types/gateway";
 import { Event, Op } from "@puff-social/commons";
 import {
+  GroupState as GroupStateInterface,
   addGroupMember,
   removeGroupMember,
   resetGroupState,
   setGroupState,
   updateGroupMember,
   updateGroupMemberDevice,
+  updateGroupState,
 } from "../state/slices/group";
+import { instance } from "../pages/[id]";
+import { PuffLightMode } from "./puffco/constants";
 
 interface SocketData {
   session_id?: string;
@@ -273,6 +278,18 @@ export class Gateway extends EventEmitter {
             break;
           }
           case Event.GroupUpdate: {
+            store.dispatch(updateGroupState(data.d as GatewayGroup));
+
+            const {
+              group: { group },
+            }: { group: GroupStateInterface } = store.getState();
+
+            if (group) {
+              if (group.state == GroupState.Chilling) {
+                instance.setLightMode(PuffLightMode.Default);
+              }
+            }
+
             this.emit("group_update", data.d);
             break;
           }

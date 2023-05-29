@@ -1,13 +1,11 @@
 import { createHash } from "crypto";
 import { EventEmitter } from "events";
 import { unpack, pack } from "byte-data";
-import { GatewayMemberDeviceState } from "../../types/gateway";
+import { GatewayMemberDeviceState, GroupState } from "../../types/gateway";
 import {
   convertFromHex,
   convertHexStringToNumArray,
   millisToMinutesAndSeconds,
-  decimalToHexString,
-  hexToFloat,
   constructLoraxCommand,
   processLoraxReply,
   intArrayToMacAddress,
@@ -23,7 +21,6 @@ import {
   Characteristic,
   LoraxCommands,
   LoraxCharacteristic,
-  DeviceCommand,
   DynamicLoraxCharacteristics,
   LoraxCharacteristicPathMap,
   DeviceProfile,
@@ -38,7 +35,12 @@ import {
   SERVICE,
   SILLABS_OTA_SERVICE,
   SILLABS_VERISON,
+  DeviceCommand,
 } from "./constants";
+import { AppState, store } from "../../state/store";
+import { GroupState as GroupStateInterface } from "../../state/slices/group";
+import { PuffcoOperatingState } from "@puff-social/commons/dist/puffco";
+import { Op } from "@puff-social/commons/dist/constants";
 
 const decoder = new TextDecoder("utf-8");
 
@@ -593,8 +595,41 @@ export class Device extends EventEmitter {
     operatingState.on("change", (data: Buffer) => {
       if (!data || data.byteLength != (this.isLorax ? 1 : 4)) return;
       const val = this.isLorax ? data.readUInt8(0) : data.readFloatLE(0);
-      if (val != currentOperatingState)
+      if (val != currentOperatingState) {
         this.poller.emit("data", { state: val });
+
+        const {
+          group: { group },
+        }: { group: GroupStateInterface } = store.getState();
+
+        if (group) {
+          const groupStartOnBatteryCheck =
+            localStorage.getItem("puff-battery-check-start") == "true" || false;
+
+          if (
+            group.state == GroupState.Awaiting &&
+            val == PuffcoOperatingState.TEMP_SELECT
+          ) {
+            this.setLightMode(PuffLightMode.MarkedReady);
+          }
+
+          if (
+            group.state == GroupState.Chilling &&
+            val == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
+            groupStartOnBatteryCheck
+          ) {
+            setTimeout(() => gateway.send(Op.InquireHeating));
+          }
+
+          if (
+            group.state == GroupState.Awaiting &&
+            val == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
+            groupStartOnBatteryCheck
+          ) {
+            setTimeout(() => gateway.send(Op.StartWithReady));
+          }
+        }
+      }
       currentOperatingState = val;
     });
 
@@ -730,6 +765,19 @@ export class Device extends EventEmitter {
       if (this.server.connected && disconnect) this.server.disconnect();
       this.poller.removeAllListeners();
     });
+
+    const {
+      group: { group },
+    }: { group: GroupStateInterface } = store.getState();
+
+    if (group) {
+      if (group.state == GroupState.Awaiting) {
+        await this.setLightMode(PuffLightMode.QueryReady);
+        await this.sendCommand(DeviceCommand.BONDING);
+      } else {
+        await this.setLightMode(PuffLightMode.Default);
+      }
+    }
 
     return { poller: this.poller, initState, deviceInfo };
   }
