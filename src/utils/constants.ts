@@ -8,4 +8,6 @@ export const DeviceModelColors = {
   Indiglow: "#8C59AC",
   Opal: "#C1BDA3",
   Guardian: "#CACBD2",
+  PeachWhite: "#FFFFFF",
+  PeachBlack: "#6A6D79",
 };

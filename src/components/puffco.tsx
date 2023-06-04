@@ -127,7 +127,13 @@ export function PuffcoContainer({
           <image
             className="flex justify-center items-center self-center"
             height="100%"
-            href={`/${model}/${
+            href={`/${
+              model == "peachwhite"
+                ? "peach-white"
+                : model == "peachblack"
+                ? "peach-black"
+                : model
+            }/${
               model == "opal"
                 ? prefersColorScheme == "dark"
                   ? "device"
