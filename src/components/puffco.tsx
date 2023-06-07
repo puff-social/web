@@ -127,13 +127,7 @@ export function PuffcoContainer({
           <image
             className="flex justify-center items-center self-center"
             height="100%"
-            href={`/${
-              model == "peachwhite"
-                ? "peach-white"
-                : model == "peachblack"
-                ? "peach-black"
-                : model
-            }/${
+            href={`/${model}/${
               model == "opal"
                 ? prefersColorScheme == "dark"
                   ? "device"
@@ -150,36 +144,65 @@ export function PuffcoContainer({
           >
             <feColorMatrix
               type="matrix"
-              values={`${r / 100} 0 0 0 0
-                        0 ${g / 100} 0 0 0
-                        0 0 ${b / 100} 0 0
+              values={`${
+                r / 100
+                  ? r / 100
+                  : ["onyx", "pearl"].includes(model)
+                  ? 255
+                  : r / 100
+              } 0 0 0 0
+                        0 ${
+                          g / 100
+                            ? g / 100
+                            : ["onyx", "pearl"].includes(model)
+                            ? 255
+                            : g / 100
+                        } 0 0 0
+                        0 0 ${
+                          b / 100
+                            ? b / 100
+                            : ["onyx", "pearl"].includes(model)
+                            ? 255
+                            : b / 100
+                        } 0 0
                         0 0 0 ${brightness / 100} 0`}
             ></feColorMatrix>
           </filter>
-          <image
-            className="flex justify-center items-center self-center"
-            height="100%"
-            filter={`url(#${id}-svg-matrix)`}
-            href={`/peak/device-glass-left.png`}
-          />
-          <image
-            className="flex justify-center items-center self-center"
-            height="100%"
-            filter={`url(#${id}-svg-matrix)`}
-            href={`/peak/device-glass-right.png`}
-          />
-          <image
-            className="flex justify-center items-center self-center"
-            height="100%"
-            filter={`url(#${id}-svg-matrix)`}
-            href={`/peak/device-base-left.png`}
-          />
-          <image
-            className="flex justify-center items-center self-center"
-            height="100%"
-            filter={`url(#${id}-svg-matrix)`}
-            href={`/peak/device-base-right.png`}
-          />
+          {["onyx", "pearl"].includes(model)
+            ? [
+                "peach/peak-peach-lights-glass-mid-left",
+                "peach/peak-peach-lights-glass-mid-right",
+                "peach/peak-peach-lights-glass-far-right",
+                "peach/peak-peach-lights-base-far-left",
+                "peach/peak-peach-lights-base-far-right",
+                "peach/peak-peach-lights-base-mid-left",
+                "peach/peak-peach-lights-base-mid-right",
+                "peach/peak-peach-lights-ring-far-right",
+                "peach/peak-peach-lights-ring-far-left",
+                "peach/peak-peach-lights-ring-mid-left",
+              ].map((img, key) => (
+                <image
+                  className="flex justify-center items-center self-center"
+                  height="100%"
+                  key={key}
+                  filter={`url(#${id}-svg-matrix)`}
+                  href={`/${img}.png`}
+                />
+              ))
+            : [
+                "peak/device-glass-left",
+                "peak/device-glass-right",
+                "peak/device-base-left",
+                "peak/device-base-right",
+              ].map((img, key) => (
+                <image
+                  className="flex justify-center items-center self-center"
+                  height="100%"
+                  key={key}
+                  filter={`url(#${id}-svg-matrix)`}
+                  href={`/${img}.png`}
+                />
+              ))}
         </svg>
       </div>
     </div>
