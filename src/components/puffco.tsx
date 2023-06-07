@@ -144,34 +144,21 @@ export function PuffcoContainer({
           >
             <feColorMatrix
               type="matrix"
-              values={`${
-                r / 100
-                  ? r / 100
-                  : ["onyx", "pearl"].includes(model)
-                  ? 255
-                  : r / 100
-              } 0 0 0 0
-                        0 ${
-                          g / 100
-                            ? g / 100
-                            : ["onyx", "pearl"].includes(model)
-                            ? 255
-                            : g / 100
-                        } 0 0 0
-                        0 0 ${
-                          b / 100
-                            ? b / 100
-                            : ["onyx", "pearl"].includes(model)
-                            ? 255
-                            : b / 100
-                        } 0 0
-                        0 0 0 ${brightness / 100} 0`}
+              values={`${r / 100} 0 0 0 0
+                        0 ${g / 100} 0 0 0
+                        0 0 ${b / 100} 0 0
+                        0 0 0 ${
+                          ["onyx", "pearl"].includes(model) && !r && !g && !b
+                            ? 0
+                            : brightness / 100
+                        } 0`}
             ></feColorMatrix>
           </filter>
           {["onyx", "pearl"].includes(model)
             ? [
                 "peach/peak-peach-lights-glass-mid-left",
                 "peach/peak-peach-lights-glass-mid-right",
+                "peach/peak-peach-lights-glass-far-left",
                 "peach/peak-peach-lights-glass-far-right",
                 "peach/peak-peach-lights-base-far-left",
                 "peach/peak-peach-lights-base-far-right",
