@@ -455,7 +455,9 @@ export class Gateway extends EventEmitter {
       "padding: 10px; text-transform: capitalize; font-size: 1em; line-height: 1.4em; color: white; background: #151515; border-radius: 15px;",
       "font-size: 1em;"
     );
+
     clearInterval(this.heartbeat);
+    if (code == 4003) return;
     this.reconnectThrottle();
   }
 }
