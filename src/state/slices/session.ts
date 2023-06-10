@@ -7,11 +7,13 @@ import { Connection, User } from "../../types/api";
 export interface SessionState {
   user: User | null;
   connection: Connection | null;
+  suspended: boolean;
 }
 
 const initialState: SessionState = {
   user: null,
   connection: null,
+  suspended: false,
 };
 
 export const session = createSlice({
@@ -19,9 +21,12 @@ export const session = createSlice({
   initialState,
   reducers: {
     setSessionState(state, action: PayloadAction<Partial<SessionState>>) {
-      if (action.payload.user) state.user = action.payload.user;
-      if (action.payload.connection)
+      if (typeof action.payload.user != "undefined")
+        state.user = action.payload.user;
+      if (typeof action.payload.connection != "undefined")
         state.connection = action.payload.connection;
+      if (typeof action.payload.suspended != "undefined")
+        state.suspended = action.payload.suspended;
     },
   },
 

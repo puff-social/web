@@ -113,6 +113,11 @@ export async function getCurrentUser() {
   const req = await fetch(`${API_URL}/v1/user`, {
     headers: { authorization: localStorage.getItem("puff-social-auth") },
   });
+  if (req.status == 403) {
+    const json: { error: boolean; code: string } = await req.json();
+    if ("code" in json && json.code == "user_suspended")
+      throw { code: json.code };
+  }
   if (req.status != 200) throw { code: "invalid_authentication" };
   return (await req.json()) as APIResponse<{
     user: User;

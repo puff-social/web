@@ -13,7 +13,7 @@ import { setSessionState } from "../../state/slices/session";
 import { gateway } from "../../utils/gateway";
 import { useDispatch } from "react-redux";
 import { ChevronLeft } from "../icons/ChevronLeft";
-import { Op } from "@puff-social/commons";
+import { Op, UserFlags } from "@puff-social/commons";
 
 interface Props {
   modalOpen: boolean;
@@ -62,8 +62,17 @@ function LoginMode({
         setSessionState({
           user: login.data.user,
           connection: login.data.connection,
+          suspended: login.data.user.flags & UserFlags.suspended,
         })
       );
+
+      if (login.data.user.flags & UserFlags.suspended) {
+        toast("User suspended", {
+          position: "top-right",
+          duration: 5000,
+          icon: "❌",
+        });
+      }
 
       setLoginErrors([]);
       setSubmitting(false);

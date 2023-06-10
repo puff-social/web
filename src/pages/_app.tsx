@@ -1,23 +1,27 @@
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useMemo } from "react";
 import { Transition } from "@headlessui/react";
+import PlausibleProvider from "next-plausible";
+import { useDispatch, useSelector } from "react-redux";
+import { useCallback, useEffect, useMemo } from "react";
 import { Toaster, ToastIcon, toast, resolveValue } from "react-hot-toast";
 
 import "tippy.js/dist/tippy.css";
 import "../assets/app.css";
 
-import { gateway } from "../utils/gateway";
 import { APIGroup } from "../types/api";
-import PlausibleProvider from "next-plausible";
+import { wrapper } from "../state/store";
+import { gateway } from "../utils/gateway";
 import { getCurrentUser } from "../utils/hash";
 import { GatewayError, GatewayGroupCreate } from "../types/gateway";
-import { wrapper } from "../state/store";
-import { useDispatch } from "react-redux";
-import { setSessionState } from "../state/slices/session";
+import { selectSessionState, setSessionState } from "../state/slices/session";
+import { SuspendedModal } from "../components/modals/Suspended";
+import { UserFlags } from "@puff-social/commons";
 
 function App({ Component, pageProps }) {
   const router = useRouter();
   const dispatch = useDispatch();
+
+  const session = useSelector(selectSessionState);
 
   const headless = useMemo(() => {
     return router.query.headless == "true";
@@ -68,13 +72,16 @@ function App({ Component, pageProps }) {
   async function getAndCheckAuth() {
     const auth = localStorage.getItem("puff-social-auth");
     if (auth) {
-      const usr = await getCurrentUser();
-      dispatch(
-        setSessionState({
-          user: usr.data.user,
-          connection: usr.data.connection,
-        })
-      );
+      try {
+        const usr = await getCurrentUser();
+        dispatch(
+          setSessionState({
+            user: usr.data.user,
+            connection: usr.data.connection,
+            suspended: usr.data.user.flags & UserFlags.suspended,
+          })
+        );
+      } catch (error) {}
     }
   }
 
@@ -135,6 +142,8 @@ function App({ Component, pageProps }) {
         href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Noto+Color+Emoji&family=Coda&display=swap"
         rel="stylesheet"
       />
+
+      {session?.suspended ? <SuspendedModal /> : <></>}
 
       {!headless ? (
         <>

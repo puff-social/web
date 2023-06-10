@@ -91,7 +91,7 @@ export function AccountSettingsModal({ modalOpen, setModalOpen }: Props) {
                     <span className="flex flex-row justify-between">
                       <p className="font-bold">Account Platform</p>
                       <p className="font-bold opacity-40">
-                        {session.connection.platform.replace(
+                        {session.connection?.platform.replace(
                           /(\w+)/g,
                           function (x) {
                             return x[0].toUpperCase() + x.substring(1);
