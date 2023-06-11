@@ -534,23 +534,25 @@ export function GroupMember(props: GroupMemberProps) {
 
                   <div className="flex flex-row space-x-4">
                     {props.device.chamberType == ChamberType["3D"] ? (
-                      <Tippy content="3D Chamber" placement="auto">
-                        <span className="flex mt-2 px-1 border border-black dark:border-white text-black dark:text-white items-center justify-center w-fit">
-                          <Icon3D />
-                        </span>
-                      </Tippy>
-                    ) : (
-                      <></>
-                    )}
-                    {props.device.profile.intensity &&
-                    props.device.profile.intensity > 0 ? (
-                      <Tippy content="Profile Intensity" placement="auto">
-                        <span className="flex">
-                          <IntensityIcon
-                            intensity={props.device.profile.intensity}
-                          />
-                        </span>
-                      </Tippy>
+                      <>
+                        <Tippy content="3D Chamber" placement="auto">
+                          <span className="flex mt-2 px-1 border border-black dark:border-white text-black dark:text-white items-center justify-center w-fit">
+                            <Icon3D />
+                          </span>
+                        </Tippy>
+                        {props.device.profile.intensity &&
+                        props.device.profile.intensity > 0 ? (
+                          <Tippy content="Profile Intensity" placement="auto">
+                            <span className="flex">
+                              <IntensityIcon
+                                intensity={props.device.profile.intensity}
+                              />
+                            </span>
+                          </Tippy>
+                        ) : (
+                          <></>
+                        )}
+                      </>
                     ) : (
                       <></>
                     )}
