@@ -2,6 +2,7 @@ export interface PuffcoProfile {
   name: string;
   temp: number;
   time: string;
+  intensity?: number;
 }
 
 export interface LoraxMessage {

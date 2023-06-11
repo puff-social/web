@@ -166,8 +166,16 @@ export const LoraxCharacteristicPathMap = {
 
 export const DynamicLoraxCharacteristics = {
   [Characteristic.PROFILE_NAME]: (id: number) => `/u/app/hc/${id}/name`,
+  [Characteristic.PROFILE_COLOR]: (id: number) => `/u/app/hc/${id}/colr`,
   [Characteristic.PROFILE_PREHEAT_TEMP]: (id: number) => `/u/app/hc/${id}/temp`,
   [Characteristic.PROFILE_PREHEAT_TIME]: (id: number) => `/u/app/hc/${id}/time`,
+  PROFILE_INTENSITY: (id: number) => `/u/app/hc/${id}/intn`,
+  PROFILE_BOOST_TIME: (id: number) => `/u/app/hc/${id}/btim`,
+  PROFILE_BOOST_TEMP: (id: number) => `/u/app/hc/${id}/btmp`,
+  PROFILE_ACTIVE_COLOR: (id: number) => `/u/app/hc/${id}/accl`,
+  PROFILE_THRESHOLD_TEMP: (id: number) => `/u/app/hc/${id}/thrt`,
+  PROFILE_SCRATCH_PAD: (id: number) => `/u/app/hc/${id}/scpd`,
+  PROFILE_PREHEAT_COLOR: (id: number) => `/u/app/hc/${id}/phcl`,
 };
 
 export const DeviceCommand = {
@@ -293,4 +301,5 @@ if (typeof window != "undefined") {
   window["LoraxCommands"] = LoraxCommands;
   window["LoraxCharacteristic"] = LoraxCharacteristic;
   window["LoraxCharacteristicPathMap"] = LoraxCharacteristicPathMap;
+  window["DynamicLoraxCharacteristics"] = DynamicLoraxCharacteristics;
 }

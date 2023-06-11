@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { MainMeta } from "../components/MainMeta";
 import { InfoModal } from "../components/modals/Info";
 
-export default function Info(props) {
+export default function Info() {
   const router = useRouter();
 
   const [modalOpen, setModalOpen] = useState(true);

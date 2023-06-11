@@ -46,6 +46,7 @@ import {
   PuffcoOperatingState,
 } from "@puff-social/commons/dist/puffco/constants";
 import { VoiceWaves } from "./icons/Voice";
+import { IntensityIcon } from "./IntensityIcon";
 
 interface GroupMemberProps {
   strain?: string;
@@ -531,25 +532,29 @@ export function GroupMember(props: GroupMemberProps) {
                     </span>
                   </Tippy>
 
-                  {props.device.chamberType == ChamberType["3D"] ? (
-                    <Tippy
-                      placement="right-start"
-                      arrow={false}
-                      content={
-                        <span className="flex px-1 py-1.5 border border-black dark:border-white text-black dark:text-white items-center justify-center w-fit">
-                          <p className="coda-regular tracking-widest uppercase text-xs px-1">
-                            Chamber
-                          </p>
+                  <div className="flex flex-row space-x-4">
+                    {props.device.chamberType == ChamberType["3D"] ? (
+                      <Tippy content="3D Chamber" placement="auto">
+                        <span className="flex mt-2 px-1 border border-black dark:border-white text-black dark:text-white items-center justify-center w-fit">
+                          <Icon3D />
                         </span>
-                      }
-                    >
-                      <span className="flex mt-2 px-1 border border-black dark:border-white text-black dark:text-white items-center justify-center w-fit">
-                        <Icon3D />
-                      </span>
-                    </Tippy>
-                  ) : (
-                    <></>
-                  )}
+                      </Tippy>
+                    ) : (
+                      <></>
+                    )}
+                    {props.device.profile.intensity &&
+                    props.device.profile.intensity > 0 ? (
+                      <Tippy content="Profile Intensity" placement="auto">
+                        <span className="flex">
+                          <IntensityIcon
+                            intensity={props.device.profile.intensity}
+                          />
+                        </span>
+                      </Tippy>
+                    ) : (
+                      <></>
+                    )}
+                  </div>
                 </span>
               </span>
             </div>

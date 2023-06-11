@@ -538,6 +538,15 @@ export class Device extends EventEmitter {
       name: initProfileName.toString(),
       temp,
       time: millisToMinutesAndSeconds(time * 1000),
+      intensity: this.isLorax
+        ? (
+            await this.getValue(
+              DynamicLoraxCharacteristics.PROFILE_INTENSITY(
+                this.currentProfileId
+              )
+            )
+          ).readFloatLE(0)
+        : 0,
     };
 
     const initDeviceBirthday = await this.getValue(
@@ -1126,14 +1135,23 @@ export class Device extends EventEmitter {
       const timeCall = await this.getValue(
         DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TIME](idx)
       );
+
+      const intensityCall = await this.getValue(
+        DynamicLoraxCharacteristics.PROFILE_INTENSITY(idx)
+      );
+
       const temp = Number(temperatureCall.readFloatLE(0).toFixed(0));
       const time = Number(timeCall.readFloatLE(0).toFixed(0));
+      const intensity = intensityCall.readFloatLE(0);
 
-      console.log(`Profile #${idx + 1} - ${name} - ${temp} - ${time}`);
+      console.log(
+        `Profile #${idx + 1} - ${name} - ${temp} - ${time} (I: ${intensity})`
+      );
       profiles[idx + 1] = {
         name,
         temp,
         time: millisToMinutesAndSeconds(time * 1000),
+        intensity,
       };
     }
 
