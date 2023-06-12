@@ -164,6 +164,17 @@ export const LoraxCharacteristicPathMap = {
   [Characteristic.D_COEFF]: "/p/htr/tun/dco",
 };
 
+export const intMap = {
+  [LoraxCharacteristicPathMap[Characteristic.BATTERY_CHARGE_SOURCE]]: 250,
+  [LoraxCharacteristicPathMap[Characteristic.BATTERY_SOC]]: 250,
+  [LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE]]: 250,
+  [LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]]: 250,
+  [LoraxCharacteristicPathMap[Characteristic.LED_BRIGHTNESS]]: 250,
+  [LoraxCharacteristicPathMap[Characteristic.TOTAL_HEAT_CYCLES]]: 250,
+  [LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]]: 250,
+  [LoraxCharacteristicPathMap[Characteristic.PROFILE_CURRENT]]: 250,
+};
+
 export const DynamicLoraxCharacteristics = {
   [Characteristic.PROFILE_NAME]: (id: number) => `/u/app/hc/${id}/name`,
   [Characteristic.PROFILE_COLOR]: (id: number) => `/u/app/hc/${id}/colr`,

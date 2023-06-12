@@ -26,18 +26,6 @@ export function convertHexStringToNumArray(h: string) {
       });
 }
 
-export function convertHexArrayToNumArray(hexArray: string[]): number[] {
-  const numArray: number[] = [];
-
-  for (let i = 0; i < hexArray.length; i++) {
-    const hexValue: string = hexArray[i];
-    const numValue: number = parseInt(hexValue, 16);
-    numArray.push(numValue);
-  }
-
-  return numArray;
-}
-
 export function decimalToHexString(number: number) {
   if (number < 0) number = 0xffffffff + number + 1;
 
@@ -79,10 +67,22 @@ export function constructLoraxCommand(
   return alloc;
 }
 
+export function processLoraxEvent(message: ArrayBuffer) {
+  const buffer = Buffer.from(message);
+  const seq = buffer.readUInt16LE(0);
+  const error = buffer.readUInt8(2);
+
+  const byte = Buffer.from(buffer.subarray(3));
+  const watchId = byte.readUInt16LE(0);
+  const data = buffer.subarray(6);
+
+  return { seq, error, data, watchId };
+}
+
 export function processLoraxReply(message: ArrayBuffer) {
   const buffer = Buffer.from(message);
-  const seq = buffer.readUInt16LE(0); // ? seq
-  const error = buffer.readUInt8(2); // ? error
+  const seq = buffer.readUInt16LE(0);
+  const error = buffer.readUInt8(2);
   const data = buffer.subarray(3);
 
   return { seq, error, data };
@@ -107,9 +107,8 @@ export function readCmd(loraxLimits: LoraxLimits, t: number, path: string) {
   const w = Buffer.alloc(6);
   w.writeUInt16LE(t, 0);
   w.writeUInt16LE(loraxLimits.maxPayload, 2);
-
-  const buff = Buffer.concat([w, Buffer.from(path)]);
-  return buff;
+  w.writeUInt16LE(0, 4);
+  return w;
 }
 
 export function readShortCmd(loraxLimits: LoraxLimits, path: string) {
@@ -118,6 +117,16 @@ export function readShortCmd(loraxLimits: LoraxLimits, path: string) {
   w.writeUInt16LE(loraxLimits.maxPayload, 2);
   const t = Buffer.concat([w, Buffer.from(path)]);
   return t;
+}
+
+export function watchCmd(openCmdId = 0, int = 1000, length = 1) {
+  const w = Buffer.alloc(10);
+  w.writeUInt16LE(openCmdId, 0);
+  w.writeUInt16LE(0, 2);
+  w.writeUInt16LE(int, 4);
+  w.writeUInt16LE(0, 6);
+  w.writeUInt16LE(length, 8);
+  return w;
 }
 
 export function writeShortCmd(path: string, data: Buffer, padding: boolean) {
@@ -146,9 +155,9 @@ export function writeCmd(
   return t;
 }
 
-export function openCmd(r: number, path: string) {
+export function openCmd(r: LoraxLimits, path: string) {
   const w = Buffer.alloc(1);
-  w.writeUInt8(r, 0);
+  w.writeUInt8(0, 0);
 
   const u = Buffer.concat([w, Buffer.from(path)]);
   return u;
@@ -168,6 +177,9 @@ if (typeof window != "undefined") {
   window["hexToFloat"] = hexToFloat;
   window["decimalToHexString"] = decimalToHexString;
   window["constructLoraxCommand"] = constructLoraxCommand;
+  window["processLoraxReply"] = processLoraxReply;
   window["writeShortCmd"] = writeShortCmd;
   window["readShortCmd"] = readShortCmd;
+  window["watchCmd"] = watchCmd;
+  window["openCmd"] = openCmd;
 }
