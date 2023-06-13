@@ -73,9 +73,9 @@ function GroupListMember({
         </p>
       </span>
       <span className="flex flex-row space-x-1 items-center">
-        {gateway.session_id == group.owner_session_id ||
-        (session.user?.flags & UserFlags.admin &&
-          member.session_id != gateway.session_id) ? (
+        {(gateway.session_id == group.owner_session_id ||
+          session.user?.flags & UserFlags.admin) &&
+        member.session_id != group.owner_session_id ? (
           <>
             <Tippy content="Transfer ownership" placement="bottom-start">
               <span
