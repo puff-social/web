@@ -885,7 +885,7 @@ export class Device extends EventEmitter {
           var: lastTemp,
         },
       ]) {
-        setInterval(async () => {
+        const int = setInterval(async () => {
           if (
             new Date().getTime() - V.var.updated.getTime() >
             intMap[V.char] * 2
@@ -903,6 +903,10 @@ export class Device extends EventEmitter {
             }, 500);
           }
         }, intMap[V.char]);
+
+        this.once("gattdisconnect", () => {
+          if (int) clearInterval(int);
+        });
       }
     } else {
       let currentChargingState: number;
