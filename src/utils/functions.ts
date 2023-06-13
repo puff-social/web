@@ -119,13 +119,19 @@ export function readShortCmd(loraxLimits: LoraxLimits, path: string) {
   return t;
 }
 
-export function watchCmd(openCmdId = 0, int = 1000, length = 1) {
+export function watchCmd(openCmdId: number, int = 1000, length = 1) {
   const w = Buffer.alloc(10);
   w.writeUInt16LE(openCmdId, 0);
   w.writeUInt16LE(0, 2);
   w.writeUInt16LE(int, 4);
   w.writeUInt16LE(0, 6);
   w.writeUInt16LE(length, 8);
+  return w;
+}
+
+export function unwatchCmd(openCmdId: number) {
+  const w = Buffer.alloc(2);
+  w.writeUInt16LE(openCmdId, 0);
   return w;
 }
 
@@ -161,6 +167,12 @@ export function openCmd(r: LoraxLimits, path: string) {
 
   const u = Buffer.concat([w, Buffer.from(path)]);
   return u;
+}
+
+export function closeCmd(id: number) {
+  const w = Buffer.alloc(2);
+  w.writeUInt16LE(id, 0);
+  return w;
 }
 
 export function intArrayToMacAddress(uint8Array: Uint8Array): string {

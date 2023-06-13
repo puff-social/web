@@ -15,6 +15,8 @@ import {
   openCmd,
   watchCmd,
   processLoraxEvent,
+  unwatchCmd,
+  closeCmd,
 } from "../functions";
 import { DeviceInformation, DiagData } from "../../types/api";
 import { trackDiags } from "../hash";
@@ -64,6 +66,7 @@ export interface Device {
   profiles: Record<number, PuffcoProfile>;
 
   watchMap: Map<number, string>;
+  pathWatchers: Map<string, number>;
 
   lastLoraxSequenceId: number;
   loraxMessages: Map<number, LoraxMessage>;
@@ -91,6 +94,7 @@ export class Device extends EventEmitter {
     this.loraxLimits = { maxCommands: 0, maxFiles: 0, maxPayload: 0 };
     this.loraxMessages = new Map();
     this.watchMap = new Map();
+    this.pathWatchers = new Map();
   }
 
   init(): Promise<{
@@ -451,6 +455,27 @@ export class Device extends EventEmitter {
     const watch = watchCmd(open.readUInt8(0), int, len ? len : length);
     const cmd = await this.sendLoraxCommand(LoraxCommands.WATCH, watch, path);
     this.watchMap.set(open.readUInt8(0), path);
+    this.pathWatchers.set(path, open.readUInt8());
+    return cmd;
+  }
+
+  async closePath(path: string) {
+    const watch = this.pathWatchers.get(path);
+
+    const unwatch = closeCmd(watch);
+    await this.sendLoraxCommand(LoraxCommands.CLOSE, unwatch, path);
+
+    this.watchMap.delete(watch);
+    this.pathWatchers.delete(path);
+    return watch;
+  }
+
+  async unwatchPath(path: string) {
+    const close = await this.closePath(path);
+
+    const unwatch = unwatchCmd(close);
+    const cmd = await this.sendLoraxCommand(LoraxCommands.WATCH, unwatch, path);
+
     return cmd;
   }
 
@@ -576,13 +601,35 @@ export class Device extends EventEmitter {
         LoraxCharacteristic.EVENT
       );
 
-      let currentChargingState: number;
-      let currentBattery: number;
-      let currentOperatingState: number;
-      let currentChamberType: number;
-      let lastBrightness: number;
-      let lastDabs: number;
-      let lastTemp: number;
+      let currentChargingState: { val: number; updated: Date } = {
+        val: null,
+        updated: new Date(),
+      };
+      let currentBattery: { val: number; updated: Date } = {
+        val: null,
+        updated: new Date(),
+      };
+      let currentOperatingState: { val: number; updated: Date } = {
+        val: null,
+        updated: new Date(),
+      };
+      let currentChamberType: { val: number; updated: Date } = {
+        val: null,
+        updated: new Date(),
+      };
+      let lastBrightness: { val: number; updated: Date } = {
+        val: null,
+        updated: new Date(),
+      };
+      let lastDabs: { val: number; updated: Date } = {
+        val: null,
+        updated: new Date(),
+      };
+      let lastTemp: { val: number; updated: Date } = {
+        val: null,
+        updated: new Date(),
+      };
+
       this.loraxEvent.addEventListener("characteristicvaluechanged", (ev) => {
         const {
           value: { buffer },
@@ -599,29 +646,31 @@ export class Device extends EventEmitter {
             Characteristic.BATTERY_CHARGE_SOURCE
           ]: {
             const val = reply.data.readUInt8(0);
-            if (val != currentChargingState) {
+            if (val != currentChargingState.val) {
               console.log("change to charge", val, reply, path);
               this.poller.emit("data", {
                 chargeSource: val,
               });
+              currentChargingState.val = val;
             }
-            currentChargingState = val;
+            currentChargingState.updated = new Date();
             break;
           }
           case LoraxCharacteristicPathMap[Characteristic.BATTERY_SOC]: {
             const val = Number(reply.data.readFloatLE(0).toFixed(0));
-            if (val != currentBattery) {
+            if (val != currentBattery.val) {
               console.log("change to battery soc", val, reply, path);
               this.poller.emit("data", {
                 battery: val,
               });
+              currentBattery.val = val;
             }
-            currentBattery = val;
+            currentBattery.updated = new Date();
             break;
           }
           case LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE]: {
             const val = reply.data.readUInt8(0);
-            if (val != currentOperatingState) {
+            if (val != currentOperatingState.val) {
               console.log("change to operating state", val, reply, path);
               this.poller.emit("data", { state: val });
 
@@ -658,19 +707,21 @@ export class Device extends EventEmitter {
                 }
               }
 
-              currentOperatingState = val;
+              currentOperatingState.val = val;
             }
+            currentOperatingState.updated = new Date();
             break;
           }
           case LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]: {
             const val = reply.data.readUInt8(0);
-            if (val != currentChamberType && reply.data.byteLength == 1) {
+            if (val != currentChamberType.val && reply.data.byteLength == 1) {
               console.log("change to chamber type", val, reply, path);
               this.poller.emit("data", {
                 chamberType: val,
               });
-              currentChamberType = val;
+              currentChamberType.val = val;
             }
+            currentChamberType.updated = new Date();
             break;
           }
           case LoraxCharacteristicPathMap[Characteristic.LED_BRIGHTNESS]: {
@@ -681,33 +732,36 @@ export class Device extends EventEmitter {
 
             const val = Number(mainLed.toFixed(0));
 
-            if (val != lastBrightness && reply.data.byteLength == 4) {
+            if (val != lastBrightness.val && reply.data.byteLength == 4) {
               console.log("change to brightness", val, reply, path);
               this.poller.emit("data", {
                 brightness: val,
               });
-              lastBrightness = val;
+              lastBrightness.val = val;
             }
+            lastBrightness.updated = new Date();
             break;
           }
           case LoraxCharacteristicPathMap[Characteristic.TOTAL_HEAT_CYCLES]: {
             const conv = Number(reply.data.readFloatLE(0));
-            if (lastDabs != conv && reply.data.byteLength == 4) {
+            if (lastDabs.val != conv && reply.data.byteLength == 4) {
               console.log("change to heat cycles", conv, reply, path);
               this.poller.emit("data", {
                 totalDabs: conv,
               });
-              lastDabs = conv;
+              lastDabs.val = conv;
             }
+            lastDabs.updated = new Date();
             break;
           }
           case LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]: {
             const conv = Number(reply.data.readFloatLE(0).toFixed(0));
-            if (lastTemp != conv && conv < 1000 && conv > 1) {
+            if (lastTemp.val != conv && conv < 1000 && conv > 1) {
               console.log("change to temp", conv, reply, path);
               this.poller.emit("data", { temperature: conv });
+              lastTemp.val = conv;
             }
-            lastTemp = conv;
+            lastTemp.updated = new Date();
             break;
           }
           case LoraxCharacteristicPathMap[Characteristic.PROFILE_CURRENT]: {
@@ -797,7 +851,58 @@ export class Device extends EventEmitter {
           continue;
         }
         await new Promise((resolve) => setTimeout(() => resolve(true), 200));
-        console.log("Watched", path);
+      }
+
+      for (const V of [
+        {
+          char: LoraxCharacteristicPathMap[
+            Characteristic.BATTERY_CHARGE_SOURCE
+          ],
+          var: currentChargingState,
+        },
+        {
+          char: LoraxCharacteristicPathMap[Characteristic.BATTERY_SOC],
+          var: currentBattery,
+        },
+        {
+          char: LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE],
+          var: currentOperatingState,
+        },
+        {
+          char: LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE],
+          var: currentChamberType,
+        },
+        {
+          char: LoraxCharacteristicPathMap[Characteristic.TOTAL_HEAT_CYCLES],
+          var: lastBrightness,
+        },
+        {
+          char: LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP],
+          var: lastDabs,
+        },
+        {
+          char: LoraxCharacteristicPathMap[Characteristic.PROFILE_CURRENT],
+          var: lastTemp,
+        },
+      ]) {
+        setInterval(async () => {
+          if (
+            new Date().getTime() - V.var.updated.getTime() >
+            intMap[V.char] * 2
+          ) {
+            console.log(
+              "Deviation for",
+              V.char,
+              "is beyond 2x, unwatching and rewatching",
+              `(D: ${new Date().getTime() - V.var.updated.getTime()})`
+            );
+
+            await this.unwatchPath(V.char);
+            setTimeout(() => {
+              this.watchPath(V.char, intMap[V.char]);
+            }, 500);
+          }
+        }, intMap[V.char]);
       }
     } else {
       let currentChargingState: number;
