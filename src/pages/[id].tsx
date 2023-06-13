@@ -736,7 +736,6 @@ export default function Group({
                     device={member.device_state}
                     ready={group.ready.includes(member.session_id)}
                     member={member}
-                    owner={group.owner_session_id == member.session_id}
                     group={group}
                     headless={headless}
                     key={member.session_id}

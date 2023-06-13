@@ -173,6 +173,7 @@ export const intMap = {
   [LoraxCharacteristicPathMap[Characteristic.TOTAL_HEAT_CYCLES]]: 370,
   [LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]]: 320,
   [LoraxCharacteristicPathMap[Characteristic.PROFILE_CURRENT]]: 400,
+  [LoraxCharacteristicPathMap[Characteristic.TIME_OVERRIDE]]: 900,
 };
 
 export const DynamicLoraxCharacteristics = {

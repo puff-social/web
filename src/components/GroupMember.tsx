@@ -47,6 +47,8 @@ import {
 } from "@puff-social/commons/dist/puffco/constants";
 import { VoiceWaves } from "./icons/Voice";
 import { IntensityIcon } from "./IntensityIcon";
+import { useSelector } from "react-redux";
+import { selectSessionState } from "../state/slices/session";
 
 interface GroupMemberProps {
   strain?: string;
@@ -79,6 +81,8 @@ export function GroupMember(props: GroupMemberProps) {
   const [leaderboardPos, setLeaderboardPos] = useState<number>(
     props.leaderboardPosition || 0
   );
+
+  const session = useSelector(selectSessionState);
 
   const [bluetooth] = useState<boolean>(() => {
     if (props.headless) return false;
@@ -280,31 +284,40 @@ export function GroupMember(props: GroupMemberProps) {
                       <p>Copy share card</p>
                       <ShareIcon />
                     </span>
-                    {!props.owner &&
-                    props.group.owner_session_id == gateway.session_id ? (
+                    {gateway.session_id == props.group?.owner_session_id ||
+                    session.user?.flags & UserFlags.admin ? (
                       <>
-                        <span
-                          className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
-                          onClick={() =>
-                            gateway.send(Op.TransferOwnership, {
-                              session_id: props.member?.session_id,
-                            })
-                          }
-                        >
-                          <p>Make owner</p>
-                          <Crown className="text-green-700" />
-                        </span>
-                        <span
-                          className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
-                          onClick={() =>
-                            gateway.send(Op.KickFromGroup, {
-                              session_id: props.member?.session_id,
-                            })
-                          }
-                        >
-                          <p>Kick from group</p>
-                          <Kick className="text-red-600 dark:text-red-300" />
-                        </span>
+                        {props.member?.session_id !=
+                        props.group?.owner_session_id ? (
+                          <span
+                            className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
+                            onClick={() =>
+                              gateway.send(Op.TransferOwnership, {
+                                session_id: props.member?.session_id,
+                              })
+                            }
+                          >
+                            <p>Make owner</p>
+                            <Crown className="text-green-700" />
+                          </span>
+                        ) : (
+                          <></>
+                        )}
+                        {props.member?.session_id != gateway.session_id ? (
+                          <span
+                            className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
+                            onClick={() =>
+                              gateway.send(Op.KickFromGroup, {
+                                session_id: props.member?.session_id,
+                              })
+                            }
+                          >
+                            <p>Kick from group</p>
+                            <Kick className="text-red-600 dark:text-red-300" />
+                          </span>
+                        ) : (
+                          <></>
+                        )}
                       </>
                     ) : (
                       <></>
@@ -412,7 +425,7 @@ export function GroupMember(props: GroupMemberProps) {
                   ) : (
                     <></>
                   )}
-                  {props.owner ? (
+                  {props.member.session_id == props.group?.owner_session_id ? (
                     <Tippy content="Group owner" placement="top-start">
                       <div className="flex items-center">
                         <Crown className="text-green-700" />

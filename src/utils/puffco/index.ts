@@ -629,6 +629,10 @@ export class Device extends EventEmitter {
         val: null,
         updated: new Date(),
       };
+      let lastElapsedTime: { val: number; updated: Date } = {
+        val: null,
+        updated: new Date(),
+      };
 
       this.loraxEvent.addEventListener("characteristicvaluechanged", (ev) => {
         const {
@@ -754,6 +758,17 @@ export class Device extends EventEmitter {
             lastDabs.updated = new Date();
             break;
           }
+          case LoraxCharacteristicPathMap[Characteristic.STATE_ELAPSED_TIME]: {
+            const conv = Number(reply.data.readFloatLE(0));
+            if (lastElapsedTime.val != conv && reply.data.byteLength == 4) {
+              this.poller.emit("data", {
+                stateTime: conv,
+              });
+              lastElapsedTime.val = conv;
+            }
+            lastElapsedTime.updated = new Date();
+            break;
+          }
           case LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]: {
             const conv = Number(reply.data.readFloatLE(0).toFixed(0));
             if (lastTemp.val != conv && conv < 1000 && conv > 1) {
@@ -801,6 +816,7 @@ export class Device extends EventEmitter {
         LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP],
         LoraxCharacteristicPathMap[Characteristic.PROFILE_CURRENT],
         LoraxCharacteristicPathMap[Characteristic.TOTAL_HEAT_CYCLES],
+        LoraxCharacteristicPathMap[Characteristic.STATE_ELAPSED_TIME],
       ]) {
         try {
           await (() => {
@@ -883,6 +899,10 @@ export class Device extends EventEmitter {
         {
           char: LoraxCharacteristicPathMap[Characteristic.PROFILE_CURRENT],
           var: lastTemp,
+        },
+        {
+          char: LoraxCharacteristicPathMap[Characteristic.STATE_ELAPSED_TIME],
+          var: lastElapsedTime,
         },
       ]) {
         const int = setInterval(async () => {
@@ -1355,6 +1375,40 @@ export class Device extends EventEmitter {
         }
       }
     });
+  }
+
+  async boostTemp(temp: number) {
+    if (this.isLorax) {
+      const buf = Buffer.alloc(4);
+      buf.writeFloatLE(temp);
+      await this.sendLoraxValueShort(
+        LoraxCharacteristicPathMap[Characteristic.TEMPERATURE_OVERRIDE],
+        buf
+      );
+    } else {
+      console.log("Not yet implemented");
+      // await this.writeRawValue(
+      //   Characteristic.DEVICE_NAME,
+      //   new TextEncoder().encode(name)
+      // );
+    }
+  }
+
+  async boostTime(time: number) {
+    if (this.isLorax) {
+      const buf = Buffer.alloc(4);
+      buf.writeFloatLE(time);
+      await this.sendLoraxValueShort(
+        LoraxCharacteristicPathMap[Characteristic.TIME_OVERRIDE],
+        buf
+      );
+    } else {
+      console.log("Not yet implemented");
+      // await this.writeRawValue(
+      //   Characteristic.DEVICE_NAME,
+      //   new TextEncoder().encode(name)
+      // );
+    }
   }
 
   async updateDeviceName(name: string) {
