@@ -89,18 +89,22 @@ function GroupListMember({
                 <Crown className="w-5 h-5" />
               </span>
             </Tippy>
-            <Tippy content="Kick member" placement="bottom-start">
-              <span
-                className="bg-gray-300 dark:bg-neutral-600 text-red-400 hover:text-red-300 rounded-md p-1 cursor-pointer"
-                onClick={() =>
-                  gateway.send(Op.KickFromGroup, {
-                    session_id: member.session_id,
-                  })
-                }
-              >
-                <Kick className="w-5 h-5" />
-              </span>
-            </Tippy>
+            {member.session_id != gateway.session_id ? (
+              <Tippy content="Kick member" placement="bottom-start">
+                <span
+                  className="bg-gray-300 dark:bg-neutral-600 text-red-400 hover:text-red-300 rounded-md p-1 cursor-pointer"
+                  onClick={() =>
+                    gateway.send(Op.KickFromGroup, {
+                      session_id: member.session_id,
+                    })
+                  }
+                >
+                  <Kick className="w-5 h-5" />
+                </span>
+              </Tippy>
+            ) : (
+              <></>
+            )}
           </>
         ) : (
           <></>
