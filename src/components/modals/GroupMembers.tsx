@@ -14,6 +14,8 @@ import { Money } from "../icons/Money";
 import { Wrench } from "../icons/Wrench";
 import { Op, UserFlags } from "@puff-social/commons";
 import { validState } from "@puff-social/commons/dist/puffco";
+import { useSelector } from "react-redux";
+import { selectSessionState } from "../../state/slices/session";
 
 export interface ModalProps {
   modalOpen: boolean;
@@ -34,6 +36,8 @@ function GroupListMember({
   member: GatewayGroupMember;
   group: GatewayGroup;
 }) {
+  const session = useSelector(selectSessionState);
+
   const [joinTime, setJoinTime] = useState(
     automaticRelativeDifference(new Date(member.group_joined))
   );
@@ -69,8 +73,9 @@ function GroupListMember({
         </p>
       </span>
       <span className="flex flex-row space-x-1 items-center">
-        {gateway.session_id == group.owner_session_id &&
-        member.session_id != gateway.session_id ? (
+        {gateway.session_id == group.owner_session_id ||
+        (session.user?.flags & UserFlags.admin &&
+          member.session_id != gateway.session_id) ? (
           <>
             <Tippy content="Transfer ownership" placement="bottom-start">
               <span

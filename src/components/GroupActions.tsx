@@ -33,7 +33,7 @@ import { InfoModal } from "./modals/Info";
 import { Hamburger } from "./icons/Hamburger";
 import { PuffcoLogo } from "./icons/Puffco";
 import { ProductModelMap } from "@puff-social/commons/dist/puffco/constants";
-import { Op } from "@puff-social/commons";
+import { Op, UserFlags } from "@puff-social/commons";
 import { DonationModal } from "./modals/Donation";
 import { validState } from "@puff-social/commons/dist/puffco";
 
@@ -182,7 +182,8 @@ export function GroupActions({
             ) : (
               <></>
             )}
-            {gateway.session_id == group.owner_session_id ? (
+            {gateway.session_id == group.owner_session_id ||
+            session.user?.flags & UserFlags.admin ? (
               <Tippy content="Edit Group" placement="bottom">
                 <div
                   className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl"
