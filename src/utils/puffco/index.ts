@@ -771,6 +771,7 @@ export class Device extends EventEmitter {
             break;
           }
           case LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]: {
+            if (reply.data.byteLength < 4) return;
             const conv = Number(reply.data.readFloatLE(0).toFixed(0));
             if (lastTemp.val != conv && conv < 1000 && conv > 1) {
               console.log("change to temp", conv, reply, path);
