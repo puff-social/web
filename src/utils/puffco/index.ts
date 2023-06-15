@@ -650,6 +650,7 @@ export class Device extends EventEmitter {
           case LoraxCharacteristicPathMap[
             Characteristic.BATTERY_CHARGE_SOURCE
           ]: {
+            if (reply.data.byteLength != 1) return;
             const val = reply.data.readUInt8(0);
             if (val != currentChargingState.val) {
               console.log("change to charge", val, reply, path);
@@ -662,6 +663,7 @@ export class Device extends EventEmitter {
             break;
           }
           case LoraxCharacteristicPathMap[Characteristic.BATTERY_SOC]: {
+            if (reply.data.byteLength < 4) return;
             const val = Number(reply.data.readFloatLE(0).toFixed(0));
             if (val != currentBattery.val) {
               console.log("change to battery soc", val, reply, path);
@@ -674,6 +676,7 @@ export class Device extends EventEmitter {
             break;
           }
           case LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE]: {
+            if (reply.data.byteLength != 1) return;
             const val = reply.data.readUInt8(0);
             if (val != currentOperatingState.val) {
               console.log("change to operating state", val, reply, path);
@@ -718,6 +721,7 @@ export class Device extends EventEmitter {
             break;
           }
           case LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]: {
+            if (reply.data.byteLength != 1) return;
             const val = reply.data.readUInt8(0);
             if (val != currentChamberType.val && reply.data.byteLength == 1) {
               console.log("change to chamber type", val, reply, path);
@@ -730,6 +734,7 @@ export class Device extends EventEmitter {
             break;
           }
           case LoraxCharacteristicPathMap[Characteristic.LED_BRIGHTNESS]: {
+            if (reply.data.byteLength < 4) return;
             // const ringLed = reply.data.readUInt8(0);
             // const underglassLed = reply.data.readUInt8(1);
             const mainLed = reply.data.readUInt8(2);
@@ -748,6 +753,7 @@ export class Device extends EventEmitter {
             break;
           }
           case LoraxCharacteristicPathMap[Characteristic.TOTAL_HEAT_CYCLES]: {
+            if (reply.data.byteLength < 4) return;
             const conv = Number(reply.data.readFloatLE(0));
             if (lastDabs.val != conv && reply.data.byteLength == 4) {
               console.log("change to heat cycles", conv, reply, path);
