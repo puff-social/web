@@ -436,6 +436,7 @@ export class Device extends EventEmitter {
 
   async watchPath(path: string, int: number, len?: number) {
     const open = await this.openPath(path);
+    if (open.byteLength == 0) return;
 
     const length = [
       "/p/app/hcs",
