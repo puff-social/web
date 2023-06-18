@@ -539,7 +539,7 @@ export function GroupMember(props: GroupMemberProps) {
                         <p>({props.device.profile.time}</p>
                         <p className="opacity-40">@</p>
                         <p>
-                          {Math.round(props.device.profile.temp * 1.8 + 32)}°)
+                          {Math.floor(props.device.profile.temp * 1.8 + 32)}°)
                         </p>
                       </span>
                     </span>
