@@ -121,8 +121,9 @@ export default function Home() {
           <h2 className="text-xl font-bold p-1">Join a group</h2>
           <div className="flex flex-col overflow-y-scroll h-80 p-2 justify-center">
             {items.length > 0 ? (
-              items.map((item) => (
+              items.map((item, index) => (
                 <div
+                  key={index}
                   className="flex flex-row justify-between items-center rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 mt-2 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
                   onClick={() => connectGroup(item)}
                 >

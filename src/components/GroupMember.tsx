@@ -559,6 +559,7 @@ export function GroupMember(props: GroupMemberProps) {
                             <span className="flex">
                               <IntensityIcon
                                 intensity={props.device.profile.intensity}
+                                card
                               />
                             </span>
                           </Tippy>

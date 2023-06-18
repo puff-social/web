@@ -77,6 +77,7 @@ export interface Device {
 
   gitHash: string;
   deviceName: string;
+  chamberType: number;
   deviceModel: string;
   hardwareVersion: number;
   deviceFirmware: string;
@@ -387,6 +388,7 @@ export class Device extends EventEmitter {
             Characteristic.CHAMBER_TYPE
           );
           const chamberType = chamberTypeRaw.readUInt8(0);
+          this.chamberType = chamberType;
 
           const diagData: DiagData = {
             session_id: gateway.session_id,
@@ -568,11 +570,24 @@ export class Device extends EventEmitter {
           )
         : Characteristic.PROFILE_PREHEAT_TIME
     );
+    const colorCall = await this.getValue(
+      DynamicLoraxCharacteristics[Characteristic.PROFILE_COLOR](
+        this.currentProfileId
+      )
+    );
     const temp = Number(temperatureCall.readFloatLE(0).toFixed(0));
     const time = Number(timeCall.readFloatLE(0).toFixed(0));
+
+    const color =
+      "#" +
+      colorCall.readUInt8(0).toString(16) +
+      colorCall.readUInt8(1).toString(16) +
+      colorCall.readUInt8(2).toString(16);
+
     initState.profile = {
       name: initProfileName.toString(),
       temp,
+      color,
       time: millisToMinutesAndSeconds(time * 1000),
       intensity: this.isLorax
         ? (
@@ -596,6 +611,7 @@ export class Device extends EventEmitter {
 
     const initChamberType = await this.getValue(Characteristic.CHAMBER_TYPE);
     initState.chamberType = initChamberType.readUInt8(0);
+    this.chamberType = initState.chamberType;
 
     if (this.isLorax) {
       this.loraxEvent = await this.service.getCharacteristic(
@@ -728,6 +744,7 @@ export class Device extends EventEmitter {
               this.poller.emit("data", {
                 chamberType: val,
               });
+              this.chamberType = val;
               currentChamberType.val = val;
             }
             currentChamberType.updated = new Date();
@@ -1033,6 +1050,7 @@ export class Device extends EventEmitter {
             chamberType: val,
           });
         currentChamberType = val;
+        this.chamberType = val;
       });
 
       let lastBrightness: number;
@@ -1602,6 +1620,10 @@ export class Device extends EventEmitter {
         DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TIME](idx)
       );
 
+      const colorCall = await this.getValue(
+        DynamicLoraxCharacteristics[Characteristic.PROFILE_COLOR](idx)
+      );
+
       const intensityCall = await this.getValue(
         DynamicLoraxCharacteristics.PROFILE_INTENSITY(idx)
       );
@@ -1609,13 +1631,23 @@ export class Device extends EventEmitter {
       const temp = Number(temperatureCall.readFloatLE(0).toFixed(0));
       const time = Number(timeCall.readFloatLE(0).toFixed(0));
       const intensity = intensityCall.readFloatLE(0);
+      const color =
+        "#" +
+        colorCall.readUInt8(0).toString(16) +
+        colorCall.readUInt8(1).toString(16) +
+        colorCall.readUInt8(2).toString(16);
 
       console.log(
-        `Profile #${idx + 1} - ${name} - ${temp} - ${time} (I: ${intensity})`
+        `%c${this.device.name}%c Profile #${
+          idx + 1
+        } - ${name} - ${temp} - ${time} (I: ${intensity})`,
+        `padding: 10px; text-transform: capitalize; font-size: 1em; line-height: 1.4em; color: white; background: ${color}; border-radius: 15px;`,
+        "font-size: 1em;"
       );
       profiles[idx + 1] = {
         name,
         temp,
+        color,
         time: millisToMinutesAndSeconds(time * 1000),
         intensity,
       };
@@ -1641,6 +1673,13 @@ export class Device extends EventEmitter {
       const profileName = await this.getValue(Characteristic.PROFILE_NAME);
       const name = profileName.toString();
 
+      const profileColor = await this.getValue(Characteristic.PROFILE_COLOR);
+      const color =
+        "#" +
+        profileColor.readUInt8(0).toString(16) +
+        profileColor.readUInt8(1).toString(16) +
+        profileColor.readUInt8(2).toString(16);
+
       const temperatureCall = await this.getValue(
         Characteristic.PROFILE_PREHEAT_TEMP
       );
@@ -1648,10 +1687,17 @@ export class Device extends EventEmitter {
       const temp = Number(temperatureCall.readFloatLE(0).toFixed(0));
       const time = Number(timeCall.readFloatLE(0).toFixed(0));
 
-      console.log(`Profile #${key + 1} - ${name} - ${temp} - ${time}`);
+      console.log(
+        `%c${this.device.name}%c Profile #${
+          idx + 1
+        } - ${name} - ${temp} - ${time}`,
+        `padding: 10px; text-transform: capitalize; font-size: 1em; line-height: 1.4em; color: white; background: ${color}; border-radius: 15px;`,
+        "font-size: 1em;"
+      );
       profiles[key + 1] = {
         name,
         temp,
+        color,
         time: millisToMinutesAndSeconds(time * 1000),
       };
     }

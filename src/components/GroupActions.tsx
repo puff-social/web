@@ -32,10 +32,14 @@ import { DeviceModelColors } from "../utils/constants";
 import { InfoModal } from "./modals/Info";
 import { Hamburger } from "./icons/Hamburger";
 import { PuffcoLogo } from "./icons/Puffco";
-import { ProductModelMap } from "@puff-social/commons/dist/puffco/constants";
+import {
+  ChamberType,
+  ProductModelMap,
+} from "@puff-social/commons/dist/puffco/constants";
 import { Op, UserFlags } from "@puff-social/commons";
 import { DonationModal } from "./modals/Donation";
 import { validState } from "@puff-social/commons/dist/puffco";
+import { IntensityIcon } from "./IntensityIcon";
 
 interface ActionsProps {
   group?: GatewayGroup;
@@ -205,13 +209,13 @@ export function GroupActions({
                       trigger="click"
                       interactive
                       content={
-                        <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-72">
+                        <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-96">
                           <p className="text-lg font-bold">Profiles</p>
                           <span className="flex flex-col flex-wrap">
                             {Object.keys(deviceProfiles).map((key) => (
                               <span
                                 key={key}
-                                className="select-none text-lg flex justify-between items-center rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 m-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
+                                className="select-none text-lg flex justify-between rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 m-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
                                 onClick={async () => {
                                   await instance.switchProfile(Number(key));
                                   toast(
@@ -219,19 +223,49 @@ export function GroupActions({
                                   );
                                 }}
                               >
-                                <p className="">{deviceProfiles[key].name}</p>
-                                <span className="flex items-center space-x-2">
-                                  <p className="text-sm">
-                                    {deviceProfiles[key].time}
-                                  </p>
-                                  <p className="opacity-40 text-sm">@</p>
-                                  <p>
-                                    {Math.round(
+                                <span className="flex flex-col">
+                                  <span className="flex flex-row items-center space-x-2">
+                                    <p className="text-lg">
+                                      {deviceProfiles[key].name}
+                                    </p>
+                                    <div
+                                      className="w-4 h-4 rounded-full"
+                                      style={{
+                                        backgroundColor:
+                                          deviceProfiles[key].color,
+                                      }}
+                                    />
+                                  </span>
+                                  <p className="text-2xl font-bold">
+                                    {Math.floor(
                                       deviceProfiles[key].temp * 1.8 + 32
                                     )}
                                     °
                                   </p>
                                 </span>
+                                <div className="flex flex-row justify-end items-end">
+                                  {instance.chamberType == ChamberType["3D"] &&
+                                  deviceProfiles[key] ? (
+                                    <div className="flex flex-row space-x-2">
+                                      <IntensityIcon
+                                        intensity={
+                                          deviceProfiles[key].intensity
+                                        }
+                                      />
+                                      <span className="flex mt-2 px-1 rounded-lg bg-black text-white items-center justify-center w-fit">
+                                        <p className="text-sm px-1">
+                                          {deviceProfiles[key].time}
+                                        </p>
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="flex mt-2 px-1 rounded-lg bg-black text-white items-center justify-center w-fit">
+                                      <p className="text-sm px-1">
+                                        {deviceProfiles[key].time}
+                                      </p>
+                                    </span>
+                                  )}
+                                </div>
                               </span>
                             ))}
                           </span>

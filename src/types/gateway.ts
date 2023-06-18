@@ -82,6 +82,7 @@ export interface GatewayDeviceProfile {
   name: string;
   temp: number;
   time: string;
+  color: string;
   intensity?: number;
 }
 
