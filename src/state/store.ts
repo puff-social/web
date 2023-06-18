@@ -32,3 +32,7 @@ export type AppThunk<ReturnType = void> = ThunkAction<
 >;
 
 export const wrapper = createWrapper<AppStore>(makeStore);
+
+if (typeof window != "undefined") {
+  window["wrapper"] = wrapper;
+}
