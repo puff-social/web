@@ -91,6 +91,7 @@ export interface GatewayMemberDeviceState {
   activeColor: Colors;
   brightness: number;
   battery: number;
+  stateTime: number;
   state: number;
   temperature: number;
   totalDabs: number;

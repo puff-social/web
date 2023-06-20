@@ -170,15 +170,10 @@ export const LoraxCharacteristicPathMap = {
 };
 
 export const intMap = {
-  [LoraxCharacteristicPathMap[Characteristic.BATTERY_CHARGE_SOURCE]]: 750,
-  [LoraxCharacteristicPathMap[Characteristic.BATTERY_SOC]]: 1000,
-  [LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE]]: 300,
-  [LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]]: 300,
-  [LoraxCharacteristicPathMap[Characteristic.LED_BRIGHTNESS]]: 350,
-  [LoraxCharacteristicPathMap[Characteristic.TOTAL_HEAT_CYCLES]]: 370,
-  [LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]]: 320,
-  [LoraxCharacteristicPathMap[Characteristic.PROFILE_CURRENT]]: 400,
-  [LoraxCharacteristicPathMap[Characteristic.TIME_OVERRIDE]]: 900,
+  [LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE]]: 400,
+  [LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]]: 600,
+  [LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]]: 500,
+  [LoraxCharacteristicPathMap[Characteristic.STATE_ELAPSED_TIME]]: 1000,
 };
 
 export const DynamicLoraxCharacteristics = {

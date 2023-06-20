@@ -65,8 +65,11 @@ export interface Device {
   poller: EventEmitter;
   profiles: Record<number, PuffcoProfile>;
 
+  pollerMap: Map<string, EventEmitter>;
   watchMap: Map<number, string>;
   pathWatchers: Map<string, number>;
+
+  watcherSuspendTimeout: NodeJS.Timeout;
 
   lastLoraxSequenceId: number;
   loraxMessages: Map<number, LoraxMessage>;
@@ -94,6 +97,7 @@ export class Device extends EventEmitter {
     this.lastLoraxSequenceId = 0;
     this.loraxLimits = { maxCommands: 0, maxFiles: 0, maxPayload: 0 };
     this.loraxMessages = new Map();
+    this.pollerMap = new Map();
     this.watchMap = new Map();
     this.pathWatchers = new Map();
   }
@@ -521,6 +525,11 @@ export class Device extends EventEmitter {
       ? initStateState.readUInt8(0)
       : initStateState.readFloatLE(0);
 
+    const initStateTime = await this.getValue(
+      Characteristic.STATE_ELAPSED_TIME
+    );
+    initState.stateTime = Number(initStateTime.readFloatLE(0));
+
     const initChargeSource = await this.getValue(
       Characteristic.BATTERY_CHARGE_SOURCE
     );
@@ -653,280 +662,257 @@ export class Device extends EventEmitter {
         updated: new Date(),
       };
 
-      this.loraxEvent.addEventListener("characteristicvaluechanged", (ev) => {
-        const {
-          value: { buffer },
-        }: { value: DataView } = ev.target as any;
-        const buf = Buffer.from(buffer);
-        const reply = processLoraxEvent(buf);
-        const path = this.watchMap.get(reply.watchId);
+      this.loraxEvent.addEventListener(
+        "characteristicvaluechanged",
+        async (ev) => {
+          const {
+            value: { buffer },
+          }: { value: DataView } = ev.target as any;
+          const buf = Buffer.from(buffer);
+          const reply = processLoraxEvent(buf);
+          const path = this.watchMap.get(reply.watchId);
 
-        if (!reply.data || reply.data.byteLength == 0)
-          return console.log("Ignoring", reply, path);
+          if (!reply.data || reply.data.byteLength == 0)
+            return console.log("Ignoring", reply, path);
 
-        switch (path) {
-          case LoraxCharacteristicPathMap[
-            Characteristic.BATTERY_CHARGE_SOURCE
-          ]: {
-            if (reply.data.byteLength != 1) return;
-            const val = reply.data.readUInt8(0);
-            if (val != currentChargingState.val) {
-              console.log("change to charge", val, reply, path);
-              this.poller.emit("data", {
-                chargeSource: val,
-              });
-              currentChargingState.val = val;
-            }
-            currentChargingState.updated = new Date();
-            break;
-          }
-          case LoraxCharacteristicPathMap[Characteristic.BATTERY_SOC]: {
-            if (reply.data.byteLength < 4) return;
-            const val = Number(reply.data.readFloatLE(0).toFixed(0));
-            if (val != currentBattery.val) {
-              console.log("change to battery soc", val, reply, path);
-              this.poller.emit("data", {
-                battery: val,
-              });
-              currentBattery.val = val;
-            }
-            currentBattery.updated = new Date();
-            break;
-          }
-          case LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE]: {
-            if (reply.data.byteLength != 1) return;
-            const val = reply.data.readUInt8(0);
-            if (val != currentOperatingState.val) {
-              console.log("change to operating state", val, reply, path);
-              this.poller.emit("data", { state: val });
-
-              const {
-                group: { group },
-              }: { group: GroupStateInterface } = store.getState();
-
-              if (group) {
-                const groupStartOnBatteryCheck =
-                  localStorage.getItem("puff-battery-check-start") == "true" ||
-                  false;
-
-                if (
-                  group.state == GroupState.Awaiting &&
-                  val == PuffcoOperatingState.TEMP_SELECT
-                ) {
-                  this.setLightMode(PuffLightMode.MarkedReady);
-                }
-
-                if (
-                  group.state == GroupState.Chilling &&
-                  val == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
-                  groupStartOnBatteryCheck
-                ) {
-                  setTimeout(() => gateway.send(Op.InquireHeating));
-                }
-
-                if (
-                  group.state == GroupState.Awaiting &&
-                  val == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
-                  groupStartOnBatteryCheck
-                ) {
-                  setTimeout(() => gateway.send(Op.StartWithReady));
-                }
+          switch (path) {
+            case LoraxCharacteristicPathMap[
+              Characteristic.BATTERY_CHARGE_SOURCE
+            ]: {
+              if (reply.data.byteLength != 1) return;
+              const val = reply.data.readUInt8(0);
+              if (val != currentChargingState.val) {
+                console.log("change to charge", val, reply, path);
+                this.poller.emit("data", {
+                  chargeSource: val,
+                });
+                currentChargingState.val = val;
               }
+              currentChargingState.updated = new Date();
+              break;
+            }
+            case LoraxCharacteristicPathMap[Characteristic.BATTERY_SOC]: {
+              if (reply.data.byteLength < 4) return;
+              const val = Number(reply.data.readFloatLE(0).toFixed(0));
+              if (val != currentBattery.val) {
+                console.log("change to battery soc", val, reply, path);
+                this.poller.emit("data", {
+                  battery: val,
+                });
+                currentBattery.val = val;
+              }
+              currentBattery.updated = new Date();
+              break;
+            }
+            case LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE]: {
+              if (reply.data.byteLength != 1) return;
+              const val = reply.data.readUInt8(0);
+              if (val != currentOperatingState.val) {
+                console.log("change to operating state", val, reply, path);
+                this.poller.emit("data", { state: val });
 
-              currentOperatingState.val = val;
-            }
-            currentOperatingState.updated = new Date();
-            break;
-          }
-          case LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]: {
-            if (reply.data.byteLength != 1) return;
-            const val = reply.data.readUInt8(0);
-            if (val != currentChamberType.val && reply.data.byteLength == 1) {
-              console.log("change to chamber type", val, reply, path);
-              this.poller.emit("data", {
-                chamberType: val,
-              });
-              this.chamberType = val;
-              currentChamberType.val = val;
-            }
-            currentChamberType.updated = new Date();
-            break;
-          }
-          case LoraxCharacteristicPathMap[Characteristic.LED_BRIGHTNESS]: {
-            if (reply.data.byteLength < 4) return;
-            // const ringLed = reply.data.readUInt8(0);
-            // const underglassLed = reply.data.readUInt8(1);
-            const mainLed = reply.data.readUInt8(2);
-            // const batteryLed = reply.data.readUInt8(3);
+                const {
+                  group: { group },
+                }: { group: GroupStateInterface } = store.getState();
 
-            const val = Number(mainLed.toFixed(0));
+                if (group) {
+                  const groupStartOnBatteryCheck =
+                    localStorage.getItem("puff-battery-check-start") ==
+                      "true" || false;
 
-            if (val != lastBrightness.val && reply.data.byteLength == 4) {
-              console.log("change to brightness", val, reply, path);
-              this.poller.emit("data", {
-                brightness: val,
-              });
-              lastBrightness.val = val;
-            }
-            lastBrightness.updated = new Date();
-            break;
-          }
-          case LoraxCharacteristicPathMap[Characteristic.TOTAL_HEAT_CYCLES]: {
-            if (reply.data.byteLength < 4) return;
-            const conv = Number(reply.data.readFloatLE(0));
-            if (lastDabs.val != conv && reply.data.byteLength == 4) {
-              console.log("change to heat cycles", conv, reply, path);
-              this.poller.emit("data", {
-                totalDabs: conv,
-              });
-              lastDabs.val = conv;
-            }
-            lastDabs.updated = new Date();
-            break;
-          }
-          case LoraxCharacteristicPathMap[Characteristic.STATE_ELAPSED_TIME]: {
-            const conv = Number(reply.data.readFloatLE(0));
-            if (lastElapsedTime.val != conv && reply.data.byteLength == 4) {
-              this.poller.emit("data", {
-                stateTime: conv,
-              });
-              lastElapsedTime.val = conv;
-            }
-            lastElapsedTime.updated = new Date();
-            break;
-          }
-          case LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]: {
-            if (reply.data.byteLength < 4) return;
-            const conv = Number(reply.data.readFloatLE(0).toFixed(0));
-            if (lastTemp.val != conv && conv < 1000 && conv > 1) {
-              console.log("change to temp", conv, reply, path);
-              this.poller.emit("data", { temperature: conv });
-              lastTemp.val = conv;
-            }
-            lastTemp.updated = new Date();
-            break;
-          }
-          case LoraxCharacteristicPathMap[Characteristic.PROFILE_CURRENT]: {
-            const profileCurrent = reply.data.readUInt8(0);
-            if (
-              profileCurrent != this.currentProfileId &&
-              this.profiles[profileCurrent + 1] &&
-              reply.data.byteLength == 1
-            ) {
-              console.log(
-                "change to profile current",
-                profileCurrent,
-                reply,
-                path
-              );
-              this.poller.emit("data", {
-                profile: this.profiles[profileCurrent + 1],
-              });
-              this.currentProfileId = profileCurrent;
-            }
-            break;
-          }
+                  if (
+                    group.state == GroupState.Awaiting &&
+                    val == PuffcoOperatingState.TEMP_SELECT
+                  ) {
+                    this.setLightMode(PuffLightMode.MarkedReady);
+                  }
 
-          default:
-            break;
+                  if (
+                    group.state == GroupState.Chilling &&
+                    val == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
+                    groupStartOnBatteryCheck
+                  ) {
+                    setTimeout(() => gateway.send(Op.InquireHeating));
+                  }
+
+                  if (
+                    group.state == GroupState.Awaiting &&
+                    val == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
+                    groupStartOnBatteryCheck
+                  ) {
+                    setTimeout(() => gateway.send(Op.StartWithReady));
+                  }
+                }
+
+                if (
+                  val == PuffcoOperatingState.HEAT_CYCLE_PREHEAT &&
+                  currentOperatingState.val !=
+                    PuffcoOperatingState.HEAT_CYCLE_PREHEAT
+                ) {
+                  console.log(
+                    `DEBUG: Preheat started, suspending poller and starting watcher`
+                  );
+                  if (this.watcherSuspendTimeout) {
+                    console.log(
+                      "DEBUG: ^ Ignored because was less than 15 seconds since last heat/preheat"
+                    );
+                    clearTimeout(this.watcherSuspendTimeout);
+                  } else {
+                    this.pollerMap.get("chamberTemp").emit("suspend");
+                    await this.watchWithConfirmation(
+                      LoraxCharacteristicPathMap[
+                        Characteristic.STATE_ELAPSED_TIME
+                      ]
+                    );
+                    await this.watchWithConfirmation(
+                      LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]
+                    );
+                    await this.watchWithConfirmation(
+                      LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]
+                    );
+                  }
+                } else if (
+                  val == PuffcoOperatingState.IDLE &&
+                  [
+                    PuffcoOperatingState.HEAT_CYCLE_PREHEAT,
+                    PuffcoOperatingState.HEAT_CYCLE_ACTIVE,
+                  ].includes(currentOperatingState.val)
+                ) {
+                  console.log(
+                    `DEBUG: Back to Idle, unsuspending poller and stopping watcher`
+                  );
+                  this.watcherSuspendTimeout = setTimeout(async () => {
+                    console.log("Waited 15s, unwatching and resuming");
+                    await this.unwatchPath(
+                      LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]
+                    );
+                    await this.unwatchPath(
+                      LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]
+                    );
+                    await this.unwatchPath(
+                      LoraxCharacteristicPathMap[
+                        Characteristic.STATE_ELAPSED_TIME
+                      ]
+                    );
+                    this.pollerMap.get("chamberTemp").emit("resume");
+                  }, 15 * 1000);
+                }
+
+                currentOperatingState.val = val;
+              }
+              currentOperatingState.updated = new Date();
+              break;
+            }
+            case LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]: {
+              if (reply.data.byteLength != 1) return;
+              const val = reply.data.readUInt8(0);
+              if (val != currentChamberType.val && reply.data.byteLength == 1) {
+                console.log("change to chamber type", val, reply, path);
+                this.poller.emit("data", {
+                  chamberType: val,
+                });
+                this.chamberType = val;
+                currentChamberType.val = val;
+              }
+              currentChamberType.updated = new Date();
+              break;
+            }
+            case LoraxCharacteristicPathMap[Characteristic.LED_BRIGHTNESS]: {
+              if (reply.data.byteLength < 4) return;
+              // const ringLed = reply.data.readUInt8(0);
+              // const underglassLed = reply.data.readUInt8(1);
+              const mainLed = reply.data.readUInt8(2);
+              // const batteryLed = reply.data.readUInt8(3);
+
+              const val = Number(mainLed.toFixed(0));
+
+              if (val != lastBrightness.val && reply.data.byteLength == 4) {
+                console.log("change to brightness", val, reply, path);
+                this.poller.emit("data", {
+                  brightness: val,
+                });
+                lastBrightness.val = val;
+              }
+              lastBrightness.updated = new Date();
+              break;
+            }
+            case LoraxCharacteristicPathMap[Characteristic.TOTAL_HEAT_CYCLES]: {
+              if (reply.data.byteLength < 4) return;
+              const conv = Number(reply.data.readFloatLE(0));
+              if (lastDabs.val != conv && reply.data.byteLength == 4) {
+                console.log("change to heat cycles", conv, reply, path);
+                this.poller.emit("data", {
+                  totalDabs: conv,
+                });
+                lastDabs.val = conv;
+              }
+              lastDabs.updated = new Date();
+              break;
+            }
+            case LoraxCharacteristicPathMap[
+              Characteristic.STATE_ELAPSED_TIME
+            ]: {
+              const conv = Number(reply.data.readFloatLE(0));
+              if (lastElapsedTime.val != conv && reply.data.byteLength == 4) {
+                this.poller.emit("data", {
+                  stateTime: conv,
+                });
+                lastElapsedTime.val = conv;
+              }
+              lastElapsedTime.updated = new Date();
+              break;
+            }
+            case LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]: {
+              if (reply.data.byteLength < 4) return;
+              const conv = Number(reply.data.readFloatLE(0).toFixed(0));
+              if (lastTemp.val != conv && conv < 1000 && conv > 1) {
+                console.log("change to temp", conv, reply, path);
+                this.poller.emit("data", { temperature: conv });
+                lastTemp.val = conv;
+              }
+              lastTemp.updated = new Date();
+              break;
+            }
+            case LoraxCharacteristicPathMap[Characteristic.PROFILE_CURRENT]: {
+              const profileCurrent = reply.data.readUInt8(0);
+              if (
+                profileCurrent != this.currentProfileId &&
+                this.profiles[profileCurrent + 1] &&
+                reply.data.byteLength == 1
+              ) {
+                console.log(
+                  "change to profile current",
+                  profileCurrent,
+                  reply,
+                  path
+                );
+                this.poller.emit("data", {
+                  profile: this.profiles[profileCurrent + 1],
+                });
+                this.currentProfileId = profileCurrent;
+              }
+              break;
+            }
+
+            default:
+              break;
+          }
         }
-      });
+      );
 
       this.loraxEvent.startNotifications();
 
       for await (const path of [
-        LoraxCharacteristicPathMap[Characteristic.BATTERY_CHARGE_SOURCE],
-        LoraxCharacteristicPathMap[Characteristic.BATTERY_SOC],
         LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE],
-        LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE],
-        LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP],
-        LoraxCharacteristicPathMap[Characteristic.PROFILE_CURRENT],
-        LoraxCharacteristicPathMap[Characteristic.TOTAL_HEAT_CYCLES],
-        LoraxCharacteristicPathMap[Characteristic.STATE_ELAPSED_TIME],
       ]) {
         try {
-          await (() => {
-            return new Promise(async (resolve, reject) => {
-              try {
-                const req = await this.watchPath(path, intMap[path]);
-
-                const func = async (ev: Event) => {
-                  const {
-                    value: { buffer },
-                  }: { value: DataView } = ev.target as any;
-                  const data = processLoraxReply(buffer);
-                  const msg = this.loraxMessages.get(data.seq);
-                  msg.response = { data: data.data, error: !!data.error };
-
-                  if (
-                    msg.op == LoraxCommands.WATCH &&
-                    msg.seq == req.seq &&
-                    msg.path == path
-                  ) {
-                    if (msg.response.error)
-                      console.log(
-                        "Got error'd reply to",
-                        msg.op,
-                        msg.seq,
-                        msg.path,
-                        msg.response.data,
-                        data.error
-                      );
-                    this.loraxReply.removeEventListener(
-                      "characteristicvaluechanged",
-                      func
-                    );
-                    return resolve(msg.response.data);
-                  }
-                };
-
-                this.loraxReply.addEventListener(
-                  "characteristicvaluechanged",
-                  func
-                );
-              } catch (error) {
-                return reject(error);
-              }
-            });
-          })();
+          await this.watchWithConfirmation(path);
         } catch (error) {
           continue;
         }
         await new Promise((resolve) => setTimeout(() => resolve(true), 200));
       }
     } else {
-      let currentChargingState: number;
-      const chargingPoll = await this.pollValue(
-        Characteristic.BATTERY_CHARGE_SOURCE,
-        2200
-      );
-      chargingPoll.on("change", (data: Buffer) => {
-        if (!data || data.byteLength != (this.isLorax ? 1 : 4)) return;
-        const val = Number(
-          (this.isLorax ? data.readUInt8(0) : data.readFloatLE(0)).toFixed(0)
-        );
-        if (val != currentChargingState)
-          this.poller.emit("data", {
-            chargeSource: val,
-          });
-        currentChargingState = val;
-      });
-
-      let currentBattery: number;
-      const batteryPoll = await this.pollValue(
-        Characteristic.BATTERY_SOC,
-        2700
-      );
-      batteryPoll.on("change", (data: Buffer) => {
-        if (!data || data.byteLength != 4) return;
-        const val = Number(data.readFloatLE(0).toFixed(0));
-        if (val != currentBattery)
-          this.poller.emit("data", {
-            battery: val,
-          });
-        currentBattery = val;
-      });
-
       let currentOperatingState: number;
       const operatingState = await this.pollValue(
         Characteristic.OPERATING_STATE,
@@ -974,111 +960,8 @@ export class Device extends EventEmitter {
         currentOperatingState = val;
       });
 
-      let currentChamberType: number;
-      const chamberType = await this.pollValue(
-        Characteristic.CHAMBER_TYPE,
-        1150
-      );
-      chamberType.on("change", (data: Buffer) => {
-        if (!data || data.byteLength != 1) return;
-        const val = data.readUInt8(0);
-        if (val != currentChamberType)
-          this.poller.emit("data", {
-            chamberType: val,
-          });
-        currentChamberType = val;
-        this.chamberType = val;
-      });
-
-      let lastBrightness: number;
-      const brightnessPoll = await this.pollValue(
-        Characteristic.LED_BRIGHTNESS,
-        9000
-      );
-      brightnessPoll.on("change", (data: Buffer) => {
-        if (!data || data.byteLength != 4) return;
-        // const ringLed = data.readUInt8(0);
-        // const underglassLed = data.readUInt8(1);
-        const mainLed = data.readUInt8(2);
-        // const batteryLed = data.readUInt8(3);
-
-        const val = Number(mainLed.toFixed(0));
-
-        if (val != lastBrightness)
-          this.poller.emit("data", {
-            brightness: val,
-          });
-        lastBrightness = val;
-      });
-
-      let lastDabs: number;
-      const totalDabsPoll = await this.pollValue(
-        Characteristic.TOTAL_HEAT_CYCLES,
-        this.isLorax ? 750 : 2000
-      );
-      totalDabsPoll.on("data", (data: Buffer) => {
-        if (!data || data.byteLength != 4) return;
-        const conv = Number(data.readFloatLE(0));
-        if (lastDabs != conv)
-          this.poller.emit("data", {
-            totalDabs: conv,
-          });
-        lastDabs = conv;
-      });
-
-      let lastTemp: number;
-      const tempPoll = await this.pollValue(
-        Characteristic.HEATER_TEMP,
-        this.isLorax ? 200 : 1200
-      ); // Make this dynamic based on state
-      tempPoll.on("data", async (data: Buffer) => {
-        if (!data || data.byteLength != 4) return;
-        const conv = Number(data.readFloatLE(0).toFixed(0));
-        if (lastTemp != conv && conv < 1000 && conv > 1)
-          this.poller.emit("data", { temperature: conv });
-        lastTemp = conv;
-      });
-
-      const currentProfilePoll = await this.pollValue(
-        Characteristic.PROFILE_CURRENT,
-        1150
-      );
-      currentProfilePoll.on("data", async (data: Buffer) => {
-        if (!data || data.byteLength != (this.isLorax ? 1 : 4)) return;
-        const profileCurrent = this.isLorax
-          ? data.readUInt8(0)
-          : data.readFloatLE(0);
-        if (profileCurrent != this.currentProfileId)
-          this.poller.emit("data", {
-            profile: this.profiles[profileCurrent + 1],
-          });
-        this.currentProfileId = profileCurrent;
-      });
-
-      const deviceNamePoll = await this.pollValue(
-        Characteristic.DEVICE_NAME,
-        10500
-      );
-      deviceNamePoll.on("change", (data: Buffer) => {
-        if (!data) return;
-        const name = data.toString();
-        if (name != this.deviceName)
-          this.poller.emit("data", { deviceName: name });
-        this.deviceName = name;
-      });
-
       this.poller.on("stop", () => {
-        const pollers = [
-          chargingPoll,
-          batteryPoll,
-          operatingState,
-          chamberType,
-          brightnessPoll,
-          totalDabsPoll,
-          tempPoll,
-          currentProfilePoll,
-          deviceNamePoll,
-        ];
+        const pollers = [operatingState];
 
         for (const poller of pollers) poller.emit("stop");
       });
@@ -1087,7 +970,7 @@ export class Device extends EventEmitter {
     let currentBrightness: number;
     let currentLedColor: { r: number; g: number; b: number };
     const LEDPoller = await this.pollValue(
-      Characteristic.ACTIVE_LED_COLOR,
+      [Characteristic.ACTIVE_LED_COLOR, Characteristic.LED_BRIGHTNESS],
       1150
     );
     LEDPoller.on("data", (data: Buffer, characteristic: string) => {
@@ -1110,11 +993,106 @@ export class Device extends EventEmitter {
         currentBrightness = val;
       }
     });
+    this.pollerMap.set("led", LEDPoller);
+
+    let currentTemperature: number;
+    const ChamberTempPoll = await this.pollValue(
+      [Characteristic.HEATER_TEMP, Characteristic.CHAMBER_TYPE],
+      5000
+    );
+    ChamberTempPoll.on("data", (data: Buffer, characteristic: string) => {
+      if (characteristic == Characteristic.HEATER_TEMP) {
+        if (!data || data.byteLength != 4) return;
+        const conv = Number(data.readFloatLE(0).toFixed(0));
+        if (currentTemperature != conv && conv < 1000 && conv > 1)
+          this.poller.emit("data", { temperature: conv });
+        currentTemperature = conv;
+      } else if (characteristic == Characteristic.CHAMBER_TYPE) {
+        if (!data || data.byteLength != 1) return;
+        const chamberType = data.readUInt8(0);
+        if (chamberType != this.chamberType)
+          this.poller.emit("data", {
+            chamberType: chamberType,
+          });
+        this.chamberType = chamberType;
+      }
+    });
+    this.pollerMap.set("chamberTemp", ChamberTempPoll);
+
+    let currentBattery: number;
+    let currentChargingState: number;
+    const BatteryProfilePoll = await this.pollValue(
+      [
+        Characteristic.PROFILE_CURRENT,
+        Characteristic.BATTERY_CHARGE_SOURCE,
+        Characteristic.BATTERY_SOC,
+      ],
+      8000
+    );
+    BatteryProfilePoll.on("data", (data: Buffer, characteristic: string) => {
+      if (characteristic == Characteristic.PROFILE_CURRENT) {
+        const profileCurrent = data.readUInt8(0);
+        if (
+          profileCurrent != this.currentProfileId &&
+          this.profiles[profileCurrent + 1] &&
+          data.byteLength == 1
+        ) {
+          this.poller.emit("data", {
+            profile: this.profiles[profileCurrent + 1],
+          });
+          this.currentProfileId = profileCurrent;
+        }
+      } else if (characteristic == Characteristic.BATTERY_CHARGE_SOURCE) {
+        if (data.byteLength != 1) return;
+        const val = data.readUInt8(0);
+        if (val != currentChargingState) {
+          this.poller.emit("data", {
+            chargeSource: val,
+          });
+          currentChargingState = val;
+        }
+      } else if (characteristic == Characteristic.BATTERY_SOC) {
+        if (data.byteLength < 4) return;
+        const val = Number(data.readFloatLE(0).toFixed(0));
+        if (val != currentBattery) {
+          this.poller.emit("data", {
+            battery: val,
+          });
+          currentBattery = val;
+        }
+      }
+    });
+    this.pollerMap.set("batteryProfile", BatteryProfilePoll);
+
+    let currentDabCount: number;
+    const DabCountPoll = await this.pollValue(
+      [Characteristic.TOTAL_HEAT_CYCLES],
+      10000
+    );
+    DabCountPoll.on("data", (data: Buffer, characteristic: string) => {
+      if (characteristic == Characteristic.TOTAL_HEAT_CYCLES) {
+        if (data.byteLength != 4) return;
+        const val = data.readFloatLE(0);
+        if (val != currentDabCount) {
+          this.poller.emit("data", {
+            totalDabs: val,
+          });
+          currentDabCount = val;
+        }
+      }
+    });
+    this.pollerMap.set("totalDabs", DabCountPoll);
 
     this.poller.on("stop", (disconnect = true) => {
-      const pollers = [LEDPoller];
+      const pollers = ["led", "chamberTemp", "batteryProfile", "totalDabs"];
 
-      for (const poller of pollers) poller.emit("stop");
+      for (const name of pollers) {
+        const poller = this.pollerMap.get(name);
+        if (poller) {
+          this.pollerMap.delete(name);
+          poller.emit("stop");
+        }
+      }
 
       if (this.server.connected && disconnect) this.server.disconnect();
       this.poller.removeAllListeners();
@@ -1180,6 +1158,48 @@ export class Device extends EventEmitter {
 
     await this.writeLoraxCommand(message);
     return obj;
+  }
+
+  private async watchWithConfirmation(path: string) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const req = await this.watchPath(path, intMap[path]);
+
+        const func = async (ev: Event) => {
+          const {
+            value: { buffer },
+          }: { value: DataView } = ev.target as any;
+          const data = processLoraxReply(buffer);
+          const msg = this.loraxMessages.get(data.seq);
+          msg.response = { data: data.data, error: !!data.error };
+
+          if (
+            msg.op == LoraxCommands.WATCH &&
+            msg.seq == req.seq &&
+            msg.path == path
+          ) {
+            if (msg.response.error)
+              console.log(
+                "Got error'd reply to",
+                msg.op,
+                msg.seq,
+                msg.path,
+                msg.response.data,
+                data.error
+              );
+            this.loraxReply.removeEventListener(
+              "characteristicvaluechanged",
+              func
+            );
+            return resolve(msg.response.data);
+          }
+        };
+
+        this.loraxReply.addEventListener("characteristicvaluechanged", func);
+      } catch (error) {
+        return reject(error);
+      }
+    });
   }
 
   async sendCommand(
@@ -1657,6 +1677,7 @@ export class Device extends EventEmitter {
     if (!time) time = 10000; // 10s
 
     const listener = new EventEmitter();
+    let suspended = false;
 
     for (const name of characteristic) {
       time = time + Math.floor(Math.random() * 100) + 50;
@@ -1680,9 +1701,24 @@ export class Device extends EventEmitter {
           };
 
       func();
-      const int = setInterval(() => func(), time);
+      const int = setInterval(
+        () =>
+          suspended ? console.log(`DEBUG: Poller ${name} suspended`) : func(),
+        time
+      );
+
+      listener.on("suspend", () => {
+        console.log(`DEBUG: Suspending poller for ${name}`);
+        suspended = true;
+      });
+
+      listener.on("resume", () => {
+        console.log(`DEBUG: Resuming poller for ${name}`);
+        suspended = false;
+      });
 
       listener.on("stop", () => {
+        console.log(`DEBUG: Stopping poller for ${name}`);
         listener.removeAllListeners();
         clearInterval(int);
       });

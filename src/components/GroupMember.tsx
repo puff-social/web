@@ -75,9 +75,6 @@ interface GroupMemberProps {
 export function GroupMember(props: GroupMemberProps) {
   const userActionsButton = useRef<HTMLSpanElement>();
   const [hoveringCard, setHoveringCard] = useState(false);
-  const [currentState, setCurrentState] = useState<number>(props.device?.state);
-  const [stateTimer, setStateTimer] = useState<number>(0);
-  const [stateInt, setStateInt] = useState<NodeJS.Timer>();
   const [leaderboardPos, setLeaderboardPos] = useState<number>(
     props.leaderboardPosition || 0
   );
@@ -89,32 +86,6 @@ export function GroupMember(props: GroupMemberProps) {
     if (typeof window == "undefined") return false;
     return typeof window.navigator.bluetooth !== "undefined";
   });
-
-  const updatedState = useCallback(
-    (device: GatewayMemberDeviceState) => {
-      if ("state" in device && device.state != currentState) {
-        if (stateInt) {
-          clearInterval(stateInt);
-          setStateTimer(0);
-        }
-
-        if ([7, 8].includes(device.state)) {
-          setStateInt(
-            setInterval(() => {
-              setStateTimer((curr) => curr + 1);
-            }, 1000)
-          );
-        }
-      }
-
-      setCurrentState(device.state);
-    },
-    [currentState, stateInt]
-  );
-
-  useEffect(() => {
-    if (props.device) updatedState(props.device);
-  }, [props.device?.state]);
 
   useEffect(() => {
     (async () => {
@@ -526,7 +497,9 @@ export function GroupMember(props: GroupMemberProps) {
                         ? "Ready"
                         : PuffcoOperatingMap[props.device.state]}
                       {[7, 8].includes(props.device.state)
-                        ? ` - ${millisToMinutesAndSeconds(stateTimer * 1000)}`
+                        ? ` - ${millisToMinutesAndSeconds(
+                            props.device.stateTime * 1000
+                          )}`
                         : ""}
                     </h3>
                     {props.ready ? (
