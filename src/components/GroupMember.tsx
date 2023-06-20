@@ -473,7 +473,12 @@ export function GroupMember(props: GroupMemberProps) {
                 {props.device && (
                   <div className="flex space-x-2">
                     <span className="flex flex-row justify-center items-center">
-                      <Tippy content="Total Dabs" placement="right">
+                      <Tippy
+                        content={`${
+                          props.device.dabsPerDay || `0.0`
+                        } avg per day`}
+                        placement="right"
+                      >
                         <div
                           className={`flex justify-center ${
                             EASTER_EGG_CYCLE_COUNTS.includes(

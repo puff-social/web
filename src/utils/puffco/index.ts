@@ -535,9 +535,12 @@ export class Device extends EventEmitter {
     initState.totalDabs = Number(initTotalDabs.readFloatLE(0));
     deviceInfo.totalDabs = initState.totalDabs;
 
+    const avgDabs = await this.getValue(Characteristic.DABS_PER_DAY);
     const initDabsPerDay = await this.getValue(Characteristic.DABS_PER_DAY);
+
     deviceInfo.dabsPerDay = Number(initDabsPerDay.readFloatLE(0).toFixed(2));
     if (isNaN(deviceInfo.dabsPerDay)) deviceInfo.dabsPerDay = 0.0;
+    initState.dabsPerDay = deviceInfo.dabsPerDay;
 
     const initDeviceName = await this.getValue(Characteristic.DEVICE_NAME);
     if (initDeviceName.byteLength == 0 && this.device) {

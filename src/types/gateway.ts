@@ -94,6 +94,7 @@ export interface GatewayMemberDeviceState {
   state: number;
   temperature: number;
   totalDabs: number;
+  dabsPerDay: number;
   chargeSource: ChargeSource;
   deviceName: string;
   profile: GatewayDeviceProfile;

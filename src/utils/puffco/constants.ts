@@ -83,11 +83,16 @@ export const Characteristic = {
   TIME_OVERRIDE: `${BASE_CHARACTERISTIC}46`,
   LANTERN_START: `${BASE_CHARACTERISTIC}4a`,
   LANTERN_COLOR: `${BASE_CHARACTERISTIC}48`,
+  PROFILE_PREHEAT_COLOR: `${BASE_CHARACTERISTIC}6a`,
+  PROFILE_ACTIVE_COLOR: `${BASE_CHARACTERISTIC}6b`,
   PROFILE: `${BASE_CHARACTERISTIC}61`,
   PROFILE_NAME: `${BASE_CHARACTERISTIC}62`,
   PROFILE_PREHEAT_TEMP: `${BASE_CHARACTERISTIC}63`,
   PROFILE_PREHEAT_TIME: `${BASE_CHARACTERISTIC}64`,
   PROFILE_COLOR: `${BASE_CHARACTERISTIC}65`,
+  PROFILE_BOOST_TEMP: `${BASE_CHARACTERISTIC}67`,
+  PROFILE_BOOST_TIME: `${BASE_CHARACTERISTIC}68`,
+  PROFILE_THRESHOLD_TEMP: `${BASE_CHARACTERISTIC}69`,
   LED_BRIGHTNESS: `${BASE_CHARACTERISTIC}4b`,
   DEVICE_NAME: `${BASE_CHARACTERISTIC}4d`,
   DEVICE_BIRTHDAY: `${BASE_CHARACTERISTIC}4e`,
@@ -181,13 +186,15 @@ export const DynamicLoraxCharacteristics = {
   [Characteristic.PROFILE_COLOR]: (id: number) => `/u/app/hc/${id}/colr`,
   [Characteristic.PROFILE_PREHEAT_TEMP]: (id: number) => `/u/app/hc/${id}/temp`,
   [Characteristic.PROFILE_PREHEAT_TIME]: (id: number) => `/u/app/hc/${id}/time`,
+  [Characteristic.PROFILE_ACTIVE_COLOR]: (id: number) => `/u/app/hc/${id}/accl`,
+  [Characteristic.PROFILE_PREHEAT_COLOR]: (id: number) =>
+    `/u/app/hc/${id}/phcl`,
+  [Characteristic.PROFILE_BOOST_TEMP]: (id: number) => `/u/app/hc/${id}/btmp`,
+  [Characteristic.PROFILE_BOOST_TIME]: (id: number) => `/u/app/hc/${id}/btim`,
+  [Characteristic.PROFILE_THRESHOLD_TEMP]: (id: number) =>
+    `/u/app/hc/${id}/thrt`,
   PROFILE_INTENSITY: (id: number) => `/u/app/hc/${id}/intn`,
-  PROFILE_BOOST_TIME: (id: number) => `/u/app/hc/${id}/btim`,
-  PROFILE_BOOST_TEMP: (id: number) => `/u/app/hc/${id}/btmp`,
-  PROFILE_ACTIVE_COLOR: (id: number) => `/u/app/hc/${id}/accl`,
-  PROFILE_THRESHOLD_TEMP: (id: number) => `/u/app/hc/${id}/thrt`,
   PROFILE_SCRATCH_PAD: (id: number) => `/u/app/hc/${id}/scpd`,
-  PROFILE_PREHEAT_COLOR: (id: number) => `/u/app/hc/${id}/phcl`,
 };
 
 export const DeviceCommand = {
