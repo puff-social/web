@@ -535,7 +535,6 @@ export class Device extends EventEmitter {
     initState.totalDabs = Number(initTotalDabs.readFloatLE(0));
     deviceInfo.totalDabs = initState.totalDabs;
 
-    const avgDabs = await this.getValue(Characteristic.DABS_PER_DAY);
     const initDabsPerDay = await this.getValue(Characteristic.DABS_PER_DAY);
 
     deviceInfo.dabsPerDay = Number(initDabsPerDay.readFloatLE(0).toFixed(2));
@@ -840,7 +839,6 @@ export class Device extends EventEmitter {
         LoraxCharacteristicPathMap[Characteristic.BATTERY_SOC],
         LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE],
         LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE],
-        LoraxCharacteristicPathMap[Characteristic.LED_BRIGHTNESS],
         LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP],
         LoraxCharacteristicPathMap[Characteristic.PROFILE_CURRENT],
         LoraxCharacteristicPathMap[Characteristic.TOTAL_HEAT_CYCLES],
@@ -896,71 +894,10 @@ export class Device extends EventEmitter {
         }
         await new Promise((resolve) => setTimeout(() => resolve(true), 200));
       }
-
-      for (const V of [
-        {
-          char: LoraxCharacteristicPathMap[
-            Characteristic.BATTERY_CHARGE_SOURCE
-          ],
-          var: currentChargingState,
-        },
-        {
-          char: LoraxCharacteristicPathMap[Characteristic.BATTERY_SOC],
-          var: currentBattery,
-        },
-        {
-          char: LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE],
-          var: currentOperatingState,
-        },
-        {
-          char: LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE],
-          var: currentChamberType,
-        },
-        {
-          char: LoraxCharacteristicPathMap[Characteristic.TOTAL_HEAT_CYCLES],
-          var: lastBrightness,
-        },
-        {
-          char: LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP],
-          var: lastDabs,
-        },
-        {
-          char: LoraxCharacteristicPathMap[Characteristic.PROFILE_CURRENT],
-          var: lastTemp,
-        },
-        {
-          char: LoraxCharacteristicPathMap[Characteristic.STATE_ELAPSED_TIME],
-          var: lastElapsedTime,
-        },
-      ]) {
-        const int = setInterval(async () => {
-          if (
-            new Date().getTime() - V.var.updated.getTime() >
-            intMap[V.char] * 2
-          ) {
-            console.log(
-              "Deviation for",
-              V.char,
-              "is beyond 2x, unwatching and rewatching",
-              `(D: ${new Date().getTime() - V.var.updated.getTime()})`
-            );
-
-            await this.unwatchPath(V.char);
-            setTimeout(() => {
-              this.watchPath(V.char, intMap[V.char]);
-            }, 500);
-          }
-        }, intMap[V.char]);
-
-        this.once("gattdisconnect", () => {
-          if (int) clearInterval(int);
-        });
-      }
     } else {
       let currentChargingState: number;
       const chargingPoll = await this.pollValue(
         Characteristic.BATTERY_CHARGE_SOURCE,
-        4,
         2200
       );
       chargingPoll.on("change", (data: Buffer) => {
@@ -978,7 +915,6 @@ export class Device extends EventEmitter {
       let currentBattery: number;
       const batteryPoll = await this.pollValue(
         Characteristic.BATTERY_SOC,
-        4,
         2700
       );
       batteryPoll.on("change", (data: Buffer) => {
@@ -994,7 +930,6 @@ export class Device extends EventEmitter {
       let currentOperatingState: number;
       const operatingState = await this.pollValue(
         Characteristic.OPERATING_STATE,
-        0,
         this.isLorax ? 555 : 1200
       );
       operatingState.on("change", (data: Buffer) => {
@@ -1042,7 +977,6 @@ export class Device extends EventEmitter {
       let currentChamberType: number;
       const chamberType = await this.pollValue(
         Characteristic.CHAMBER_TYPE,
-        0,
         1150
       );
       chamberType.on("change", (data: Buffer) => {
@@ -1059,7 +993,6 @@ export class Device extends EventEmitter {
       let lastBrightness: number;
       const brightnessPoll = await this.pollValue(
         Characteristic.LED_BRIGHTNESS,
-        1,
         9000
       );
       brightnessPoll.on("change", (data: Buffer) => {
@@ -1081,7 +1014,6 @@ export class Device extends EventEmitter {
       let lastDabs: number;
       const totalDabsPoll = await this.pollValue(
         Characteristic.TOTAL_HEAT_CYCLES,
-        0,
         this.isLorax ? 750 : 2000
       );
       totalDabsPoll.on("data", (data: Buffer) => {
@@ -1097,7 +1029,6 @@ export class Device extends EventEmitter {
       let lastTemp: number;
       const tempPoll = await this.pollValue(
         Characteristic.HEATER_TEMP,
-        0,
         this.isLorax ? 200 : 1200
       ); // Make this dynamic based on state
       tempPoll.on("data", async (data: Buffer) => {
@@ -1110,7 +1041,6 @@ export class Device extends EventEmitter {
 
       const currentProfilePoll = await this.pollValue(
         Characteristic.PROFILE_CURRENT,
-        0,
         1150
       );
       currentProfilePoll.on("data", async (data: Buffer) => {
@@ -1127,7 +1057,6 @@ export class Device extends EventEmitter {
 
       const deviceNamePoll = await this.pollValue(
         Characteristic.DEVICE_NAME,
-        1,
         10500
       );
       deviceNamePoll.on("change", (data: Buffer) => {
@@ -1137,6 +1066,7 @@ export class Device extends EventEmitter {
           this.poller.emit("data", { deviceName: name });
         this.deviceName = name;
       });
+
       this.poller.on("stop", () => {
         const pollers = [
           chargingPoll,
@@ -1154,24 +1084,35 @@ export class Device extends EventEmitter {
       });
     }
 
+    let currentBrightness: number;
     let currentLedColor: { r: number; g: number; b: number };
-    const activeLEDPoll = await this.pollValue(
+    const LEDPoller = await this.pollValue(
       Characteristic.ACTIVE_LED_COLOR,
-      4,
       1150
     );
-    activeLEDPoll.on("data", (data: Buffer) => {
-      if (!data || data.byteLength != 8) return;
-      const r = data.readUInt8(0);
-      const g = data.readUInt8(1);
-      const b = data.readUInt8(2);
-      if (JSON.stringify(currentLedColor) != JSON.stringify({ r, g, b }))
-        this.poller.emit("data", { activeColor: { r, g, b } });
-      currentLedColor = { r, g, b };
+    LEDPoller.on("data", (data: Buffer, characteristic: string) => {
+      if (characteristic == Characteristic.ACTIVE_LED_COLOR) {
+        if (!data || data.byteLength != 8) return;
+        const r = data.readUInt8(0);
+        const g = data.readUInt8(1);
+        const b = data.readUInt8(2);
+        if (JSON.stringify(currentLedColor) != JSON.stringify({ r, g, b }))
+          this.poller.emit("data", { activeColor: { r, g, b } });
+        currentLedColor = { r, g, b };
+      } else if (characteristic == Characteristic.LED_BRIGHTNESS) {
+        if (!data || data.byteLength != 4) return;
+        const mainLed = data.readUInt8(2);
+        const val = Number(mainLed.toFixed(0));
+        if (val != currentBrightness)
+          this.poller.emit("data", {
+            brightness: val,
+          });
+        currentBrightness = val;
+      }
     });
 
     this.poller.on("stop", (disconnect = true) => {
-      const pollers = [activeLEDPoll];
+      const pollers = [LEDPoller];
 
       for (const poller of pollers) poller.emit("stop");
 
@@ -1709,40 +1650,47 @@ export class Device extends EventEmitter {
   }
 
   private async pollValue(
-    characteristic: string,
-    bytes = 4,
+    characteristic: string[] | string,
     time?: number
   ): Promise<EventEmitter> {
+    if (typeof characteristic == "string") characteristic = [characteristic];
     if (!time) time = 10000; // 10s
-    time = time + Math.floor(Math.random() * 100) + 50; // Make this jitter higher on android only
+
     const listener = new EventEmitter();
-    const char = await this.service
-      .getCharacteristic(characteristic)
-      .then((char) => char)
-      .catch(() => null);
 
-    const func = this.isLorax
-      ? async () => {
-          const value = await this.getValue(characteristic);
-          listener.emit("change", value);
-          listener.emit("data", value);
-        }
-      : async () => {
-          try {
-            const value = await char?.readValue();
-            listener.emit("data", Buffer.from(value.buffer));
-            listener.emit("change", Buffer.from(value.buffer));
-          } catch (error) {}
-        };
+    for (const name of characteristic) {
+      time = time + Math.floor(Math.random() * 100) + 50;
+      const char = await this.service
+        .getCharacteristic(name)
+        .then((char) => char)
+        .catch(() => null);
 
-    let lastValue: string;
-    func();
-    const int = setInterval(() => func(), time);
+      const func = this.isLorax
+        ? async () => {
+            const value = await this.getValue(name);
+            listener.emit("change", value, characteristic);
+            listener.emit("data", value, characteristic);
+          }
+        : async () => {
+            try {
+              const value = await char?.readValue();
+              listener.emit("data", Buffer.from(value.buffer), characteristic);
+              listener.emit(
+                "change",
+                Buffer.from(value.buffer),
+                characteristic
+              );
+            } catch (error) {}
+          };
 
-    listener.on("stop", () => {
-      listener.removeAllListeners();
-      clearInterval(int);
-    });
+      func();
+      const int = setInterval(() => func(), time);
+
+      listener.on("stop", () => {
+        listener.removeAllListeners();
+        clearInterval(int);
+      });
+    }
 
     return listener;
   }

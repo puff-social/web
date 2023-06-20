@@ -425,7 +425,7 @@ export function GroupMember(props: GroupMemberProps) {
                   ) : (
                     <></>
                   )}
-                  {props.member.session_id == props.group?.owner_session_id ? (
+                  {props.member?.session_id == props.group?.owner_session_id ? (
                     <Tippy content="Group owner" placement="top-start">
                       <div className="flex items-center">
                         <Crown className="text-green-700" />
