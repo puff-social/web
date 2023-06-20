@@ -676,39 +676,10 @@ export class Device extends EventEmitter {
             return console.log("Ignoring", reply, path);
 
           switch (path) {
-            case LoraxCharacteristicPathMap[
-              Characteristic.BATTERY_CHARGE_SOURCE
-            ]: {
-              if (reply.data.byteLength != 1) return;
-              const val = reply.data.readUInt8(0);
-              if (val != currentChargingState.val) {
-                console.log("change to charge", val, reply, path);
-                this.poller.emit("data", {
-                  chargeSource: val,
-                });
-                currentChargingState.val = val;
-              }
-              currentChargingState.updated = new Date();
-              break;
-            }
-            case LoraxCharacteristicPathMap[Characteristic.BATTERY_SOC]: {
-              if (reply.data.byteLength < 4) return;
-              const val = Number(reply.data.readFloatLE(0).toFixed(0));
-              if (val != currentBattery.val) {
-                console.log("change to battery soc", val, reply, path);
-                this.poller.emit("data", {
-                  battery: val,
-                });
-                currentBattery.val = val;
-              }
-              currentBattery.updated = new Date();
-              break;
-            }
             case LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE]: {
               if (reply.data.byteLength != 1) return;
               const val = reply.data.readUInt8(0);
               if (val != currentOperatingState.val) {
-                console.log("change to operating state", val, reply, path);
                 this.poller.emit("data", { state: val });
 
                 const {
@@ -807,7 +778,6 @@ export class Device extends EventEmitter {
               if (reply.data.byteLength != 1) return;
               const val = reply.data.readUInt8(0);
               if (val != currentChamberType.val && reply.data.byteLength == 1) {
-                console.log("change to chamber type", val, reply, path);
                 this.poller.emit("data", {
                   chamberType: val,
                 });
@@ -815,38 +785,6 @@ export class Device extends EventEmitter {
                 currentChamberType.val = val;
               }
               currentChamberType.updated = new Date();
-              break;
-            }
-            case LoraxCharacteristicPathMap[Characteristic.LED_BRIGHTNESS]: {
-              if (reply.data.byteLength < 4) return;
-              // const ringLed = reply.data.readUInt8(0);
-              // const underglassLed = reply.data.readUInt8(1);
-              const mainLed = reply.data.readUInt8(2);
-              // const batteryLed = reply.data.readUInt8(3);
-
-              const val = Number(mainLed.toFixed(0));
-
-              if (val != lastBrightness.val && reply.data.byteLength == 4) {
-                console.log("change to brightness", val, reply, path);
-                this.poller.emit("data", {
-                  brightness: val,
-                });
-                lastBrightness.val = val;
-              }
-              lastBrightness.updated = new Date();
-              break;
-            }
-            case LoraxCharacteristicPathMap[Characteristic.TOTAL_HEAT_CYCLES]: {
-              if (reply.data.byteLength < 4) return;
-              const conv = Number(reply.data.readFloatLE(0));
-              if (lastDabs.val != conv && reply.data.byteLength == 4) {
-                console.log("change to heat cycles", conv, reply, path);
-                this.poller.emit("data", {
-                  totalDabs: conv,
-                });
-                lastDabs.val = conv;
-              }
-              lastDabs.updated = new Date();
               break;
             }
             case LoraxCharacteristicPathMap[
@@ -866,31 +804,10 @@ export class Device extends EventEmitter {
               if (reply.data.byteLength < 4) return;
               const conv = Number(reply.data.readFloatLE(0).toFixed(0));
               if (lastTemp.val != conv && conv < 1000 && conv > 1) {
-                console.log("change to temp", conv, reply, path);
                 this.poller.emit("data", { temperature: conv });
                 lastTemp.val = conv;
               }
               lastTemp.updated = new Date();
-              break;
-            }
-            case LoraxCharacteristicPathMap[Characteristic.PROFILE_CURRENT]: {
-              const profileCurrent = reply.data.readUInt8(0);
-              if (
-                profileCurrent != this.currentProfileId &&
-                this.profiles[profileCurrent + 1] &&
-                reply.data.byteLength == 1
-              ) {
-                console.log(
-                  "change to profile current",
-                  profileCurrent,
-                  reply,
-                  path
-                );
-                this.poller.emit("data", {
-                  profile: this.profiles[profileCurrent + 1],
-                });
-                this.currentProfileId = profileCurrent;
-              }
               break;
             }
 
