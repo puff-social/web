@@ -1668,18 +1668,14 @@ export class Device extends EventEmitter {
       const func = this.isLorax
         ? async () => {
             const value = await this.getValue(name);
-            listener.emit("change", value, characteristic);
-            listener.emit("data", value, characteristic);
+            listener.emit("change", value, name);
+            listener.emit("data", value, name);
           }
         : async () => {
             try {
               const value = await char?.readValue();
-              listener.emit("data", Buffer.from(value.buffer), characteristic);
-              listener.emit(
-                "change",
-                Buffer.from(value.buffer),
-                characteristic
-              );
+              listener.emit("data", Buffer.from(value.buffer), name);
+              listener.emit("change", Buffer.from(value.buffer), name);
             } catch (error) {}
           };
 
