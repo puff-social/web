@@ -1040,11 +1040,26 @@ export class Device extends EventEmitter {
     try {
       return await char.writeValueWithoutResponse(message);
     } catch (error) {
-      console.log(
-        "There was an error with writeValueWithoutResponse",
-        message,
-        error
-      );
+      if (
+        error &&
+        error.toString().endsWith("GATT operation already in progress.")
+      ) {
+        const seq = message.readUInt16LE(0);
+        const op = message.readUInt8(2);
+
+        const data = this.loraxMessages.get(seq);
+
+        console.log(
+          `DEBUG: Already in progress when writing op: ${op} - seq: ${seq}`,
+          data
+        );
+      } else {
+        console.log(
+          "There was an error with writeValueWithoutResponse",
+          message,
+          error
+        );
+      }
       return;
     }
   }
