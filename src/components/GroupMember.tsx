@@ -98,7 +98,7 @@ export function GroupMember(props: GroupMemberProps) {
     setLeaderboardPos(props.leaderboardPosition);
   }, [props.leaderboardPosition]);
 
-  if (props.nobodyelse && props.headless) {
+  if ((props.nobodyelse && props.headless) || (props.headless && props.us)) {
     return <></>;
   }
 

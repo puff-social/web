@@ -1176,7 +1176,7 @@ export class Device extends EventEmitter {
     characteristic?: string
   ) {
     let attempts = 0;
-    const func = async (attempt) => {
+    const func = async (attempt: number) => {
       if (attempt > 5) return;
       if (!this.service) return;
       if (this.isLorax)
