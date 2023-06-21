@@ -1,3 +1,5 @@
+import { decode } from "cbor";
+
 import { LoraxLimits } from "../types/puffco";
 
 export function millisToMinutesAndSeconds(millis: number) {
@@ -194,4 +196,5 @@ if (typeof window != "undefined") {
   window["readShortCmd"] = readShortCmd;
   window["watchCmd"] = watchCmd;
   window["openCmd"] = openCmd;
+  window["cborDecode"] = decode;
 }

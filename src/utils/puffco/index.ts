@@ -1106,9 +1106,10 @@ export class Device extends EventEmitter {
         LoraxCommands.OPEN,
         LoraxCommands.CLOSE,
       ].includes(op)
-    )
+    ) {
+      await new Promise((resolve) => setTimeout(() => resolve(1), 100));
       return this.sendLoraxCommand(op, data, path);
-    else if (this.sendingCommand) return;
+    } else if (this.sendingCommand) return;
 
     this.sendingCommand = true;
 
@@ -1185,7 +1186,7 @@ export class Device extends EventEmitter {
         ).catch(() => {
           console.log("already in progress");
           attempts++;
-          return func(attempts).catch(() => {});
+          return func(attempts);
         });
       else
         await this.writeRawValue(
