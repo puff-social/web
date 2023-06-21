@@ -80,6 +80,9 @@ export interface Device {
 
   sendingCommand: boolean;
 
+  operatingState: number;
+  lastOperatingStateUpdate: Date;
+
   gitHash: string;
   deviceName: string;
   chamberType: number;
@@ -751,6 +754,7 @@ export class Device extends EventEmitter {
                 }
 
                 currentOperatingState = val;
+                this.lastOperatingStateUpdate = new Date();
               }
               break;
             }
@@ -801,6 +805,34 @@ export class Device extends EventEmitter {
       ]) {
         try {
           await this.watchWithConfirmation(path);
+
+          const int = setInterval(async () => {
+            if (
+              new Date().getTime() - this.lastOperatingStateUpdate.getTime() >
+              intMap[Characteristic.OPERATING_STATE] * 2
+            ) {
+              console.log(
+                "DEBUG: Deviation for",
+                Characteristic.OPERATING_STATE,
+                "is beyond 2x, unwatching and rewatching",
+                `(D: ${
+                  new Date().getTime() - this.lastOperatingStateUpdate.getTime()
+                })`
+              );
+
+              await this.unwatchPath(Characteristic.OPERATING_STATE);
+              setTimeout(() => {
+                this.watchPath(
+                  Characteristic.OPERATING_STATE,
+                  intMap[Characteristic.OPERATING_STATE]
+                );
+              }, 500);
+            }
+          }, intMap[Characteristic.OPERATING_STATE]);
+
+          this.once("gattdisconnect", () => {
+            if (int) clearInterval(int);
+          });
         } catch (error) {
           continue;
         }
@@ -1534,7 +1566,7 @@ export class Device extends EventEmitter {
         `%c${this.device.name}%c Profile #${
           idx + 1
         } - ${name} - ${temp} - ${time} (I: ${intensity})`,
-        `padding: 10px; text-transform: capitalize; font-size: 1em; line-height: 1.4em; color: white; background: ${color}; border-radius: 15px;`,
+        `padding: 10px; font-size: 1em; line-height: 1.4em; color: white; background: ${color}; border-radius: 15px;`,
         "font-size: 1em;"
       );
       profiles[idx + 1] = {
@@ -1584,7 +1616,7 @@ export class Device extends EventEmitter {
         `%c${this.device.name}%c Profile #${
           idx + 1
         } - ${name} - ${temp} - ${time}`,
-        `padding: 10px; text-transform: capitalize; font-size: 1em; line-height: 1.4em; color: white; background: ${color}; border-radius: 15px;`,
+        `padding: 10px; font-size: 1em; line-height: 1.4em; color: white; background: ${color}; border-radius: 15px;`,
         "font-size: 1em;"
       );
       profiles[key + 1] = {
@@ -1667,6 +1699,8 @@ export class Device extends EventEmitter {
       }
     }
 
+    if (this.server) this.server.disconnect();
+
     this.lastLoraxSequenceId = 0;
     this.loraxLimits = { maxCommands: 0, maxFiles: 0, maxPayload: 0 };
     this.loraxMessages = new Map();
@@ -1693,6 +1727,8 @@ export class Device extends EventEmitter {
     delete this.isLorax;
     delete this.hardwareVersion;
     delete this.profiles;
+
+    delete this.lastOperatingStateUpdate;
 
     if (this.watcherSuspendTimeout) clearTimeout(this.watcherSuspendTimeout);
     delete this.watcherSuspendTimeout;

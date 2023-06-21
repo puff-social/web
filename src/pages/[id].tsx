@@ -6,7 +6,6 @@ import { Tippy } from "../components/Tippy";
 
 import {
   GatewayError,
-  GatewayGroup,
   GatewayMemberDeviceState,
   GroupActionInitiator,
   GroupHeatBegin,
@@ -31,10 +30,7 @@ import { LeaderboardModal } from "../components/modals/Leaderboard";
 import { FeedbackModal } from "../components/modals/Feedback";
 import NoSSR from "../components/NoSSR";
 import { GroupSettingsModal } from "../components/modals/GroupSettings";
-import {
-  BluetoothConnected,
-  BluetoothDisabled,
-} from "../components/icons/Bluetooth";
+import { BluetoothDisabled } from "../components/icons/Bluetooth";
 import { GroupActions } from "../components/GroupActions";
 import { PuffcoProfile } from "../types/puffco";
 import { DeviceSettingsModal } from "../components/modals/Device";

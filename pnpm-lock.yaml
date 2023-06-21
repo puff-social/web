@@ -16,6 +16,7 @@ specifiers:
   '@vercel/og': ^0.1.0
   autoprefixer: ^10.4.13
   byte-data: ^19.0.1
+  cbor: ^9.0.0
   csstype: ^3.1.1
   emojisplosion: ^2.6.1
   next: ^13.2.0
@@ -45,6 +46,7 @@ dependencies:
   '@vercel/og': 0.1.0
   autoprefixer: 10.4.13_postcss@8.4.21
   byte-data: 19.0.1
+  cbor: 9.0.0
   csstype: 3.1.1
   emojisplosion: 2.6.1
   next: 13.2.0_biqbaboplfbrettd7655fr4n2y
@@ -702,6 +704,13 @@ packages:
     resolution: {integrity: sha512-XFHJY5dUgmpMV25UqaD4kVq2LsiaU5rS8fb0f17pCoXQiQslzmFgnfOxfvo1bTpTqf7dwG/N/05CnLCnOEKmzA==}
     dev: false
 
+  /cbor/9.0.0:
+    resolution: {integrity: sha512-87cFgOKxjUOnGpNeQMBVER4Mc/rZAk9xC+Ygfx5FLCAUt/tpVHphuZC5fJmp/KSDsEsBEDIPtEt0YbD/GFQw8Q==}
+    engines: {node: '>=16'}
+    dependencies:
+      nofilter: 3.1.0
+    dev: false
+
   /chalk/3.0.0:
     resolution: {integrity: sha512-4D3B6Wf41KOYRFdszmDqMCGq5VV/uMAB273JILmO+3jAlh8X4qDtdtgCR3fxtbLEMzSx22QdhnDcJvu2u1fVwg==}
     engines: {node: '>=8'}
@@ -1217,6 +1226,11 @@ packages:
 
   /node-releases/2.0.10:
     resolution: {integrity: sha512-5GFldHPXVG/YZmFzJvKK2zDSzPKhEp0+ZR5SVaoSag9fsL5YgHbUHDfnG5494ISANDcK4KwPXAx2xqVEydmd7w==}
+    dev: false
+
+  /nofilter/3.1.0:
+    resolution: {integrity: sha512-l2NNj07e9afPnhAhvgVrCD/oy2Ai1yfLpuo3EpiO1jFTsB4sFz6oIfAfSZyQzVpkZQ9xS8ZS5g1jCBgq4Hwo0g==}
+    engines: {node: '>=12.19'}
     dev: false
 
   /normalize-path/3.0.0:

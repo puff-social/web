@@ -17,6 +17,7 @@
     "@vercel/og": "^0.1.0",
     "autoprefixer": "^10.4.13",
     "byte-data": "^19.0.1",
+    "cbor": "^9.0.0",
     "csstype": "^3.1.1",
     "emojisplosion": "^2.6.1",
     "next": "^13.2.0",
