@@ -1097,7 +1097,16 @@ export class Device extends EventEmitter {
 
   private async sendLoraxCommand(op: number, data: Uint8Array, path?: string) {
     if (!this.service) return;
-    if (this.sendingCommand && op == LoraxCommands.WRITE_SHORT)
+    if (
+      this.sendingCommand &&
+      [
+        LoraxCommands.WRITE_SHORT,
+        LoraxCommands.WATCH,
+        LoraxCommands.UNWATCH,
+        LoraxCommands.OPEN,
+        LoraxCommands.CLOSE,
+      ].includes(op)
+    )
       return this.sendLoraxCommand(op, data, path);
     else if (this.sendingCommand) return;
 
