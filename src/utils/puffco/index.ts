@@ -808,7 +808,7 @@ export class Device extends EventEmitter {
 
           const int = setInterval(async () => {
             if (
-              new Date().getTime() - this.lastOperatingStateUpdate.getTime() >
+              new Date().getTime() - this.lastOperatingStateUpdate?.getTime() >
               intMap[Characteristic.OPERATING_STATE] * 2
             ) {
               console.log(
