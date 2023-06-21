@@ -46,7 +46,10 @@ import { GroupHeader } from "../components/group/Header";
 import { GroupMembersModal } from "../components/modals/GroupMembers";
 import { GroupStrainModal } from "../components/modals/GroupStrain";
 import { PlugConnected, PlugDisconnected } from "../components/icons/Plug";
-import { DeviceState } from "@puff-social/commons/dist/puffco/constants";
+import {
+  DeviceState,
+  ProductModelMap,
+} from "@puff-social/commons/dist/puffco/constants";
 import { Op } from "@puff-social/commons";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -55,6 +58,8 @@ import {
   updateGroupMemberDevice,
 } from "../state/slices/group";
 import { validState } from "@puff-social/commons/dist/puffco";
+import { DeviceModelColors } from "../utils/constants";
+import { PuffcoLogo } from "../components/icons/Puffco";
 
 export const instance = new Device();
 if (typeof window != "undefined") window["instance"] = instance;
@@ -85,6 +90,8 @@ export default function Group({
   const [ourUser, setOurUser] = useState<User>();
   const [usDisconnected, setUsDisconnected] = useState<boolean>(false);
 
+  const [connecting, setConnecting] = useState(false);
+
   const [deviceProfiles, setDeviceProfiles] = useState<
     Record<number, PuffcoProfile>
   >({});
@@ -104,16 +111,6 @@ export default function Group({
       ? localStorage.getItem("puff-social-first-visit") != "false"
       : false
   );
-
-  const [groupStartOnBatteryCheck] = useState(() =>
-    typeof localStorage != "undefined"
-      ? localStorage.getItem("puff-battery-check-start") == "true" || false
-      : false
-  );
-
-  async function joinedGroup(group: GatewayGroup) {
-    dispatch(setGroupState({ joinErrorMessage: undefined, connected: true }));
-  }
 
   const deletedGroup = useCallback(() => {
     if (group.owner_session_id != gateway.session_id)
@@ -403,8 +400,6 @@ export default function Group({
     gateway.send(Op.DisconnectDevice);
   }, [deviceConnected]);
 
-  // function groupMessage() {}
-
   function gatewayClosed() {
     setUsDisconnected(true);
     toast("Socket disconnected (Reconnecting..)", {
@@ -514,6 +509,7 @@ export default function Group({
 
   const connectToDevice = useCallback(async () => {
     try {
+      setConnecting(true);
       const { profiles } = await instance.init();
       setDeviceProfiles(profiles);
 
@@ -522,6 +518,7 @@ export default function Group({
         const tracked = await trackDevice(deviceInfo);
         setOurLeaderboardPosition(tracked.data.position);
       } catch (error) {}
+
       instance.once("gattdisconnect", async () => {
         setDeviceConnected(false);
 
@@ -533,15 +530,25 @@ export default function Group({
           position: "top-right",
         });
       });
+
       toast(`Connected to ${deviceInfo.name}`, {
-        icon: <BluetoothConnected />,
+        icon: (
+          <PuffcoLogo
+            style={{
+              color:
+                DeviceModelColors[ProductModelMap[deviceInfo.model || "0"]],
+            }}
+          />
+        ),
         position: "top-right",
       });
 
-      setDeviceConnected(true);
       setDeviceInfo(deviceInfo as DeviceInformation);
       setMyDevice((curr) => ({ ...curr, ...initState }));
       gateway.send(Op.SendDeviceState, initState);
+
+      setConnecting(false);
+      setDeviceConnected(true);
 
       dispatch(
         updateGroupMemberDevice({
@@ -571,6 +578,21 @@ export default function Group({
         gateway.send(Op.SendDeviceState, data);
       });
     } catch (error) {
+      setConnecting(false);
+
+      if (
+        error &&
+        error.toString().endsWith("User cancelled the requestDevice() chooser.")
+      ) {
+        toast("User canceled bluetooth connection request.", {
+          position: "top-right",
+          duration: 1200,
+          icon: "❌",
+        });
+
+        return;
+      }
+
       toast("Failed to connect to your device.", {
         position: "top-right",
         duration: 5000,
@@ -714,9 +736,11 @@ export default function Group({
                 group={group}
                 away={usAway}
                 user={ourUser}
+                instance={instance}
                 member={group.members.find(
                   (mem) => mem.session_id == gateway.session_id
                 )}
+                connecting={connecting}
                 disconnected={usDisconnected}
                 headless={headless}
                 us

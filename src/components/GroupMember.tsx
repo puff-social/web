@@ -49,6 +49,7 @@ import { VoiceWaves } from "./icons/Voice";
 import { IntensityIcon } from "./IntensityIcon";
 import { useSelector } from "react-redux";
 import { selectSessionState } from "../state/slices/session";
+import { Device } from "../utils/puffco";
 
 interface GroupMemberProps {
   strain?: string;
@@ -59,6 +60,7 @@ interface GroupMemberProps {
   ready?: boolean;
   away?: boolean;
   connected?: boolean;
+  connecting?: boolean;
   disconnected?: boolean;
   owner?: boolean;
   us?: boolean;
@@ -66,6 +68,7 @@ interface GroupMemberProps {
   nobody?: boolean;
   connectToDevice?: Function;
   user?: User;
+  instance?: Device;
   headless?: boolean;
   connectDismissed: boolean;
   setConnectDismissed?: Dispatch<SetStateAction<boolean>>;
@@ -575,6 +578,16 @@ export function GroupMember(props: GroupMemberProps) {
             >
               Copy Group URL
             </button>
+          </span>
+        ) : props.connecting ? (
+          <span className="flex flex-col space-y-8 justify-center items-center h-72">
+            <div className="flex flex-row items-center justify-center space-x-6">
+              <p className="text-center text-lg break-normal">
+                {props.instance.device
+                  ? `Connecting to ${props.instance.device.name}`
+                  : "Pick a device from the bluetooth menu."}
+              </p>
+            </div>
           </span>
         ) : (
           <span className="flex flex-col space-y-8 justify-center items-center h-72">

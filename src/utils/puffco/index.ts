@@ -102,7 +102,6 @@ export class Device extends EventEmitter {
     this.pollerMap = new Map();
     this.watchMap = new Map();
     this.pathWatchers = new Map();
-
     this.sendingCommand = false;
   }
 
@@ -133,6 +132,7 @@ export class Device extends EventEmitter {
             ],
           });
         } catch (error) {
+          this.disconnect();
           reject(error);
         }
 
@@ -153,6 +153,8 @@ export class Device extends EventEmitter {
         this.device.addEventListener("gattserverdisconnected", () => {
           console.log("Gatt server disconnected");
           this.emit("gattdisconnect");
+
+          this.disconnect();
         });
 
         if (!this.isLorax)
@@ -249,6 +251,7 @@ export class Device extends EventEmitter {
                 }: { value: DataView } = ev.target as any;
                 const data = processLoraxReply(buffer);
                 const msg = this.loraxMessages.get(data.seq);
+                if (!msg) return upperResolve(true);
                 msg.response = { data: data.data, error: !!data.error };
 
                 switch (msg.op) {
@@ -438,6 +441,8 @@ export class Device extends EventEmitter {
           console.error(`Failed to track diags: ${error}`);
         }
       } catch (error) {
+        if (this.server) this.server.disconnect();
+        this.disconnect();
         console.error(error);
         reject(error);
       }
@@ -980,6 +985,9 @@ export class Device extends EventEmitter {
     this.pollerMap.set("totalDabs", DabCountPoll);
 
     this.poller.on("stop", (disconnect = true) => {
+      this.poller.removeAllListeners();
+      if (this.server.connected && disconnect) this.server.disconnect();
+
       const pollers = ["led", "chamberTemp", "batteryProfile", "totalDabs"];
 
       for (const name of pollers) {
@@ -989,9 +997,6 @@ export class Device extends EventEmitter {
           poller.emit("stop");
         }
       }
-
-      if (this.server.connected && disconnect) this.server.disconnect();
-      this.poller.removeAllListeners();
     });
 
     const {
@@ -1652,8 +1657,44 @@ export class Device extends EventEmitter {
   }
 
   disconnect() {
-    if (!this.server || !this.poller) return;
+    const pollers = ["led", "chamberTemp", "batteryProfile", "totalDabs"];
+
+    for (const name of pollers) {
+      const poller = this.pollerMap.get(name);
+      if (poller) {
+        this.pollerMap.delete(name);
+        poller.emit("stop");
+      }
+    }
+
+    this.lastLoraxSequenceId = 0;
+    this.loraxLimits = { maxCommands: 0, maxFiles: 0, maxPayload: 0 };
+    this.loraxMessages = new Map();
+    this.pollerMap = new Map();
     this.watchMap = new Map();
-    this.poller.emit("stop");
+    this.pathWatchers = new Map();
+    this.sendingCommand = false;
+
+    delete this.poller;
+    delete this.server;
+    delete this.service;
+    delete this.device;
+
+    delete this.deviceFirmware;
+    delete this.deviceName;
+    delete this.deviceMacAddress;
+    delete this.deviceSerialNumber;
+    delete this.deviceModel;
+
+    delete this.currentProfileId;
+    delete this.chamberType;
+    delete this.gitHash;
+    delete this.isPup;
+    delete this.isLorax;
+    delete this.hardwareVersion;
+    delete this.profiles;
+
+    if (this.watcherSuspendTimeout) clearTimeout(this.watcherSuspendTimeout);
+    delete this.watcherSuspendTimeout;
   }
 }
