@@ -924,6 +924,7 @@ export class Device extends EventEmitter {
     );
     BatteryProfilePoll.on("data", (data: Buffer, characteristic: string) => {
       if (characteristic == Characteristic.PROFILE_CURRENT) {
+        if (data.byteLength != 1) return;
         const profileCurrent = data.readUInt8(0);
         if (
           profileCurrent != this.currentProfileId &&
