@@ -17,6 +17,7 @@ import {
   processLoraxEvent,
   unwatchCmd,
   closeCmd,
+  isOtaValid,
 } from "../functions";
 import { DeviceInformation, DiagData } from "../../types/api";
 import { trackDiags } from "../hash";
@@ -42,6 +43,12 @@ import {
   SILLABS_VERISON,
   DeviceCommand,
   intMap,
+  PUP_TRIGGER_CHAR,
+  SILLABS_CONTROL,
+  SILLABS_OTA_VERSION,
+  PUP_COMMAND_RESPONSE_CHAR,
+  PUP_DEVICE_INFO,
+  PUP_GENERAL_COMMAND_CHAR,
 } from "./constants";
 import { store } from "../../state/store";
 import { GroupState as GroupStateInterface } from "../../state/slices/group";
@@ -75,8 +82,11 @@ export interface Device {
   loraxMessages: Map<number, LoraxMessage>;
   loraxLimits: LoraxLimits;
 
+  isOta: boolean;
   isPup: boolean;
+  isSillabs: boolean;
   isLorax: boolean;
+  hasService: boolean;
 
   sendingCommand: boolean;
 
@@ -93,6 +103,14 @@ export interface Device {
   deviceMacAddress: string;
   currentProfileId: number;
 
+  pupWriteNotifications: EventEmitter;
+  pupBlockSize: number;
+  pupChunkSize: number;
+  pupWriteTimeout: number;
+  pupVerifyTimeout: number;
+
+  maxBytesPerSecond: number;
+
   on(event: "gattdisconnect", listener: () => void): this;
 }
 
@@ -106,6 +124,240 @@ export class Device extends EventEmitter {
     this.watchMap = new Map();
     this.pathWatchers = new Map();
     this.sendingCommand = false;
+  }
+
+  initOta(): Promise<{
+    device: BluetoothDevice;
+    mac: string;
+    hash: string;
+  }> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        this.isOta = true;
+        this.device = await navigator.bluetooth.requestDevice({
+          filters: [
+            {
+              services: [SILLABS_OTA_SERVICE],
+            },
+            {
+              services: [PUP_SERVICE],
+            },
+            {
+              services: [SERVICE],
+            },
+            {
+              services: [LORAX_SERVICE],
+            },
+          ],
+          optionalServices: [
+            Characteristic.MODEL_SERVICE,
+            SILLABS_OTA_SERVICE,
+            LORAX_SERVICE,
+            PUP_SERVICE,
+          ],
+        });
+
+        this.server = await this.device.gatt.connect();
+
+        this.pupWriteNotifications = new EventEmitter();
+        this.pupBlockSize = 20;
+        this.pupChunkSize = 30;
+        this.pupWriteTimeout = 30;
+        this.pupVerifyTimeout = 300;
+        this.maxBytesPerSecond = 2000;
+
+        const primaryServices = await this.server.getPrimaryServices();
+
+        this.isLorax = !!primaryServices.find(
+          (service) => service.uuid == LORAX_SERVICE
+        );
+        this.isPup = !!primaryServices.find(
+          (service) => service.uuid == PUP_SERVICE
+        );
+        this.isSillabs = !!primaryServices.find(
+          (service) => service.uuid == SILLABS_OTA_SERVICE
+        );
+        this.hasService = !!primaryServices.find((service) =>
+          [LORAX_SERVICE, SERVICE].includes(service.uuid)
+        );
+
+        if (this.isSillabs)
+          this.silabsService = await this.server.getPrimaryService(
+            SILLABS_OTA_SERVICE
+          );
+        if (this.isPup)
+          this.pupService = await this.server.getPrimaryService(PUP_SERVICE);
+
+        if (this.hasService) {
+          this.service = await this.server.getPrimaryService(
+            this.isLorax ? LORAX_SERVICE : SERVICE
+          );
+
+          if (this.isLorax) {
+            // This triggers pairing on lorax ;P
+            if (this.isPup) {
+              const pupVer = await this.pupService.getCharacteristic(
+                PUP_APP_VERSION
+              );
+              await pupVer.readValue();
+            } else {
+              const silLabsVer = await this.silabsService.getCharacteristic(
+                SILLABS_VERISON
+              );
+              await silLabsVer.readValue();
+            }
+
+            if (this.hasService) {
+              await new Promise(async (upperResolve, upperReject) => {
+                this.loraxReply = await this.service.getCharacteristic(
+                  LoraxCharacteristic.REPLY
+                );
+                this.loraxReply.addEventListener(
+                  "characteristicvaluechanged",
+                  async (ev) => {
+                    const {
+                      value: { buffer },
+                    }: { value: DataView } = ev.target as any;
+                    const data = processLoraxReply(buffer);
+                    const msg = this.loraxMessages.get(data.seq);
+                    if (!msg) return upperResolve(true);
+                    msg.response = { data: data.data, error: !!data.error };
+
+                    switch (msg.op) {
+                      case LoraxCommands.GET_ACCESS_SEED: {
+                        const decodedHandshake = convertFromHex(
+                          LORAX_HANDSHAKE_KEY.toString("hex")
+                        );
+
+                        const newSeed = new Uint8Array(32);
+                        for (let i = 0; i < 16; ++i) {
+                          newSeed[i] = decodedHandshake.charCodeAt(i);
+                          newSeed[i + 16] = data.data[i];
+                        }
+
+                        const newKey = convertHexStringToNumArray(
+                          createHash("sha256").update(newSeed).digest("hex")
+                        ).slice(0, 16);
+
+                        await this.sendLoraxCommand(
+                          LoraxCommands.UNLOCK_ACCESS,
+                          newKey
+                        );
+
+                        break;
+                      }
+
+                      case LoraxCommands.UNLOCK_ACCESS: {
+                        if (msg.response.error) return;
+                        console.log("Authenticated with Lorax protocol");
+
+                        upperResolve(true);
+
+                        break;
+                      }
+
+                      case LoraxCommands.WRITE_SHORT: {
+                        if (msg.response.error)
+                          console.log(
+                            "Got an error response to a write short",
+                            msg.path,
+                            msg,
+                            data
+                          );
+
+                        break;
+                      }
+
+                      case LoraxCommands.GET_LIMITS: {
+                        if (data.data) {
+                          this.loraxLimits.maxPayload = data.data.readUInt8(0);
+                          this.loraxLimits.maxFiles = data.data.readUInt16LE(1);
+                          this.loraxLimits.maxCommands =
+                            data.data.readUInt16LE(2);
+
+                          console.log("Lorax Limits:", this.loraxLimits);
+                          this.sendLoraxCommand(
+                            LoraxCommands.GET_ACCESS_SEED,
+                            null
+                          );
+                        }
+
+                        break;
+                      }
+                    }
+                  }
+                );
+                this.loraxReply.startNotifications();
+
+                this.sendLoraxCommand(LoraxCommands.GET_LIMITS, null);
+              });
+
+              const modelRaw = await this.getValue(
+                Characteristic.HARDWARE_MODEL
+              );
+              this.deviceModel = modelRaw.readUInt32LE(0).toString();
+
+              const hardwareVersion = await this.getValue(
+                Characteristic.HARDWARE_VERSION
+              );
+              this.hardwareVersion = hardwareVersion.readUInt8(0);
+
+              const firmwareRaw = await this.getValue(
+                Characteristic.FIRMWARE_VERSION
+              );
+              this.deviceFirmware = numbersToLetters(
+                firmwareRaw.readUInt8(0) + 5
+              );
+
+              const gitHashRaw = await this.getValue(Characteristic.GIT_HASH);
+              this.gitHash = gitHashRaw.toString();
+
+              const btMac = await this.getValue(Characteristic.BT_MAC);
+              this.deviceMacAddress = intArrayToMacAddress(btMac);
+            }
+          } else {
+            const accessSeedKey = await this.service.getCharacteristic(
+              Characteristic.ACCESS_KEY
+            );
+            const value = await accessSeedKey.readValue();
+
+            const decodedKey = new Uint8Array(16);
+            for (let i = 0; i < 16; i++) decodedKey[i] = value.getUint8(i);
+
+            const decodedHandshake = convertFromHex(
+              HANDSHAKE_KEY.toString("hex")
+            );
+
+            const newSeed = new Uint8Array(32);
+            for (let i = 0; i < 16; ++i) {
+              newSeed[i] = decodedHandshake.charCodeAt(i);
+              newSeed[i + 16] = decodedKey[i];
+            }
+
+            const newKey = convertHexStringToNumArray(
+              createHash("sha256").update(newSeed).digest("hex")
+            ).slice(0, 16);
+            await accessSeedKey.writeValue(Buffer.from(newKey));
+          }
+        }
+
+        this.device.addEventListener("gattserverdisconnected", () => {
+          console.log("Gatt server disconnected");
+          this.emit("gattdisconnect");
+
+          this.disconnect();
+        });
+
+        resolve({
+          device: this.device,
+          mac: this.deviceMacAddress,
+          hash: this.gitHash,
+        });
+      } catch (error) {
+        this.disconnect();
+        reject(error);
+      }
+    });
   }
 
   init(): Promise<{
@@ -122,9 +374,6 @@ export class Device extends EventEmitter {
               },
               {
                 services: [LORAX_SERVICE],
-              },
-              {
-                services: [SILLABS_OTA_SERVICE],
               },
             ],
             optionalServices: [
@@ -1696,6 +1945,174 @@ export class Device extends EventEmitter {
     }
 
     return listener;
+  }
+
+  async rebootToAppLoader() {
+    if (!this.pupService && !this.silabsService)
+      throw { code: "not_implemented" };
+
+    const socService = this.pupService || this.silabsService;
+
+    const socControl = await socService.getCharacteristic(
+      this.isPup ? PUP_TRIGGER_CHAR : SILLABS_CONTROL
+    );
+
+    console.log(socControl);
+
+    const buf = Buffer.alloc(1);
+    buf.writeUInt8(0, 0);
+
+    await socControl.writeValue(buf);
+  }
+
+  async startTransfer() {
+    if (!this.pupService && !this.silabsService)
+      throw { code: "not_implemented" };
+
+    if (this.isPup) {
+      const char = await this.pupService.getCharacteristic(PUP_DEVICE_INFO);
+      const value = Buffer.from((await char.readValue()).buffer);
+
+      this.pupChunkSize = value.readUInt8(1) - 5;
+      this.pupBlockSize = this.pupChunkSize;
+      this.pupWriteTimeout = value.readUInt16LE(12) * 10;
+      this.pupVerifyTimeout = value.readUInt16LE(14) * 10;
+
+      console.log(
+        `DEBUG: OTA: chunk ${this.pupChunkSize}, write ${this.pupWriteTimeout}, verify ${this.pupVerifyTimeout}`
+      );
+
+      const notificationChar = await this.pupService.getCharacteristic(
+        PUP_GENERAL_COMMAND_CHAR
+      );
+      notificationChar.addEventListener(
+        "characteristicvaluechanged",
+        (event) => {
+          const {
+            value: { buffer },
+          }: { value: DataView } = event.target as any;
+          console.log("DEBUG: Data from pup general command", buffer);
+          this.pupWriteNotifications.emit("data", buffer);
+        }
+      );
+    }
+  }
+
+  async writeFirmware(data: Buffer) {
+    const timeoutPromise = new Promise((resolve) => {
+      setTimeout(resolve, (this.pupChunkSize * 1000) / this.maxBytesPerSecond);
+    });
+
+    if (!isOtaValid(data)) throw new Error("invalid firmware");
+
+    const char = await this.pupService.getCharacteristic(
+      PUP_COMMAND_RESPONSE_CHAR
+    );
+
+    let offset = 0;
+
+    while (offset < data.byteLength) {
+      const chunkEnd = Math.min(offset + this.pupBlockSize, data.byteLength);
+      const chunk = data.subarray(offset, chunkEnd);
+
+      try {
+        await Promise.all([
+          (async () => {
+            const header = Buffer.alloc(5);
+            header.writeUInt8(0, 0);
+            header.writeUInt32LE(offset, 1);
+            const payload = Buffer.concat([header, chunk]);
+
+            await char.writeValue(payload);
+            await new Promise((resolve) => setTimeout(() => resolve(1), 10));
+            const response = await char.readValue();
+
+            if (response) {
+              const responseBuffer = Buffer.from(response.buffer);
+              if (
+                responseBuffer.readUInt8(0) === 0 &&
+                responseBuffer.readUInt32LE(1) === offset &&
+                responseBuffer.readUInt8(5) === 0
+              ) {
+                console.log(`write OK ${offset}`);
+              } else {
+                throw new Error("bad response");
+              }
+            } else {
+              throw new Error("no response value");
+            }
+          })(),
+          timeoutPromise,
+        ]);
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+
+      // Update the OTA progress based on the current transfer progress
+      // const progress = ((chunkEnd / data.byteLength) * 0.8 + 0.1).toFixed(2);
+      // dispatch(updateOtaProgress(parseFloat(progress)));
+
+      offset += this.pupBlockSize;
+    }
+  }
+
+  async verifyTransfer() {
+    if (!this.pupService && !this.silabsService)
+      throw { code: "not_implemented" };
+
+    const char = await this.pupService.getCharacteristic(
+      PUP_GENERAL_COMMAND_CHAR
+    );
+
+    return new Promise<void>((resolve, reject) => {
+      const handler = (data: Buffer) => {
+        if (
+          data instanceof Buffer &&
+          data.readUInt8(0) === 1 &&
+          data.readUInt8(1) === 0
+        ) {
+          console.log("verify OK");
+          resolve();
+        } else {
+          reject(new Error("verify failed"));
+        }
+      };
+
+      this.pupWriteNotifications.on("data", handler);
+    }).then(() =>
+      Promise.race([
+        Promise.all([
+          async () => {
+            const buffer = Buffer.alloc(1);
+            buffer.writeUInt8(1, 0);
+            await char.writeValue(buffer);
+          },
+          Promise.resolve(),
+        ]),
+        new Promise<void>((resolve, reject) => {
+          setTimeout(() => {
+            reject(new Error("Verify timeout"));
+          }, this.pupVerifyTimeout);
+        }),
+      ])
+    );
+  }
+
+  async endTransfer() {
+    if (!this.pupService && !this.silabsService)
+      throw { code: "not_implemented" };
+
+    const socService = this.pupService || this.silabsService;
+
+    const socControl = await socService.getCharacteristic(
+      this.isPup ? PUP_COMMAND_RESPONSE_CHAR : SILLABS_CONTROL
+    );
+
+    const buf = Buffer.alloc(1);
+    buf.writeUInt8(this.isPup ? 2 : 3, 0);
+
+    await socControl.writeValue(buf);
   }
 
   disconnect() {

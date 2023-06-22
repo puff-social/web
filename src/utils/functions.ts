@@ -1,6 +1,7 @@
 import { decode } from "cbor";
 
 import { LoraxLimits } from "../types/puffco";
+import { crcPatterns } from "./constants";
 
 export function millisToMinutesAndSeconds(millis: number) {
   let minutes = Math.floor(millis / 60000);
@@ -186,6 +187,29 @@ export function intArrayToMacAddress(uint8Array: Uint8Array): string {
   return hexString.toUpperCase();
 }
 
+export async function fetchFirmwareFile(url: string) {
+  const req = await fetch(url);
+  if (req.status != 200) throw { code: "failed" };
+
+  const buffer = Buffer.from(await req.arrayBuffer());
+
+  return buffer;
+}
+
+export function crc32(arr: Buffer) {
+  let crc = 4294967295;
+  arr.forEach((n) => (crc = (crc >>> 8) ^ crcPatterns[(crc ^ n) & 255]));
+  return crc ^ 4294967295;
+}
+
+export function isOtaValid(firmware: Buffer) {
+  const firmwareLength = firmware.length - 4;
+  const firmwareData = firmware.subarray(0, firmwareLength);
+  const crcData = firmware.subarray(firmwareLength);
+
+  return crcData.readInt32LE(0) === crc32(firmwareData);
+}
+
 if (typeof window != "undefined") {
   window["Buffer"] = Buffer;
   window["hexToFloat"] = hexToFloat;
@@ -197,4 +221,6 @@ if (typeof window != "undefined") {
   window["watchCmd"] = watchCmd;
   window["openCmd"] = openCmd;
   window["cborDecode"] = decode;
+  window["fetchFirmwareFile"] = fetchFirmwareFile;
+  window["crc32"] = crc32;
 }

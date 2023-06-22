@@ -2,10 +2,17 @@ export const SERVICE = "06caf9c0-74d3-454f-9be9-e30cd999c17a";
 export const LORAX_SERVICE = "e276967f-ea8a-478a-a92e-d78f5dd15dd5";
 
 export const SILLABS_OTA_SERVICE = "1d14d6ee-fd63-4fa1-bfa4-8f47b42119f0";
+export const SILLABS_OTA_VERSION = "4cc07bcf-0868-4b32-9dad-ba4cc41e5316";
 export const SILLABS_VERISON = "0d77cc11-4ac1-49f2-bfa9-cd96ac7a92f8";
+export const SILLABS_CONTROL = "f7bf3564-fb6d-4e53-88a4-5e37e0326063";
+export const SILLABS_DATA_CHAR = "984227f3-34fc-4045-a5d0-2c581f81a153";
 
 export const PUP_SERVICE = "420b9b40-457d-4abe-a3bf-71609d79581b";
 export const PUP_APP_VERSION = "58b0a7aa-d89f-4bf2-961d-0d892d7439d8";
+export const PUP_DEVICE_INFO = "2dab0217-8a4e-4de8-83c7-8fded59f4599";
+export const PUP_TRIGGER_CHAR = "c830ee3e-0e32-4780-a51d-b1b0b38089a4";
+export const PUP_GENERAL_COMMAND_CHAR = "c364cf1d-117f-4a3b-baae-3e2fce5a248f";
+export const PUP_COMMAND_RESPONSE_CHAR = "baeb965b-58ac-43bf-9cc5-bfb448ec2e72";
 
 export const HANDSHAKE_KEY = Buffer.from("FUrZc0WilhUBteT2JlCc+A==", "base64");
 export const LORAX_HANDSHAKE_KEY = Buffer.from(
@@ -308,6 +315,95 @@ export enum PuffLightMode {
   MarkedReady,
   Default,
 }
+
+export const MiddlewareValue = {
+  STRING: "string",
+  FLOAT: "float",
+  U_INT_8: "uInt8",
+  U_INT_16: "uInt16",
+  U_INT_32: "uInt32",
+  INT_8: "int8",
+  INT_32: "int32",
+  BUFFER: "buffer",
+  ULID: "ulid",
+  COLORS: "colors",
+};
+
+export const scratchpadIdField = {
+  key: "scratchpadId",
+  type: MiddlewareValue.U_INT_8,
+};
+
+export const moodUlidField = {
+  key: "moodUlid",
+  type: MiddlewareValue.ULID,
+};
+
+export const moodFields = [moodUlidField];
+
+export const moodNameField = {
+  key: "moodName",
+  type: MiddlewareValue.STRING,
+  length: 32,
+};
+
+export const moodDateModifiedField = {
+  key: "moodDateModified",
+  type: MiddlewareValue.U_INT_32,
+};
+
+export const moodTypeField = {
+  key: "moodType",
+  type: MiddlewareValue.U_INT_8,
+};
+
+export const tempoField = {
+  key: "tempo",
+  type: MiddlewareValue.FLOAT,
+};
+
+export const colorsField = {
+  key: "colors",
+  type: MiddlewareValue.COLORS,
+  length: 18,
+};
+
+export const moodFieldsExtended = moodFields.concat(
+  moodNameField,
+  moodDateModifiedField,
+  moodTypeField,
+  tempoField,
+  colorsField
+);
+
+export const originalMoodUlidField = {
+  key: "originalMoodUlid",
+  type: MiddlewareValue.ULID,
+};
+
+export const moodFieldsExtendedWithOriginal = moodFieldsExtended.concat(
+  originalMoodUlidField
+);
+
+export const heatProfileUlidField = {
+  key: "heatProfileUlid",
+  type: MiddlewareValue.ULID,
+};
+
+export const heatProfileDateModifiedField = {
+  key: "heatProfileDateModified",
+  type: MiddlewareValue.U_INT_32,
+};
+
+export const heatProfileFields = [
+  heatProfileUlidField,
+  heatProfileDateModifiedField,
+];
+export const moodAndHeatProfileFields = heatProfileFields.concat(moodFields);
+export const moodAndHeatProfileFieldsExtended =
+  heatProfileFields.concat(moodFieldsExtended);
+export const moodAndHeatProfileFieldsExtendedWithOriginal =
+  heatProfileFields.concat(moodFieldsExtendedWithOriginal);
 
 if (typeof window != "undefined") {
   window["DeviceCommand"] = DeviceCommand;

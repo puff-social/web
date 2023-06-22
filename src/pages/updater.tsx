@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 
 import { MainMeta } from "../components/MainMeta";
@@ -9,12 +9,46 @@ import {
   BluetoothConnected,
   BluetoothDisabled,
 } from "../components/icons/Bluetooth";
+import { Firmwares } from "../utils/puffco/firmwares";
+import { fetchFirmwareFile } from "../utils/functions";
 
 const instance = new Device();
+if (typeof window != "undefined") window["instance"] = instance;
 
 export default function Updater() {
   const router = useRouter();
 
+  const [gitHash, setGitHash] = useState(instance.gitHash);
+  const [isPup, setIsPup] = useState(instance.isPup);
+  const [firmwares] = useState(Firmwares);
+  const [selectedFirmware, setSelectedFirmware] = useState(
+    instance.deviceFirmware || "AF"
+  );
+  const selectedFwFiles = useMemo(
+    () =>
+      firmwares
+        .filter((fw) =>
+          fw.files.find((file) => file.type == (isPup ? "puff" : "gbl"))
+        )
+        .find((fw) => fw.name == selectedFirmware)
+        ?.files.filter((file) => file.type == (isPup ? "puff" : "gbl")),
+    [selectedFirmware, firmwares, isPup]
+  );
+
+  const [waitingOta, setWaitingOta] = useState(false);
+  const [hasService, setHasService] = useState(false);
+
+  const [selectedFileId, setSelectedFileId] = useState<number>(6);
+  const selectedFile = useMemo(
+    () => selectedFwFiles?.find((file) => file.id == selectedFileId),
+    [selectedFwFiles, selectedFileId]
+  );
+
+  useEffect(() => {
+    console.log(selectedFile, selectedFileId);
+  }, [selectedFile, selectedFileId]);
+
+  const [otaDeviceIndetifier, setOtaDeviceIndetifier] = useState<string>();
   const [connected, setConnected] = useState(false);
 
   const [bluetooth] = useState<boolean>(() => {
@@ -23,30 +57,116 @@ export default function Updater() {
   });
 
   const connectDevice = useCallback(async () => {
-    const { device, profiles } = await instance.init();
-    const { poller, initState, deviceInfo } = await instance.startPolling();
+    const { device, mac } = await instance.initOta();
     setConnected(true);
-    console.log(device, "device");
-    console.log(profiles, "profiles");
-    console.log(poller, "poller");
-    console.log(initState, "initState");
-    console.log(deviceInfo, "deviceInfo");
-    toast(`Connected to ${instance.deviceName}`, {
+    instance.once("gattdisconnect", () => disconnectDevice());
+
+    toast(`Connected to ${instance.device.name}`, {
       position: "top-right",
       duration: 2000,
       icon: <BluetoothConnected />,
     });
-  }, []);
+
+    setIsPup(instance.isPup);
+    setHasService(instance.hasService);
+    if (instance.hasService) {
+      setSelectedFirmware(instance.deviceFirmware);
+      setGitHash(instance.gitHash);
+      setOtaDeviceIndetifier(mac.replace(/:/g, ""));
+      setSelectedFileId(
+        firmwares
+          .filter((fw) =>
+            fw.files.find((file) => file.type == (isPup ? "puff" : "gbl"))
+          )
+          .find((fw) => fw.name == selectedFirmware)
+          ?.files.filter((file) => file.type == (isPup ? "puff" : "gbl"))
+          .find((file) => file.hash == instance.gitHash)?.id
+      );
+    } else {
+      await instance.startTransfer();
+
+      toast(`Now choose the firmware you want to flash and click flash`, {
+        position: "bottom-center",
+        duration: 6000,
+      });
+    }
+  }, [selectedFwFiles]);
 
   const disconnectDevice = useCallback(async () => {
     instance.disconnect();
-    toast(`Disconnected from ${instance.deviceName}`, {
+    toast(`Disconnected`, {
       position: "top-right",
       duration: 2000,
       icon: <BluetoothDisabled />,
     });
     setConnected(false);
   }, []);
+
+  const updateToFirmware = useCallback(async () => {
+    toast("Putting device in app loader mode", {
+      position: "bottom-center",
+      duration: 3000,
+    });
+    await instance.rebootToAppLoader();
+    toast(
+      `Please click connect again and this time choose "${otaDeviceIndetifier}"`,
+      {
+        position: "bottom-center",
+        duration: 10000,
+      }
+    );
+  }, [otaDeviceIndetifier]);
+
+  const startFirmwareUpdate = useCallback(async () => {
+    setWaitingOta(true);
+    toast("Downloading firmware", {
+      position: "bottom-center",
+      duration: 2000,
+    });
+
+    const firmware = await fetchFirmwareFile(selectedFile.file);
+    const filename =
+      selectedFile.file.split("/")[selectedFile.file.split("/").length - 1];
+
+    const match =
+      /([A-Z]{2})-([a-zA-Z].*)-(application|[a-zA-Z].*-[a-zA-Z].*)-([0-9a-zA-Z]{7})-release.(gbl|puff)/.exec(
+        filename
+      );
+    if (!match) return;
+
+    const [, indentifier, , name, gitHash] = match;
+
+    toast(`Downloaded ${indentifier} - ${name} (${gitHash})`, {
+      position: "bottom-center",
+      duration: 10000,
+    });
+
+    toast(
+      `Starting write to device, may take a few minutes, please don't touch the device.`,
+      {
+        position: "bottom-center",
+        duration: 10000,
+      }
+    );
+
+    console.log("Write");
+    await instance.writeFirmware(firmware);
+
+    toast(`Write complete, verifying firmware and restarting device.`, {
+      position: "bottom-center",
+      duration: 10000,
+    });
+
+    console.log("Verify");
+    await instance.verifyTransfer();
+
+    console.log("End");
+    await instance.endTransfer();
+
+    console.log("Disconnect");
+    setWaitingOta(false);
+    instance.disconnect();
+  }, [selectedFile]);
 
   return (
     <div className="flex flex-col justify-between h-screen">
@@ -77,19 +197,114 @@ export default function Updater() {
             <hr className="rounded-md opacity-20 m-1" />
 
             <NoSSR>
-              <div className="flex flex-col justify-center items-center">
+              <div className="flex flex-col">
                 {bluetooth ? (
-                  connected ? (
-                    <>
-                      <p>Device: {instance.deviceName}</p>
+                  connected && instance.device ? (
+                    waitingOta ? (
+                      <>
+                        <p>Device: {instance.device.name}</p>
+                        <div className="flex flex-col justify-start">
+                          <p>
+                            Awaiting flash to{" "}
+                            <span className="font-bold">
+                              {selectedFirmware} - {selectedFile.hash}
+                            </span>
+                          </p>
+                        </div>
+                      </>
+                    ) : hasService ? (
+                      <>
+                        <p>Device: {instance.device.name}</p>
+                        <p>
+                          Current Firmware: {instance.deviceFirmware} -{" "}
+                          {instance.gitHash}
+                        </p>
 
-                      <button
-                        className="flex w-full rounded-md bg-red-400 hover:bg-red-500 p-2 m-1 text-white font-bold justify-center items-center"
-                        onClick={() => disconnectDevice()}
-                      >
-                        Disconnect
-                      </button>
-                    </>
+                        <hr />
+
+                        <div className="flex flex-col justify-start">
+                          <p>
+                            Click below to put your device in firmware upload
+                            mode (App Loader) and the next screen will have
+                            valid firmwares to flash.
+                          </p>
+
+                          <button
+                            className="flex w-full rounded-md bg-blue-600 hover:bg-blue-500 p-2 m-1 text-white font-bold justify-center items-center"
+                            onClick={() => updateToFirmware()}
+                          >
+                            Reboot to App Loader (DFW)
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p>Device: {instance.device.name}</p>
+
+                        <hr />
+
+                        <div className="flex flex-col justify-start">
+                          <p>Change Device Firmware</p>
+
+                          <div className="flex flex-row">
+                            <select
+                              className="p-2 m-1 rounded-md bg-neutral-700 text-white"
+                              onChange={({ target: { value } }) => {
+                                setSelectedFirmware(value);
+                              }}
+                            >
+                              {firmwares
+                                .filter((fw) =>
+                                  fw.files.find(
+                                    (file) =>
+                                      file.type == (isPup ? "puff" : "gbl")
+                                  )
+                                )
+                                .map((fw, index) => (
+                                  <option
+                                    key={index}
+                                    selected={selectedFirmware == fw.name}
+                                    value={fw.name}
+                                  >
+                                    {fw.name}
+                                  </option>
+                                ))}
+                            </select>
+                            <select
+                              onChange={({ target: { value } }) => {
+                                console.log("changing", value);
+                                setSelectedFileId(Number(value));
+                              }}
+                              className="p-2 m-1 rounded-md bg-neutral-700 text-white"
+                            >
+                              {selectedFwFiles?.map((file, index) => (
+                                <option
+                                  key={index}
+                                  selected={selectedFileId == file.id}
+                                  value={file.id}
+                                >
+                                  {file.hash} - {file.type}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        <button
+                          className="flex w-full rounded-md bg-blue-600 hover:bg-blue-500 p-2 m-1 text-white font-bold justify-center items-center"
+                          onClick={() => startFirmwareUpdate()}
+                        >
+                          Update
+                        </button>
+
+                        <button
+                          className="flex w-full rounded-md bg-red-400 hover:bg-red-500 p-2 m-1 text-white font-bold justify-center items-center"
+                          onClick={() => disconnectDevice()}
+                        >
+                          Disconnect
+                        </button>
+                      </>
+                    )
                   ) : (
                     <>
                       <button
