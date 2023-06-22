@@ -48,6 +48,10 @@ export default function Updater() {
     console.log(selectedFile, selectedFileId);
   }, [selectedFile, selectedFileId]);
 
+  useEffect(() => {
+    setSelectedFileId(selectedFwFiles?.[0].id);
+  }, [selectedFirmware, selectedFwFiles]);
+
   const [otaDeviceIndetifier, setOtaDeviceIndetifier] = useState<string>();
   const [connected, setConnected] = useState(false);
 

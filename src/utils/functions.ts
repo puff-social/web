@@ -223,4 +223,5 @@ if (typeof window != "undefined") {
   window["cborDecode"] = decode;
   window["fetchFirmwareFile"] = fetchFirmwareFile;
   window["crc32"] = crc32;
+  window["isOtaValid"] = isOtaValid;
 }

@@ -45,7 +45,6 @@ import {
   intMap,
   PUP_TRIGGER_CHAR,
   SILLABS_CONTROL,
-  SILLABS_OTA_VERSION,
   PUP_COMMAND_RESPONSE_CHAR,
   PUP_DEVICE_INFO,
   PUP_GENERAL_COMMAND_CHAR,
@@ -104,7 +103,7 @@ export interface Device {
   currentProfileId: number;
 
   pupWriteNotifications: EventEmitter;
-  pupBlockSize: number;
+  otaBlockSize: number;
   pupChunkSize: number;
   pupWriteTimeout: number;
   pupVerifyTimeout: number;
@@ -137,9 +136,6 @@ export class Device extends EventEmitter {
         this.device = await navigator.bluetooth.requestDevice({
           filters: [
             {
-              services: [SILLABS_OTA_SERVICE],
-            },
-            {
               services: [PUP_SERVICE],
             },
             {
@@ -148,6 +144,36 @@ export class Device extends EventEmitter {
             {
               services: [LORAX_SERVICE],
             },
+            { name: "Peak2OTA" },
+            { name: "AppLoader" },
+            { namePrefix: "000B57" },
+            { namePrefix: "003C84" },
+            { namePrefix: "040D84" },
+            { namePrefix: "04CD15" },
+            { namePrefix: "086BD7" },
+            { namePrefix: "0C4314" },
+            { namePrefix: "14B457" },
+            { namePrefix: "2C1165" },
+            { namePrefix: "50325F" },
+            { namePrefix: "540F57" },
+            { namePrefix: "588E81" },
+            { namePrefix: "5C0272" },
+            { namePrefix: "60A423" },
+            { namePrefix: "680AE2" },
+            { namePrefix: "804B50" },
+            { namePrefix: "842E14" },
+            { namePrefix: "847127" },
+            { namePrefix: "84BA20" },
+            { namePrefix: "84FD27" },
+            { namePrefix: "8CF681" },
+            { namePrefix: "9035EA" },
+            { namePrefix: "90FD9F" },
+            { namePrefix: "94DEB8" },
+            { namePrefix: "B4E3F9" },
+            { namePrefix: "BC33AC" },
+            { namePrefix: "CC86EC" },
+            { namePrefix: "CCCCCC" },
+            { namePrefix: "EC1BBD" },
           ],
           optionalServices: [
             Characteristic.MODEL_SERVICE,
@@ -160,7 +186,7 @@ export class Device extends EventEmitter {
         this.server = await this.device.gatt.connect();
 
         this.pupWriteNotifications = new EventEmitter();
-        this.pupBlockSize = 20;
+        this.otaBlockSize = 20;
         this.pupChunkSize = 30;
         this.pupWriteTimeout = 30;
         this.pupVerifyTimeout = 300;
@@ -1974,7 +2000,7 @@ export class Device extends EventEmitter {
       const value = Buffer.from((await char.readValue()).buffer);
 
       this.pupChunkSize = value.readUInt8(1) - 5;
-      this.pupBlockSize = this.pupChunkSize;
+      this.otaBlockSize = this.pupChunkSize;
       this.pupWriteTimeout = value.readUInt16LE(12) * 10;
       this.pupVerifyTimeout = value.readUInt16LE(14) * 10;
 
@@ -1999,61 +2025,64 @@ export class Device extends EventEmitter {
   }
 
   async writeFirmware(data: Buffer) {
+    if (!isOtaValid(data)) throw new Error("invalid firmware");
     const timeoutPromise = new Promise((resolve) => {
-      setTimeout(resolve, (this.pupChunkSize * 1000) / this.maxBytesPerSecond);
+      setTimeout(resolve, (this.otaBlockSize * 1000) / this.maxBytesPerSecond);
     });
 
-    if (!isOtaValid(data)) throw new Error("invalid firmware");
+    if (this.isPup) {
+      const char = await this.pupService.getCharacteristic(
+        PUP_COMMAND_RESPONSE_CHAR
+      );
 
-    const char = await this.pupService.getCharacteristic(
-      PUP_COMMAND_RESPONSE_CHAR
-    );
+      let offset = 0;
 
-    let offset = 0;
+      while (offset < data.byteLength) {
+        const chunkEnd = Math.min(offset + this.otaBlockSize, data.byteLength);
+        const chunk = data.subarray(offset, chunkEnd);
 
-    while (offset < data.byteLength) {
-      const chunkEnd = Math.min(offset + this.pupBlockSize, data.byteLength);
-      const chunk = data.subarray(offset, chunkEnd);
+        try {
+          await Promise.all([
+            (async () => {
+              const header = Buffer.alloc(5);
+              header.writeUInt8(0, 0);
+              header.writeUInt32LE(offset, 1);
+              const payload = Buffer.concat([header, chunk]);
 
-      try {
-        await Promise.all([
-          (async () => {
-            const header = Buffer.alloc(5);
-            header.writeUInt8(0, 0);
-            header.writeUInt32LE(offset, 1);
-            const payload = Buffer.concat([header, chunk]);
+              await char.writeValue(payload);
+              await new Promise((resolve) => setTimeout(() => resolve(1), 10));
+              const response = await char.readValue();
 
-            await char.writeValue(payload);
-            await new Promise((resolve) => setTimeout(() => resolve(1), 10));
-            const response = await char.readValue();
-
-            if (response) {
-              const responseBuffer = Buffer.from(response.buffer);
-              if (
-                responseBuffer.readUInt8(0) === 0 &&
-                responseBuffer.readUInt32LE(1) === offset &&
-                responseBuffer.readUInt8(5) === 0
-              ) {
-                console.log(`write OK ${offset}`);
+              if (response) {
+                const responseBuffer = Buffer.from(response.buffer);
+                if (
+                  responseBuffer.readUInt8(0) === 0 &&
+                  responseBuffer.readUInt32LE(1) === offset &&
+                  responseBuffer.readUInt8(5) === 0
+                ) {
+                  console.log(`write OK ${offset}`);
+                } else {
+                  throw new Error("bad response");
+                }
               } else {
-                throw new Error("bad response");
+                throw new Error("no response value");
               }
-            } else {
-              throw new Error("no response value");
-            }
-          })(),
-          timeoutPromise,
-        ]);
-      } catch (error) {
-        console.error(error);
-        throw error;
+            })(),
+            timeoutPromise,
+          ]);
+        } catch (error) {
+          console.error(error);
+          throw error;
+        }
+
+        // Update the OTA progress based on the current transfer progress
+        // const progress = ((chunkEnd / data.byteLength) * 0.8 + 0.1).toFixed(2);
+        // dispatch(updateOtaProgress(parseFloat(progress)));
+
+        offset += this.otaBlockSize;
       }
-
-      // Update the OTA progress based on the current transfer progress
-      // const progress = ((chunkEnd / data.byteLength) * 0.8 + 0.1).toFixed(2);
-      // dispatch(updateOtaProgress(parseFloat(progress)));
-
-      offset += this.pupBlockSize;
+    } else {
+      console.log("Sillabs soon");
     }
   }
 
