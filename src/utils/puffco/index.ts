@@ -1085,12 +1085,6 @@ export class Device extends EventEmitter {
           await this.watchWithConfirmation(path);
 
           const int = setInterval(async () => {
-            console.log(
-              "last",
-              this.lastOperatingStateUpdate,
-              path,
-              intMap[path]
-            );
             if (
               new Date().getTime() - this.lastOperatingStateUpdate?.getTime() >
               intMap[path] * 2
