@@ -7,7 +7,7 @@ export const Firmwares = [
         type: "gbl",
         hash: "123456",
         date: new Date(0),
-        file: "https://cdn.puff.social/fw/peak/X-unknown-application-123456-release.gbl",
+        file: "https://cdn.puff.social/fw/peak/X-unknown-application-1234567-release.gbl",
       },
     ],
   },

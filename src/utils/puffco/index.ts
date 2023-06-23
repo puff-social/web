@@ -48,6 +48,9 @@ import {
   PUP_COMMAND_RESPONSE_CHAR,
   PUP_DEVICE_INFO,
   PUP_GENERAL_COMMAND_CHAR,
+  SILLABS_DATA_CHAR,
+  SILLABS_OTA_VERSION,
+  PUP_SERIAL_NUMBER_CHAR,
 } from "./constants";
 import { store } from "../../state/store";
 import { GroupState as GroupStateInterface } from "../../state/slices/group";
@@ -936,6 +939,7 @@ export class Device extends EventEmitter {
 
           switch (path) {
             case LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE]: {
+              this.lastOperatingStateUpdate = new Date();
               if (reply.data.byteLength != 1) return;
               const val = reply.data.readUInt8(0);
               if (val != currentOperatingState) {
@@ -1029,7 +1033,6 @@ export class Device extends EventEmitter {
                 }
 
                 currentOperatingState = val;
-                this.lastOperatingStateUpdate = new Date();
               }
               break;
             }
@@ -1082,28 +1085,31 @@ export class Device extends EventEmitter {
           await this.watchWithConfirmation(path);
 
           const int = setInterval(async () => {
+            console.log(
+              "last",
+              this.lastOperatingStateUpdate,
+              path,
+              intMap[path]
+            );
             if (
               new Date().getTime() - this.lastOperatingStateUpdate?.getTime() >
-              intMap[Characteristic.OPERATING_STATE] * 2
+              intMap[path] * 2
             ) {
               console.log(
                 "DEBUG: Deviation for",
-                Characteristic.OPERATING_STATE,
+                path,
                 "is beyond 2x, unwatching and rewatching",
                 `(D: ${
                   new Date().getTime() - this.lastOperatingStateUpdate.getTime()
                 })`
               );
 
-              await this.unwatchPath(Characteristic.OPERATING_STATE);
+              await this.unwatchPath(path);
               setTimeout(() => {
-                this.watchPath(
-                  Characteristic.OPERATING_STATE,
-                  intMap[Characteristic.OPERATING_STATE]
-                );
+                this.watchPath(path, intMap[path]);
               }, 500);
             }
-          }, intMap[Characteristic.OPERATING_STATE]);
+          }, intMap[path]);
 
           this.once("gattdisconnect", () => {
             if (int) clearInterval(int);
@@ -1983,12 +1989,24 @@ export class Device extends EventEmitter {
       this.isPup ? PUP_TRIGGER_CHAR : SILLABS_CONTROL
     );
 
-    console.log(socControl);
-
     const buf = Buffer.alloc(1);
     buf.writeUInt8(0, 0);
 
     await socControl.writeValue(buf);
+  }
+
+  async readOtaSerialNumber() {
+    if (!this.isPup) throw { code: "not_implemented" };
+
+    const char = await this.pupService.getCharacteristic(
+      PUP_SERIAL_NUMBER_CHAR
+    );
+    const value = await char.readValue();
+
+    this.deviceSerialNumber = value.toString();
+
+    console.log(this.deviceSerialNumber, "sn");
+    return this.deviceSerialNumber;
   }
 
   async startTransfer() {
@@ -2000,9 +2018,10 @@ export class Device extends EventEmitter {
       const value = Buffer.from((await char.readValue()).buffer);
 
       this.pupChunkSize = value.readUInt8(1) - 5;
-      this.otaBlockSize = this.pupChunkSize;
       this.pupWriteTimeout = value.readUInt16LE(12) * 10;
       this.pupVerifyTimeout = value.readUInt16LE(14) * 10;
+
+      this.otaBlockSize = this.pupChunkSize;
 
       console.log(
         `DEBUG: OTA: chunk ${this.pupChunkSize}, write ${this.pupWriteTimeout}, verify ${this.pupVerifyTimeout}`
@@ -2021,6 +2040,13 @@ export class Device extends EventEmitter {
           this.pupWriteNotifications.emit("data", buffer);
         }
       );
+    } else {
+      const char = await this.silabsService.getCharacteristic(SILLABS_CONTROL);
+
+      const buf = Buffer.alloc(1);
+      buf.writeUInt8(0);
+
+      await char.writeValue(buf);
     }
   }
 
@@ -2030,27 +2056,37 @@ export class Device extends EventEmitter {
       setTimeout(resolve, (this.otaBlockSize * 1000) / this.maxBytesPerSecond);
     });
 
-    if (this.isPup) {
-      const char = await this.pupService.getCharacteristic(
-        PUP_COMMAND_RESPONSE_CHAR
-      );
+    const service = this.isPup ? this.pupService : this.silabsService;
+    const char = await service.getCharacteristic(
+      this.isPup ? PUP_COMMAND_RESPONSE_CHAR : SILLABS_DATA_CHAR
+    );
 
-      let offset = 0;
+    let offset = 0;
 
-      while (offset < data.byteLength) {
-        const chunkEnd = Math.min(offset + this.otaBlockSize, data.byteLength);
-        const chunk = data.subarray(offset, chunkEnd);
+    while (offset < data.byteLength) {
+      const chunkEnd = Math.min(offset + this.otaBlockSize, data.byteLength);
+      const chunk = data.subarray(offset, chunkEnd);
 
-        try {
-          await Promise.all([
-            (async () => {
+      try {
+        await Promise.all([
+          (async () => {
+            if (this.isPup) {
               const header = Buffer.alloc(5);
               header.writeUInt8(0, 0);
               header.writeUInt32LE(offset, 1);
               const payload = Buffer.concat([header, chunk]);
 
-              await char.writeValue(payload);
-              await new Promise((resolve) => setTimeout(() => resolve(1), 10));
+              await char[
+                this.isPup ? "writeValue" : "writeValueWithoutResponse"
+              ](payload);
+            } else {
+              await char[
+                this.isPup ? "writeValue" : "writeValueWithoutResponse"
+              ](chunk);
+            }
+
+            await new Promise((resolve) => setTimeout(() => resolve(1), 10));
+            if (this.isPup) {
               const response = await char.readValue();
 
               if (response) {
@@ -2060,29 +2096,29 @@ export class Device extends EventEmitter {
                   responseBuffer.readUInt32LE(1) === offset &&
                   responseBuffer.readUInt8(5) === 0
                 ) {
-                  console.log(`write OK ${offset}`);
+                  console.log(`pup: write OK ${offset}`);
                 } else {
                   throw new Error("bad response");
                 }
               } else {
                 throw new Error("no response value");
               }
-            })(),
-            timeoutPromise,
-          ]);
-        } catch (error) {
-          console.error(error);
-          throw error;
-        }
-
-        // Update the OTA progress based on the current transfer progress
-        // const progress = ((chunkEnd / data.byteLength) * 0.8 + 0.1).toFixed(2);
-        // dispatch(updateOtaProgress(parseFloat(progress)));
-
-        offset += this.otaBlockSize;
+            } else {
+              console.log(`sil: write OK ${offset}`);
+            }
+          })(),
+          timeoutPromise,
+        ]);
+      } catch (error) {
+        console.error(error);
+        throw error;
       }
-    } else {
-      console.log("Sillabs soon");
+
+      // Update the OTA progress based on the current transfer progress
+      // const progress = ((chunkEnd / data.byteLength) * 0.8 + 0.1).toFixed(2);
+      // dispatch(updateOtaProgress(parseFloat(progress)));
+
+      offset += this.otaBlockSize;
     }
   }
 
@@ -2141,7 +2177,9 @@ export class Device extends EventEmitter {
     const buf = Buffer.alloc(1);
     buf.writeUInt8(this.isPup ? 2 : 3, 0);
 
-    await socControl.writeValue(buf);
+    await socControl[this.isPup ? "writeValue" : "writeValueWithoutResponse"](
+      buf
+    );
   }
 
   disconnect() {

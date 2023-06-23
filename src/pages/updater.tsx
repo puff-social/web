@@ -28,10 +28,10 @@ export default function Updater() {
     () =>
       firmwares
         .filter((fw) =>
-          fw.files.find((file) => file.type == (isPup ? "puff" : "gbl"))
+          fw.files.find((file) => file.type == (isPup ? "puff" : "GBL"))
         )
         .find((fw) => fw.name == selectedFirmware)
-        ?.files.filter((file) => file.type == (isPup ? "puff" : "gbl")),
+        ?.files.filter((file) => file.type == (isPup ? "puff" : "GBL")),
     [selectedFirmware, firmwares, isPup]
   );
 
@@ -43,10 +43,6 @@ export default function Updater() {
     () => selectedFwFiles?.find((file) => file.id == selectedFileId),
     [selectedFwFiles, selectedFileId]
   );
-
-  useEffect(() => {
-    console.log(selectedFile, selectedFileId);
-  }, [selectedFile, selectedFileId]);
 
   useEffect(() => {
     setSelectedFileId(selectedFwFiles?.[0].id);
@@ -80,10 +76,10 @@ export default function Updater() {
       setSelectedFileId(
         firmwares
           .filter((fw) =>
-            fw.files.find((file) => file.type == (isPup ? "puff" : "gbl"))
+            fw.files.find((file) => file.type == (isPup ? "puff" : "GBL"))
           )
           .find((fw) => fw.name == selectedFirmware)
-          ?.files.filter((file) => file.type == (isPup ? "puff" : "gbl"))
+          ?.files.filter((file) => file.type == (isPup ? "puff" : "GBL"))
           .find((file) => file.hash == instance.gitHash)?.id
       );
     } else {
@@ -128,49 +124,55 @@ export default function Updater() {
       duration: 2000,
     });
 
-    const firmware = await fetchFirmwareFile(selectedFile.file);
-    const filename =
-      selectedFile.file.split("/")[selectedFile.file.split("/").length - 1];
+    try {
+      const firmware = await fetchFirmwareFile(selectedFile.file);
+      const filename =
+        selectedFile.file.split("/")[selectedFile.file.split("/").length - 1];
 
-    const match =
-      /([A-Z]{2})-([a-zA-Z].*)-(application|[a-zA-Z].*-[a-zA-Z].*)-([0-9a-zA-Z]{7})-release.(gbl|puff)/.exec(
-        filename
-      );
-    if (!match) return;
+      const match =
+        /([A-Z]{1,2})-([a-zA-Z].*)-(application|[a-zA-Z].*-[a-zA-Z].*)-([0-9a-zA-Z]{7})-release.(gbl|puff)/.exec(
+          filename
+        );
+      if (!match) return;
 
-    const [, indentifier, , name, gitHash] = match;
+      const [, indentifier, , name, gitHash] = match;
 
-    toast(`Downloaded ${indentifier} - ${name} (${gitHash})`, {
-      position: "bottom-center",
-      duration: 10000,
-    });
-
-    toast(
-      `Starting write to device, may take a few minutes, please don't touch the device.`,
-      {
+      toast(`Downloaded ${indentifier} - ${name} (${gitHash})`, {
         position: "bottom-center",
         duration: 10000,
+      });
+
+      toast(
+        `Starting write to device, may take a few minutes, please don't touch the device.`,
+        {
+          position: "bottom-center",
+          duration: 10000,
+        }
+      );
+
+      console.log("Write");
+      await instance.writeFirmware(firmware);
+
+      toast(`Write complete, verifying firmware and restarting device.`, {
+        position: "bottom-center",
+        duration: 10000,
+      });
+
+      if (isPup) {
+        console.log("Verify");
+        await instance.verifyTransfer();
       }
-    );
 
-    console.log("Write");
-    await instance.writeFirmware(firmware);
+      console.log("End");
+      await instance.endTransfer();
 
-    toast(`Write complete, verifying firmware and restarting device.`, {
-      position: "bottom-center",
-      duration: 10000,
-    });
-
-    console.log("Verify");
-    await instance.verifyTransfer();
-
-    console.log("End");
-    await instance.endTransfer();
-
-    console.log("Disconnect");
-    setWaitingOta(false);
-    instance.disconnect();
-  }, [selectedFile]);
+      console.log("Disconnect");
+      setWaitingOta(false);
+      instance.disconnect();
+    } catch (error) {
+      console.error("error", error);
+    }
+  }, [selectedFile, isPup]);
 
   return (
     <div className="flex flex-col justify-between h-screen">
@@ -226,20 +228,30 @@ export default function Updater() {
 
                         <hr />
 
-                        <div className="flex flex-col justify-start">
-                          <p>
-                            Click below to put your device in firmware upload
-                            mode (App Loader) and the next screen will have
-                            valid firmwares to flash.
-                          </p>
+                        {isPup ? (
+                          <div className="flex flex-col justify-start">
+                            <p>
+                              Click below to put your device in firmware upload
+                              mode (App Loader) and the next screen will have
+                              valid firmwares to flash.
+                            </p>
 
-                          <button
-                            className="flex w-full rounded-md bg-blue-600 hover:bg-blue-500 p-2 m-1 text-white font-bold justify-center items-center"
-                            onClick={() => updateToFirmware()}
-                          >
-                            Reboot to App Loader (DFW)
-                          </button>
-                        </div>
+                            <button
+                              className="flex w-full rounded-md bg-blue-600 hover:bg-blue-500 p-2 m-1 text-white font-bold justify-center items-center"
+                              onClick={() => updateToFirmware()}
+                            >
+                              Reboot to App Loader (DFW)
+                            </button>
+                          </div>
+                        ) : (
+                          <div>
+                            <p>
+                              Your device is not of the new internals, currently
+                              working on support for the older SoCs and soon
+                              you'll be able to manage your firmware here.
+                            </p>
+                          </div>
+                        )}
                       </>
                     ) : (
                       <>
@@ -261,7 +273,7 @@ export default function Updater() {
                                 .filter((fw) =>
                                   fw.files.find(
                                     (file) =>
-                                      file.type == (isPup ? "puff" : "gbl")
+                                      file.type == (isPup ? "puff" : "GBL")
                                   )
                                 )
                                 .map((fw, index) => (

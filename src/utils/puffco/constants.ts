@@ -11,6 +11,7 @@ export const PUP_SERVICE = "420b9b40-457d-4abe-a3bf-71609d79581b";
 export const PUP_APP_VERSION = "58b0a7aa-d89f-4bf2-961d-0d892d7439d8";
 export const PUP_DEVICE_INFO = "2dab0217-8a4e-4de8-83c7-8fded59f4599";
 export const PUP_TRIGGER_CHAR = "c830ee3e-0e32-4780-a51d-b1b0b38089a4";
+export const PUP_SERIAL_NUMBER_CHAR = "a5fa5a5d-f28e-47d9-b95b-f82c06177503";
 export const PUP_GENERAL_COMMAND_CHAR = "c364cf1d-117f-4a3b-baae-3e2fce5a248f";
 export const PUP_COMMAND_RESPONSE_CHAR = "baeb965b-58ac-43bf-9cc5-bfb448ec2e72";
 
