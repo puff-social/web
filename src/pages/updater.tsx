@@ -12,6 +12,8 @@ import {
 import { Firmwares } from "../utils/puffco/firmwares";
 import { fetchFirmwareFile } from "../utils/functions";
 import useDetectiOS from "../hooks/useDetectIos";
+import { useDispatch, useSelector } from "react-redux";
+import { selectUpdaterState, setProgress } from "../state/slices/updater";
 
 const instance = new Device();
 if (typeof window != "undefined") window["instance"] = instance;
@@ -51,6 +53,9 @@ export default function Updater() {
 
   const [otaDeviceIndetifier, setOtaDeviceIndetifier] = useState<string>();
   const [connected, setConnected] = useState(false);
+
+  const updater = useSelector(selectUpdaterState);
+  const dispatch = useDispatch();
 
   const isiOS = useDetectiOS();
 
@@ -127,6 +132,8 @@ export default function Updater() {
 
   const startFirmwareUpdate = useCallback(async () => {
     setWaitingOta(true);
+
+    dispatch(setProgress(0.1));
     toast("Downloading firmware", {
       position: "bottom-center",
       duration: 2000,
@@ -136,6 +143,8 @@ export default function Updater() {
       const firmware = await fetchFirmwareFile(selectedFile.file);
       const filename =
         selectedFile.file.split("/")[selectedFile.file.split("/").length - 1];
+
+      dispatch(setProgress(0.2));
 
       const match =
         /([A-Z]{1,2})-([a-zA-Z].*)-(application|[a-zA-Z].*-[a-zA-Z].*)-([0-9a-zA-Z]{7})-release.(gbl|puff)/.exec(
@@ -169,13 +178,16 @@ export default function Updater() {
       if (isPup) {
         console.log("Verify");
         await instance.verifyTransfer();
+      } else {
+        console.log("End");
+        await instance.endTransfer();
+
+        console.log("Disconnect");
+        setWaitingOta(false);
       }
 
-      console.log("End");
-      await instance.endTransfer();
+      dispatch(setProgress(1));
 
-      console.log("Disconnect");
-      setWaitingOta(false);
       instance.disconnect();
     } catch (error) {
       console.error("error", error);
@@ -226,7 +238,8 @@ export default function Updater() {
                             Awaiting flash to{" "}
                             <span className="font-bold">
                               {selectedFirmware} - {selectedFile.hash}
-                            </span>
+                            </span>{" "}
+                            - {updater.progress * 100}%
                           </p>
                         </div>
                       </>

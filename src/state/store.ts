@@ -8,6 +8,7 @@ import { createWrapper } from "next-redux-wrapper";
 
 import { session } from "./slices/session";
 import { group } from "./slices/group";
+import { updater } from "./slices/updater";
 
 export let store: EnhancedStore;
 
@@ -16,6 +17,7 @@ const makeStore = () => {
     reducer: {
       [session.name]: session.reducer,
       [group.name]: group.reducer,
+      [updater.name]: updater.reducer,
     },
     devTools: true,
   });

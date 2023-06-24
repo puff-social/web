@@ -56,6 +56,7 @@ import { store } from "../../state/store";
 import { GroupState as GroupStateInterface } from "../../state/slices/group";
 import { PuffcoOperatingState } from "@puff-social/commons/dist/puffco";
 import { Op } from "@puff-social/commons/dist/constants";
+import { setProgress } from "../../state/slices/updater";
 
 const decoder = new TextDecoder("utf-8");
 
@@ -2108,9 +2109,8 @@ export class Device extends EventEmitter {
         throw error;
       }
 
-      // Update the OTA progress based on the current transfer progress
-      // const progress = ((chunkEnd / data.byteLength) * 0.8 + 0.1).toFixed(2);
-      // dispatch(updateOtaProgress(parseFloat(progress)));
+      const progress = ((chunkEnd / data.byteLength) * 0.7 + 0.2).toFixed(2);
+      store.dispatch(setProgress(Number(progress)));
 
       offset += this.otaBlockSize;
     }
