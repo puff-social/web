@@ -6,9 +6,10 @@ function useDetectiOS(): boolean {
   useEffect(() => {
     if (typeof window != "undefined") {
       const userAgent = window.navigator.userAgent;
-      setIsiOS(
-        /iPad|iPhone|iPod/.test(userAgent) && !(window as any)?.MSStream
-      );
+      if (!userAgent.includes("Path/"))
+        setIsiOS(
+          /iPad|iPhone|iPod/.test(userAgent) && !(window as any)?.MSStream
+        );
     }
   }, []);
 
