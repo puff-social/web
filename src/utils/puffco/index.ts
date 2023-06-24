@@ -2035,6 +2035,8 @@ export class Device extends EventEmitter {
           this.pupWriteNotifications.emit("data", buffer);
         }
       );
+
+      await notificationChar.startNotifications();
     } else {
       const char = await this.silabsService.getCharacteristic(SILLABS_CONTROL);
 

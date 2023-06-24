@@ -177,16 +177,21 @@ export default function Updater() {
 
       if (isPup) {
         console.log("Verify");
-        instance.verifyTransfer();
-      } else {
-        console.log("End");
-        await instance.endTransfer();
-
-        console.log("Disconnect");
-        setWaitingOta(false);
-
-        instance.disconnect();
+        await Promise.race([
+          instance.verifyTransfer,
+          new Promise((resolve) => {
+            setTimeout(() => resolve(1), 15 * 1000);
+          }),
+        ]);
       }
+
+      console.log("End");
+      await instance.endTransfer();
+
+      console.log("Disconnect");
+      setWaitingOta(false);
+
+      instance.disconnect();
 
       dispatch(setProgress(1));
     } catch (error) {
