@@ -188,7 +188,9 @@ export default function Updater() {
 
       dispatch(setProgress(1));
 
-      instance.disconnect();
+      setTimeout(() => {
+        instance.disconnect();
+      }, 1000);
     } catch (error) {
       console.error("error", error);
     }
