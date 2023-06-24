@@ -184,13 +184,11 @@ export default function Updater() {
 
         console.log("Disconnect");
         setWaitingOta(false);
+
+        instance.disconnect();
       }
 
       dispatch(setProgress(1));
-
-      setTimeout(() => {
-        instance.disconnect();
-      }, 1000);
     } catch (error) {
       console.error("error", error);
     }
