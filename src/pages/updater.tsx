@@ -178,17 +178,21 @@ export default function Updater() {
     <div className="flex flex-col justify-between h-screen">
       <MainMeta pageName="Updater" />
 
-      <div
-        className="flex flex-col m-4 z-10 cursor-pointer"
-        onClick={() => router.push("/")}
-      >
-        <h1 className="text-4xl font-bold">puff.social</h1>
-        <h3 className="text font-bold">Firmware Tool</h3>
+      <div className="flex flex-col m-4 z-10 cursor-pointer">
+        <h1 className="text-4xl font-bold" onClick={() => router.push("/")}>
+          puff.social
+        </h1>
+        <h3 className="text font-bold">
+          Firmware Tool -{" "}
+          <a className="underline" href="https://puffco.app">
+            Back to puffco.app
+          </a>
+        </h3>
       </div>
 
       <div className="flex flex-col space-y-8 m-4 pb-16">
         <div className="flex flex-col rounded-md space-y-3 justify-center">
-          <div className="flex flex-col rounded-md bg-white dark:bg-neutral-800 p-2 m-3 w-[700px] text-black dark:text-white drop-shadow-xl">
+          <div className="flex flex-col rounded-md bg-white dark:bg-neutral-800 p-2 m-3 w-auto text-black dark:text-white drop-shadow-xl">
             <div>
               <h2 className="text-xl font-bold p-1">
                 Welcome to the Puffco Firmware tool
