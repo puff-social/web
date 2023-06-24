@@ -54,14 +54,15 @@ export default function Updater() {
 
   const isiOS = useDetectiOS();
 
-  useEffect(() => {
-    if (isiOS) window.location.href = `path-web-fullscreen://${location?.href}`;
-  }, [isiOS]);
-
   const [bluetooth] = useState<boolean>(() => {
     if (typeof window == "undefined") return false;
     return typeof window.navigator.bluetooth !== "undefined";
   });
+
+  useEffect(() => {
+    if (isiOS && !bluetooth)
+      window.location.href = `path-web-fullscreen://${location?.href}`;
+  }, [isiOS, bluetooth]);
 
   const connectDevice = useCallback(async () => {
     const { device, mac } = await instance.initOta();
