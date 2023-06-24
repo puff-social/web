@@ -345,13 +345,13 @@ export default function Updater() {
                 ) : (
                   <>
                     <button
-                      className="flex w-full rounded-md bg-blue-400 p-2 m-1 text-white font-bold justify-center items-center brightness-75"
+                      className="flex w-full rounded-md bg-blue-400 p-2 my-1 text-white font-bold justify-center items-center brightness-75"
                       disabled
                     >
                       Your device or browser doesn't support bluetooth
                     </button>
                     <button
-                      className="flex w-full rounded-md bg-blue-400 p-2 m-1 text-white font-bold justify-center items-center"
+                      className="flex w-full rounded-md bg-blue-400 p-2 my-1 text-white font-bold justify-center items-center"
                       onClick={() =>
                         window.open(`path-web-fullscreen://${location.href}`)
                       }
