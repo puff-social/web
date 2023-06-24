@@ -177,7 +177,7 @@ export default function Updater() {
 
       if (isPup) {
         console.log("Verify");
-        await instance.verifyTransfer();
+        instance.verifyTransfer();
       } else {
         console.log("End");
         await instance.endTransfer();
