@@ -48,6 +48,10 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                         firmware X or later, and has been personally validated
                         to work with firmwares{" "}
                         <span className="font-bold text-teal-100 bg-gray-600 px-1 rounded-md">
+                          X
+                        </span>
+                        ,{" "}
+                        <span className="font-bold text-teal-100 bg-gray-600 px-1 rounded-md">
                           Y
                         </span>
                         ,{" "}
@@ -61,10 +65,18 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                         ,{" "}
                         <span className="font-bold text-teal-100 bg-gray-600 px-1 rounded-md">
                           AC
+                        </span>
+                        ,{" "}
+                        <span className="font-bold text-teal-100 bg-gray-600 px-1 rounded-md">
+                          AE
+                        </span>
+                        ,{" "}
+                        <span className="font-bold text-teal-100 bg-gray-600 px-1 rounded-md">
+                          AD
                         </span>{" "}
                         and{" "}
                         <span className="font-bold text-teal-100 bg-gray-600 px-1 rounded-md">
-                          AE
+                          AF
                         </span>{" "}
                       </p>
                     </div>
@@ -150,7 +162,7 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                           Instagram
                         </a>{" "}
                         account, we post on there with updates and news, plus we
-                        share the communities posts on our stores, and they're
+                        share the communities posts on our story, and they're
                         always nice to see.
                       </p>
                     </span>
