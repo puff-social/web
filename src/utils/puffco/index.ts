@@ -672,7 +672,8 @@ export class Device extends EventEmitter {
 
           if (this.isLorax) {
             const deviceSerialNumberRaw = await this.getValue(
-              Characteristic.SERIAL_NUMBER
+              Characteristic.SERIAL_NUMBER,
+              true
             );
             this.deviceSerialNumber = deviceSerialNumberRaw.toString();
           }
@@ -841,7 +842,10 @@ export class Device extends EventEmitter {
     if (isNaN(deviceInfo.dabsPerDay)) deviceInfo.dabsPerDay = 0.0;
     initState.dabsPerDay = deviceInfo.dabsPerDay;
 
-    const initDeviceName = await this.getValue(Characteristic.DEVICE_NAME);
+    const initDeviceName = await this.getValue(
+      Characteristic.DEVICE_NAME,
+      true
+    );
     if (initDeviceName.byteLength == 0 && this.device) {
       initState.deviceName = this.device.name;
     } else {
@@ -1371,7 +1375,12 @@ export class Device extends EventEmitter {
     await this.sendLoraxCommand(LoraxCommands.WRITE_SHORT, command, path);
   }
 
-  private async sendLoraxCommand(op: number, data: Uint8Array, path?: string) {
+  private async sendLoraxCommand(
+    op: number,
+    data: Uint8Array,
+    path?: string,
+    retry?: boolean
+  ) {
     if (!this.service) return;
     if (
       this.sendingCommand &&
@@ -1381,6 +1390,7 @@ export class Device extends EventEmitter {
         LoraxCommands.UNWATCH,
         LoraxCommands.OPEN,
         LoraxCommands.CLOSE,
+        retry ? LoraxCommands.READ_SHORT : null,
       ].includes(op)
     ) {
       await new Promise((resolve) => setTimeout(() => resolve(1), 100));
@@ -1487,7 +1497,7 @@ export class Device extends EventEmitter {
 
   async getValue(
     characteristic: string,
-    bytes = 4
+    retry = false
   ): Promise<Buffer | undefined> {
     return new Promise(async (resolve, reject) => {
       if (this.isLorax) {
