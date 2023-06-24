@@ -11,6 +11,7 @@ import {
 } from "../components/icons/Bluetooth";
 import { Firmwares } from "../utils/puffco/firmwares";
 import { fetchFirmwareFile } from "../utils/functions";
+import useDetectiOS from "../hooks/useDetectIos";
 
 const instance = new Device();
 if (typeof window != "undefined") window["instance"] = instance;
@@ -50,6 +51,12 @@ export default function Updater() {
 
   const [otaDeviceIndetifier, setOtaDeviceIndetifier] = useState<string>();
   const [connected, setConnected] = useState(false);
+
+  const isiOS = useDetectiOS();
+
+  useEffect(() => {
+    if (isiOS) window.location.href = `path-web-fullscreen://${location?.href}`;
+  }, [isiOS]);
 
   const [bluetooth] = useState<boolean>(() => {
     if (typeof window == "undefined") return false;
@@ -342,6 +349,14 @@ export default function Updater() {
                       disabled
                     >
                       Your device or browser doesn't support bluetooth
+                    </button>
+                    <button
+                      className="flex w-full rounded-md bg-blue-400 p-2 m-1 text-white font-bold justify-center items-center"
+                      onClick={() =>
+                        window.open(`path-web-fullscreen://${location.href}`)
+                      }
+                    >
+                      Open in Path Browser
                     </button>
                   </>
                 )}
