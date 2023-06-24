@@ -239,7 +239,7 @@ export default function Updater() {
                             <span className="font-bold">
                               {selectedFirmware} - {selectedFile.hash}
                             </span>{" "}
-                            - {updater.progress * 100}%
+                            - {(updater.progress * 100).toFixed(0)}%
                           </p>
                         </div>
                       </>
