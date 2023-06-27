@@ -12,7 +12,7 @@ import toast from "react-hot-toast";
 import { setSessionState } from "../../state/slices/session";
 import { gateway } from "../../utils/gateway";
 import { useDispatch } from "react-redux";
-import { ChevronLeft } from "../icons/ChevronLeft";
+import { ChevronLeft } from "../icons/Chevron";
 import { Op, UserFlags } from "@puff-social/commons";
 
 interface Props {

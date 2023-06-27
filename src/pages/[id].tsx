@@ -56,6 +56,8 @@ import {
 import { validState } from "@puff-social/commons/dist/puffco";
 import { DeviceModelColors } from "../utils/constants";
 import { PuffcoLogo } from "../components/icons/Puffco";
+import { isElectron } from "../utils/electron";
+import { DesktopBleConnectModal } from "../components/modals/DesktopBluetoothConnect";
 
 export const instance = new Device();
 if (typeof window != "undefined") window["instance"] = instance;
@@ -93,6 +95,8 @@ export default function Group({
   >({});
   const [deviceInfo, setDeviceInfo] = useState<DeviceInformation>();
   const [myDevice, setMyDevice] = useState<GatewayMemberDeviceState>();
+
+  const [connectingDevice, setConnectingDevice] = useState<BluetoothDevice>();
 
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
@@ -390,7 +394,7 @@ export default function Group({
 
   const disconnect = useCallback(async () => {
     if (deviceConnected) await instance.setLightMode(PuffLightMode.Default);
-    instance.disconnect();
+    instance.disconnect(true);
     setDeviceConnected(false);
     setMyDevice(null);
     gateway.send(Op.DisconnectDevice);
@@ -505,9 +509,15 @@ export default function Group({
 
   const connectToDevice = useCallback(async () => {
     try {
+      instance.on("device_connected", (device) => {
+        setConnectingDevice(device);
+      });
+
       setConnecting(true);
-      const { profiles } = await instance.init();
-      setDeviceProfiles(profiles);
+      instance.on("profiles", (profiles) => {
+        setDeviceProfiles(profiles);
+      });
+      await instance.init();
 
       const { poller, initState, deviceInfo } = await instance.startPolling();
       try {
@@ -545,6 +555,7 @@ export default function Group({
 
       setConnecting(false);
       setDeviceConnected(true);
+      setConnectingDevice(null);
 
       dispatch(
         updateGroupMemberDevice({
@@ -714,9 +725,12 @@ export default function Group({
             </div>
           )}
 
+          {isElectron() ? <DesktopBleConnectModal /> : <></>}
+
           <div className="flex flex-row flex-wrap m-4" ref={membersList}>
             <>
               <GroupMember
+                connectingDevice={connectingDevice}
                 device={myDevice}
                 strain={ourStrain}
                 leaderboardPosition={ourLeaderboardPosition}

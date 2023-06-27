@@ -16,6 +16,8 @@ import { GatewayError, GatewayGroupCreate } from "../types/gateway";
 import { selectSessionState, setSessionState } from "../state/slices/session";
 import { SuspendedModal } from "../components/modals/Suspended";
 import { UserFlags } from "@puff-social/commons";
+import { isElectron } from "../utils/electron";
+import { Electron } from "../components/Electron";
 
 function App({ Component, pageProps }) {
   const router = useRouter();
@@ -143,6 +145,7 @@ function App({ Component, pageProps }) {
         rel="stylesheet"
       />
 
+      {isElectron() ? <Electron /> : <></>}
       {session?.suspended ? <SuspendedModal /> : <></>}
 
       {!headless ? (

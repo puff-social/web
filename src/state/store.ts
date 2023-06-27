@@ -9,6 +9,7 @@ import { createWrapper } from "next-redux-wrapper";
 import { session } from "./slices/session";
 import { group } from "./slices/group";
 import { updater } from "./slices/updater";
+import { desktop } from "./slices/desktop";
 
 export let store: EnhancedStore;
 
@@ -18,6 +19,7 @@ const makeStore = () => {
       [session.name]: session.reducer,
       [group.name]: group.reducer,
       [updater.name]: updater.reducer,
+      [desktop.name]: desktop.reducer,
     },
     devTools: true,
   });

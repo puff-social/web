@@ -57,6 +57,8 @@ import { GroupState as GroupStateInterface } from "../../state/slices/group";
 import { PuffcoOperatingState } from "@puff-social/commons/dist/puffco";
 import { Op } from "@puff-social/commons/dist/constants";
 import { setProgress } from "../../state/slices/updater";
+import { setBleConnectionModalOpen } from "../../state/slices/desktop";
+import { isElectron } from "../electron";
 
 const decoder = new TextDecoder("utf-8");
 
@@ -91,6 +93,7 @@ export interface Device {
   isLorax: boolean;
   hasService: boolean;
 
+  pollerSuspended: boolean;
   sendingCommand: boolean;
 
   operatingState: number;
@@ -114,7 +117,27 @@ export interface Device {
 
   maxBytesPerSecond: number;
 
+  disconnected: boolean;
+  reconnectionAttempts: number;
+  allowReconnection: boolean;
+  resetReconnectionsTimer: NodeJS.Timeout;
+
+  on(event: "clearWatchers", listener: () => void): this;
+  on(
+    event: "profiles",
+    listener: (profiles: Record<number, PuffcoProfile>) => void
+  ): this;
   on(event: "gattdisconnect", listener: () => void): this;
+  on(
+    event: "device_connected",
+    listener: (device: BluetoothDevice) => void
+  ): this;
+  on(
+    event: "gatt_connected",
+    listener: (server: BluetoothRemoteGATTServer) => void
+  ): this;
+  on(event: "reconnecting", listener: () => void): this;
+  on(event: "inited", listener: () => void): this;
 }
 
 export class Device extends EventEmitter {
@@ -127,6 +150,511 @@ export class Device extends EventEmitter {
     this.watchMap = new Map();
     this.pathWatchers = new Map();
     this.sendingCommand = false;
+    this.reconnectionAttempts = 0;
+    this.disconnected = true;
+    this.allowReconnection = true;
+  }
+
+  async handleAuthentication() {
+    if (this.isLorax) {
+      // This triggers pairing on lorax ;P
+      if (this.isPup) {
+        const pupVer = await this.pupService.getCharacteristic(PUP_APP_VERSION);
+        await pupVer.readValue();
+      } else {
+        const silLabsVer = await this.silabsService.getCharacteristic(
+          SILLABS_VERISON
+        );
+        await silLabsVer.readValue();
+      }
+
+      await new Promise(async (upperResolve, upperReject) => {
+        this.loraxReply = await this.service.getCharacteristic(
+          LoraxCharacteristic.REPLY
+        );
+        this.loraxReply.addEventListener(
+          "characteristicvaluechanged",
+          async (ev) => {
+            const {
+              value: { buffer },
+            }: { value: DataView } = ev.target as any;
+            const data = processLoraxReply(buffer);
+            const msg = this.loraxMessages.get(data.seq);
+            if (!msg) return upperResolve(true);
+            msg.response = { data: data.data, error: !!data.error };
+
+            switch (msg.op) {
+              case LoraxCommands.GET_ACCESS_SEED: {
+                const decodedHandshake = convertFromHex(
+                  LORAX_HANDSHAKE_KEY.toString("hex")
+                );
+
+                const newSeed = new Uint8Array(32);
+                for (let i = 0; i < 16; ++i) {
+                  newSeed[i] = decodedHandshake.charCodeAt(i);
+                  newSeed[i + 16] = data.data[i];
+                }
+
+                const newKey = convertHexStringToNumArray(
+                  createHash("sha256").update(newSeed).digest("hex")
+                ).slice(0, 16);
+
+                await this.sendLoraxCommand(
+                  LoraxCommands.UNLOCK_ACCESS,
+                  newKey,
+                  null,
+                  true
+                );
+
+                break;
+              }
+
+              case LoraxCommands.UNLOCK_ACCESS: {
+                if (msg.response.error) {
+                  console.log("error unlocking");
+                  return;
+                }
+                console.log("Authenticated with Lorax protocol");
+
+                upperResolve(true);
+
+                break;
+              }
+
+              case LoraxCommands.WRITE_SHORT: {
+                if (msg.response.error)
+                  console.log(
+                    "Got an error response to a write short",
+                    msg.path,
+                    msg,
+                    data
+                  );
+
+                break;
+              }
+
+              case LoraxCommands.GET_LIMITS: {
+                if (data.data) {
+                  this.loraxLimits.maxPayload = data.data.readUInt8(0);
+                  this.loraxLimits.maxFiles = data.data.readUInt16LE(1);
+                  this.loraxLimits.maxCommands = data.data.readUInt16LE(2);
+
+                  console.log("Lorax Limits:", this.loraxLimits);
+                  this.sendLoraxCommand(
+                    LoraxCommands.GET_ACCESS_SEED,
+                    null,
+                    null,
+                    true
+                  );
+                }
+
+                break;
+              }
+            }
+          }
+        );
+        await this.loraxReply.startNotifications();
+
+        this.sendLoraxCommand(LoraxCommands.GET_LIMITS, null, null, true);
+      });
+
+      const modelRaw = await this.getValue(Characteristic.HARDWARE_MODEL);
+      this.deviceModel = modelRaw.readUInt32LE(0).toString();
+
+      const hardwareVersion = await this.getValue(
+        Characteristic.HARDWARE_VERSION
+      );
+      this.hardwareVersion = hardwareVersion.readUInt8(0);
+
+      const firmwareRaw = await this.getValue(Characteristic.FIRMWARE_VERSION);
+      this.deviceFirmware = numbersToLetters(firmwareRaw.readUInt8(0) + 5);
+
+      this.profiles = await this.loraxProfiles();
+    } else {
+      const accessSeedKey = await this.service.getCharacteristic(
+        Characteristic.ACCESS_KEY
+      );
+      const value = await accessSeedKey.readValue();
+
+      const decodedKey = new Uint8Array(16);
+      for (let i = 0; i < 16; i++) decodedKey[i] = value.getUint8(i);
+
+      const decodedHandshake = convertFromHex(HANDSHAKE_KEY.toString("hex"));
+
+      const newSeed = new Uint8Array(32);
+      for (let i = 0; i < 16; ++i) {
+        newSeed[i] = decodedHandshake.charCodeAt(i);
+        newSeed[i + 16] = decodedKey[i];
+      }
+
+      const newKey = convertHexStringToNumArray(
+        createHash("sha256").update(newSeed).digest("hex")
+      ).slice(0, 16);
+      await accessSeedKey.writeValue(Buffer.from(newKey));
+
+      this.profiles = await this.loopProfiles();
+    }
+  }
+
+  async setupWatchers() {
+    for await (const path of [
+      LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE],
+    ]) {
+      try {
+        await this.watchWithConfirmation(path);
+
+        const int = setInterval(async () => {
+          if (
+            new Date().getTime() - this.lastOperatingStateUpdate?.getTime() >
+            intMap[path] * 2
+          ) {
+            console.log(
+              "DEBUG: Deviation for",
+              path,
+              "is beyond 2x, unwatching and rewatching",
+              `(D: ${
+                new Date().getTime() - this.lastOperatingStateUpdate.getTime()
+              })`
+            );
+
+            await Promise.race([
+              await this.unwatchPath(path),
+              await new Promise((resolve) => {
+                setTimeout(() => resolve(1), 500);
+              }),
+            ]);
+            setTimeout(() => {
+              this.watchPath(path, intMap[path]);
+            }, 500);
+          }
+        }, intMap[path]);
+
+        this.once("gattdisconnect", () => {
+          if (int) clearInterval(int);
+        });
+
+        this.once("clearWatchers", () => {
+          if (int) clearInterval(int);
+        });
+      } catch (error) {
+        continue;
+      }
+      await new Promise((resolve) => setTimeout(() => resolve(true), 200));
+    }
+  }
+
+  async setupDevice() {
+    if (this.isLorax) {
+      this.loraxEvent = await this.service.getCharacteristic(
+        LoraxCharacteristic.EVENT
+      );
+
+      delete this.lastOperatingStateUpdate;
+      let currentOperatingState: number;
+      let currentChamberType: number;
+      let lastTemp: number;
+      let lastElapsedTime: number;
+
+      this.loraxEvent.addEventListener(
+        "characteristicvaluechanged",
+        async (ev) => {
+          const {
+            value: { buffer },
+          }: { value: DataView } = ev.target as any;
+          const buf = Buffer.from(buffer);
+          const reply = processLoraxEvent(buf);
+          const path = this.watchMap.get(reply.watchId);
+
+          if (!reply.data || reply.data.byteLength == 0)
+            return console.log("Ignoring", reply, path);
+
+          switch (path) {
+            case LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE]: {
+              this.lastOperatingStateUpdate = new Date();
+              if (reply.data.byteLength != 1) return;
+              const val = reply.data.readUInt8(0);
+              if (val != currentOperatingState) {
+                this.poller.emit("data", { state: val });
+
+                const {
+                  group: { group },
+                }: { group: GroupStateInterface } = store.getState();
+
+                if (group) {
+                  const groupStartOnBatteryCheck =
+                    localStorage.getItem("puff-battery-check-start") ==
+                      "true" || false;
+
+                  if (
+                    group.state == GroupState.Awaiting &&
+                    val == PuffcoOperatingState.TEMP_SELECT
+                  ) {
+                    this.setLightMode(PuffLightMode.MarkedReady);
+                  }
+
+                  if (
+                    group.state == GroupState.Chilling &&
+                    val == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
+                    groupStartOnBatteryCheck
+                  ) {
+                    setTimeout(() => gateway.send(Op.InquireHeating));
+                  }
+
+                  if (
+                    group.state == GroupState.Awaiting &&
+                    val == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
+                    groupStartOnBatteryCheck
+                  ) {
+                    setTimeout(() => gateway.send(Op.StartWithReady));
+                  }
+                }
+
+                if (
+                  val == PuffcoOperatingState.HEAT_CYCLE_PREHEAT &&
+                  currentOperatingState !=
+                    PuffcoOperatingState.HEAT_CYCLE_PREHEAT
+                ) {
+                  console.log(
+                    `DEBUG: Preheat started, suspending poller and starting watcher`
+                  );
+                  if (this.watcherSuspendTimeout) {
+                    console.log(
+                      "DEBUG: ^ Ignored because was less than 15 seconds since last heat/preheat"
+                    );
+                    clearTimeout(this.watcherSuspendTimeout);
+                  } else {
+                    this.pollerMap.get("chamberTemp").emit("suspend");
+                    await this.watchWithConfirmation(
+                      LoraxCharacteristicPathMap[
+                        Characteristic.STATE_ELAPSED_TIME
+                      ]
+                    );
+                    await this.watchWithConfirmation(
+                      LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]
+                    );
+                    await this.watchWithConfirmation(
+                      LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]
+                    );
+                  }
+                } else if (
+                  val == PuffcoOperatingState.IDLE &&
+                  [
+                    PuffcoOperatingState.HEAT_CYCLE_PREHEAT,
+                    PuffcoOperatingState.HEAT_CYCLE_ACTIVE,
+                  ].includes(currentOperatingState)
+                ) {
+                  console.log(
+                    `DEBUG: Back to Idle, unsuspending poller and stopping watcher`
+                  );
+                  this.watcherSuspendTimeout = setTimeout(async () => {
+                    console.log("Waited 15s, unwatching and resuming");
+                    await this.unwatchPath(
+                      LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]
+                    );
+                    await this.unwatchPath(
+                      LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]
+                    );
+                    await this.unwatchPath(
+                      LoraxCharacteristicPathMap[
+                        Characteristic.STATE_ELAPSED_TIME
+                      ]
+                    );
+                    this.pollerMap.get("chamberTemp").emit("resume");
+                  }, 15 * 1000);
+                }
+
+                currentOperatingState = val;
+              }
+              break;
+            }
+            case LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]: {
+              if (reply.data.byteLength != 1) return;
+              const val = reply.data.readUInt8(0);
+              if (val != currentChamberType && reply.data.byteLength == 1) {
+                this.poller.emit("data", {
+                  chamberType: val,
+                });
+                this.chamberType = val;
+                currentChamberType = val;
+              }
+              break;
+            }
+            case LoraxCharacteristicPathMap[
+              Characteristic.STATE_ELAPSED_TIME
+            ]: {
+              const conv = Number(reply.data.readFloatLE(0));
+              if (lastElapsedTime != conv && reply.data.byteLength == 4) {
+                this.poller.emit("data", {
+                  stateTime: conv,
+                });
+                lastElapsedTime = conv;
+              }
+              break;
+            }
+            case LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]: {
+              if (reply.data.byteLength < 4) return;
+              const conv = Number(reply.data.readFloatLE(0).toFixed(0));
+              if (lastTemp != conv && conv < 1000 && conv > 1) {
+                this.poller.emit("data", { temperature: conv });
+                lastTemp = conv;
+              }
+              break;
+            }
+
+            default:
+              break;
+          }
+        }
+      );
+
+      this.loraxEvent.startNotifications();
+
+      this.setupWatchers();
+    } else {
+      let currentOperatingState: number;
+      const operatingState = await this.pollValue(
+        Characteristic.OPERATING_STATE,
+        this.isLorax ? 555 : 1200
+      );
+      operatingState.on("change", (data: Buffer) => {
+        if (!data || data.byteLength != (this.isLorax ? 1 : 4)) return;
+        const val = this.isLorax ? data.readUInt8(0) : data.readFloatLE(0);
+        if (val != currentOperatingState) {
+          this.poller.emit("data", { state: val });
+
+          const {
+            group: { group },
+          }: { group: GroupStateInterface } = store.getState();
+
+          if (group) {
+            const groupStartOnBatteryCheck =
+              localStorage.getItem("puff-battery-check-start") == "true" ||
+              false;
+
+            if (
+              group.state == GroupState.Awaiting &&
+              val == PuffcoOperatingState.TEMP_SELECT
+            ) {
+              this.setLightMode(PuffLightMode.MarkedReady);
+            }
+
+            if (
+              group.state == GroupState.Chilling &&
+              val == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
+              groupStartOnBatteryCheck
+            ) {
+              setTimeout(() => gateway.send(Op.InquireHeating));
+            }
+
+            if (
+              group.state == GroupState.Awaiting &&
+              val == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
+              groupStartOnBatteryCheck
+            ) {
+              setTimeout(() => gateway.send(Op.StartWithReady));
+            }
+          }
+        }
+        currentOperatingState = val;
+      });
+
+      this.poller.on("stop", () => {
+        const pollers = [operatingState];
+
+        for (const poller of pollers) poller.emit("stop");
+      });
+    }
+  }
+
+  async disconnectHandler() {
+    try {
+      if (this.reconnectionAttempts == 3) {
+        console.log(
+          "Reconnection failed after 3 attempts, gatt server disconnected"
+        );
+        this.emit("gattdisconnect");
+        this.disconnect(true);
+      }
+
+      if (this.allowReconnection) {
+        this.disconnected = true;
+        this.emit("reconnecting");
+        console.log("reconnecting");
+
+        await new Promise((resolve) => setTimeout(() => resolve(1), 1));
+
+        this.emit("clearWatchers");
+
+        this.pollerSuspended = true;
+        this.lastLoraxSequenceId = 0;
+        this.loraxMessages = new Map();
+        this.watchMap = new Map();
+        this.pathWatchers = new Map();
+        this.sendingCommand = false;
+
+        this.server = await Promise.race([
+          this.device.gatt.connect(),
+          new Promise<never>((_, reject) => {
+            setTimeout(() => reject("timed_out"), 5 * 1000);
+          }),
+        ]);
+
+        const primaryServices = await this.server.getPrimaryServices();
+        console.log("services", this.sendingCommand);
+        this.isLorax = !!primaryServices.find(
+          (service) => service.uuid == LORAX_SERVICE
+        );
+        this.isPup = !!primaryServices.find(
+          (service) => service.uuid == PUP_SERVICE
+        );
+
+        if (!this.isLorax)
+          this.modelService = await this.server.getPrimaryService(
+            Characteristic.MODEL_SERVICE
+          );
+
+        if (this.isLorax && !this.isPup)
+          this.silabsService = await this.server.getPrimaryService(
+            SILLABS_OTA_SERVICE
+          );
+
+        if (this.isLorax && this.isPup)
+          this.pupService = await this.server.getPrimaryService(PUP_SERVICE);
+
+        this.service = await this.server.getPrimaryService(
+          this.isLorax ? LORAX_SERVICE : SERVICE
+        );
+
+        await this.handleAuthentication().catch(() =>
+          this.handleAuthentication().catch(() => this.handleAuthentication())
+        );
+
+        await this.setupDevice();
+        this.emit("gatt_connected", this.server);
+        this.disconnected = false;
+        this.pollerSuspended = false;
+
+        this.resetReconnectionsTimer = setTimeout(() => {
+          if (!this.disconnected) {
+            console.log(`DEBUG: Connection stable for 10s, resetting attempts`);
+            this.reconnectionAttempts = 0;
+          }
+        }, 10 * 1000);
+      } else {
+        console.log("Gatt server disconnected");
+        this.emit("gattdisconnect");
+
+        this.disconnect();
+      }
+    } catch (error) {
+      console.log(
+        `DEBUG: Gatt reconnection failed #${this.reconnectionAttempts}`
+      );
+
+      this.reconnectionAttempts = (this.reconnectionAttempts || 0) + 1;
+
+      this.disconnectHandler();
+    }
   }
 
   initOta(): Promise<{
@@ -397,6 +925,9 @@ export class Device extends EventEmitter {
     return new Promise(async (resolve, reject) => {
       try {
         try {
+          this.allowReconnection = true;
+          if (isElectron()) store.dispatch(setBleConnectionModalOpen(true));
+
           this.device = await navigator.bluetooth.requestDevice({
             filters: [
               {
@@ -413,12 +944,19 @@ export class Device extends EventEmitter {
               PUP_SERVICE,
             ],
           });
+
+          this.emit("device_connected", this.device);
         } catch (error) {
+          if (isElectron()) store.dispatch(setBleConnectionModalOpen(false));
+
           this.disconnect();
-          reject(error);
+          return reject(error);
         }
 
         this.server = await this.device.gatt.connect();
+        this.emit("gatt_connected", this.server);
+
+        this.disconnected = false;
 
         const primaryServices = await this.server.getPrimaryServices();
         this.isLorax = !!primaryServices.find(
@@ -432,12 +970,10 @@ export class Device extends EventEmitter {
           this.isLorax ? LORAX_SERVICE : SERVICE
         );
 
-        this.device.addEventListener("gattserverdisconnected", () => {
-          console.log("Gatt server disconnected");
-          this.emit("gattdisconnect");
-
-          this.disconnect();
-        });
+        this.device.addEventListener(
+          "gattserverdisconnected",
+          this.disconnectHandler.bind(this)
+        );
 
         if (!this.isLorax)
           this.modelService = await this.server.getPrimaryService(
@@ -451,12 +987,6 @@ export class Device extends EventEmitter {
 
         if (this.isLorax && this.isPup)
           this.pupService = await this.server.getPrimaryService(PUP_SERVICE);
-
-        // DEBUG ONLY
-        if (typeof window != "undefined") {
-          window["unpack"] = unpack;
-          window["pack"] = pack;
-        }
 
         if (!this.isLorax) {
           const modelRaw = await this.getValue(Characteristic.HARDWARE_MODEL);
@@ -507,143 +1037,7 @@ export class Device extends EventEmitter {
           }, 100);
         }
 
-        if (this.isLorax) {
-          // This triggers pairing on lorax ;P
-          if (this.isPup) {
-            const pupVer = await this.pupService.getCharacteristic(
-              PUP_APP_VERSION
-            );
-            await pupVer.readValue();
-          } else {
-            const silLabsVer = await this.silabsService.getCharacteristic(
-              SILLABS_VERISON
-            );
-            await silLabsVer.readValue();
-          }
-
-          await new Promise(async (upperResolve, upperReject) => {
-            this.loraxReply = await this.service.getCharacteristic(
-              LoraxCharacteristic.REPLY
-            );
-            this.loraxReply.addEventListener(
-              "characteristicvaluechanged",
-              async (ev) => {
-                const {
-                  value: { buffer },
-                }: { value: DataView } = ev.target as any;
-                const data = processLoraxReply(buffer);
-                const msg = this.loraxMessages.get(data.seq);
-                if (!msg) return upperResolve(true);
-                msg.response = { data: data.data, error: !!data.error };
-
-                switch (msg.op) {
-                  case LoraxCommands.GET_ACCESS_SEED: {
-                    const decodedHandshake = convertFromHex(
-                      LORAX_HANDSHAKE_KEY.toString("hex")
-                    );
-
-                    const newSeed = new Uint8Array(32);
-                    for (let i = 0; i < 16; ++i) {
-                      newSeed[i] = decodedHandshake.charCodeAt(i);
-                      newSeed[i + 16] = data.data[i];
-                    }
-
-                    const newKey = convertHexStringToNumArray(
-                      createHash("sha256").update(newSeed).digest("hex")
-                    ).slice(0, 16);
-
-                    await this.sendLoraxCommand(
-                      LoraxCommands.UNLOCK_ACCESS,
-                      newKey
-                    );
-
-                    break;
-                  }
-
-                  case LoraxCommands.UNLOCK_ACCESS: {
-                    if (msg.response.error) return;
-                    console.log("Authenticated with Lorax protocol");
-
-                    upperResolve(true);
-
-                    break;
-                  }
-
-                  case LoraxCommands.WRITE_SHORT: {
-                    if (msg.response.error)
-                      console.log(
-                        "Got an error response to a write short",
-                        msg.path,
-                        msg,
-                        data
-                      );
-
-                    break;
-                  }
-
-                  case LoraxCommands.GET_LIMITS: {
-                    if (data.data) {
-                      this.loraxLimits.maxPayload = data.data.readUInt8(0);
-                      this.loraxLimits.maxFiles = data.data.readUInt16LE(1);
-                      this.loraxLimits.maxCommands = data.data.readUInt16LE(2);
-
-                      console.log("Lorax Limits:", this.loraxLimits);
-                      this.sendLoraxCommand(
-                        LoraxCommands.GET_ACCESS_SEED,
-                        null
-                      );
-                    }
-
-                    break;
-                  }
-                }
-              }
-            );
-            this.loraxReply.startNotifications();
-
-            this.sendLoraxCommand(LoraxCommands.GET_LIMITS, null);
-          });
-
-          const modelRaw = await this.getValue(Characteristic.HARDWARE_MODEL);
-          this.deviceModel = modelRaw.readUInt32LE(0).toString();
-
-          const hardwareVersion = await this.getValue(
-            Characteristic.HARDWARE_VERSION
-          );
-          this.hardwareVersion = hardwareVersion.readUInt8(0);
-
-          const firmwareRaw = await this.getValue(
-            Characteristic.FIRMWARE_VERSION
-          );
-          this.deviceFirmware = numbersToLetters(firmwareRaw.readUInt8(0) + 5);
-
-          this.profiles = await this.loraxProfiles();
-        } else {
-          const accessSeedKey = await this.service.getCharacteristic(
-            Characteristic.ACCESS_KEY
-          );
-          const value = await accessSeedKey.readValue();
-
-          const decodedKey = new Uint8Array(16);
-          for (let i = 0; i < 16; i++) decodedKey[i] = value.getUint8(i);
-
-          const decodedHandshake = convertFromHex(
-            HANDSHAKE_KEY.toString("hex")
-          );
-
-          const newSeed = new Uint8Array(32);
-          for (let i = 0; i < 16; ++i) {
-            newSeed[i] = decodedHandshake.charCodeAt(i);
-            newSeed[i + 16] = decodedKey[i];
-          }
-
-          const newKey = convertHexStringToNumArray(
-            createHash("sha256").update(newSeed).digest("hex")
-          ).slice(0, 16);
-          await accessSeedKey.writeValue(Buffer.from(newKey));
-
-          this.profiles = await this.loopProfiles();
-        }
+        await this.handleAuthentication();
 
         try {
           const gitHashRaw = await this.getValue(Characteristic.GIT_HASH);
@@ -716,6 +1110,9 @@ export class Device extends EventEmitter {
 
           trackDiags(diagData);
 
+          this.emit("profiles", this.profiles || {});
+          this.emit("inited", this.device);
+
           resolve({
             device: this.device,
             profiles: this.profiles || {},
@@ -724,6 +1121,8 @@ export class Device extends EventEmitter {
           console.error(`Failed to track diags: ${error}`);
         }
       } catch (error) {
+        if (isElectron()) store.dispatch(setBleConnectionModalOpen(false));
+
         if (this.server) this.server.disconnect();
         this.disconnect();
         console.error(error);
@@ -733,6 +1132,7 @@ export class Device extends EventEmitter {
   }
 
   async watchPath(path: string, int: number, len?: number) {
+    if (!this.server.connected) return;
     const open = await this.openPath(path);
     if (open.byteLength == 0) return;
 
@@ -759,6 +1159,7 @@ export class Device extends EventEmitter {
   }
 
   async closePath(path: string) {
+    if (!this.server.connected) return;
     const watch = this.pathWatchers.get(path);
 
     const unwatch = closeCmd(watch);
@@ -770,6 +1171,7 @@ export class Device extends EventEmitter {
   }
 
   async unwatchPath(path: string) {
+    if (!this.server.connected) return;
     const close = await this.closePath(path);
 
     const unwatch = unwatchCmd(close);
@@ -780,7 +1182,7 @@ export class Device extends EventEmitter {
 
   async startPolling() {
     this.poller = new EventEmitter();
-    if (!this.service) return;
+    if (!this.service || !this.server.connected) return;
 
     const initState: Partial<GatewayMemberDeviceState> = {};
     const deviceInfo: Partial<DeviceInformation> = {};
@@ -919,259 +1321,7 @@ export class Device extends EventEmitter {
     initState.chamberType = initChamberType.readUInt8(0);
     this.chamberType = initState.chamberType;
 
-    if (this.isLorax) {
-      this.loraxEvent = await this.service.getCharacteristic(
-        LoraxCharacteristic.EVENT
-      );
-
-      let currentOperatingState: number;
-      let currentChamberType: number;
-      let lastTemp: number;
-      let lastElapsedTime: number;
-
-      this.loraxEvent.addEventListener(
-        "characteristicvaluechanged",
-        async (ev) => {
-          const {
-            value: { buffer },
-          }: { value: DataView } = ev.target as any;
-          const buf = Buffer.from(buffer);
-          const reply = processLoraxEvent(buf);
-          const path = this.watchMap.get(reply.watchId);
-
-          if (!reply.data || reply.data.byteLength == 0)
-            return console.log("Ignoring", reply, path);
-
-          switch (path) {
-            case LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE]: {
-              this.lastOperatingStateUpdate = new Date();
-              if (reply.data.byteLength != 1) return;
-              const val = reply.data.readUInt8(0);
-              if (val != currentOperatingState) {
-                this.poller.emit("data", { state: val });
-
-                const {
-                  group: { group },
-                }: { group: GroupStateInterface } = store.getState();
-
-                if (group) {
-                  const groupStartOnBatteryCheck =
-                    localStorage.getItem("puff-battery-check-start") ==
-                      "true" || false;
-
-                  if (
-                    group.state == GroupState.Awaiting &&
-                    val == PuffcoOperatingState.TEMP_SELECT
-                  ) {
-                    this.setLightMode(PuffLightMode.MarkedReady);
-                  }
-
-                  if (
-                    group.state == GroupState.Chilling &&
-                    val == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
-                    groupStartOnBatteryCheck
-                  ) {
-                    setTimeout(() => gateway.send(Op.InquireHeating));
-                  }
-
-                  if (
-                    group.state == GroupState.Awaiting &&
-                    val == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
-                    groupStartOnBatteryCheck
-                  ) {
-                    setTimeout(() => gateway.send(Op.StartWithReady));
-                  }
-                }
-
-                if (
-                  val == PuffcoOperatingState.HEAT_CYCLE_PREHEAT &&
-                  currentOperatingState !=
-                    PuffcoOperatingState.HEAT_CYCLE_PREHEAT
-                ) {
-                  console.log(
-                    `DEBUG: Preheat started, suspending poller and starting watcher`
-                  );
-                  if (this.watcherSuspendTimeout) {
-                    console.log(
-                      "DEBUG: ^ Ignored because was less than 15 seconds since last heat/preheat"
-                    );
-                    clearTimeout(this.watcherSuspendTimeout);
-                  } else {
-                    this.pollerMap.get("chamberTemp").emit("suspend");
-                    await this.watchWithConfirmation(
-                      LoraxCharacteristicPathMap[
-                        Characteristic.STATE_ELAPSED_TIME
-                      ]
-                    );
-                    await this.watchWithConfirmation(
-                      LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]
-                    );
-                    await this.watchWithConfirmation(
-                      LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]
-                    );
-                  }
-                } else if (
-                  val == PuffcoOperatingState.IDLE &&
-                  [
-                    PuffcoOperatingState.HEAT_CYCLE_PREHEAT,
-                    PuffcoOperatingState.HEAT_CYCLE_ACTIVE,
-                  ].includes(currentOperatingState)
-                ) {
-                  console.log(
-                    `DEBUG: Back to Idle, unsuspending poller and stopping watcher`
-                  );
-                  this.watcherSuspendTimeout = setTimeout(async () => {
-                    console.log("Waited 15s, unwatching and resuming");
-                    await this.unwatchPath(
-                      LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]
-                    );
-                    await this.unwatchPath(
-                      LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]
-                    );
-                    await this.unwatchPath(
-                      LoraxCharacteristicPathMap[
-                        Characteristic.STATE_ELAPSED_TIME
-                      ]
-                    );
-                    this.pollerMap.get("chamberTemp").emit("resume");
-                  }, 15 * 1000);
-                }
-
-                currentOperatingState = val;
-              }
-              break;
-            }
-            case LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]: {
-              if (reply.data.byteLength != 1) return;
-              const val = reply.data.readUInt8(0);
-              if (val != currentChamberType && reply.data.byteLength == 1) {
-                this.poller.emit("data", {
-                  chamberType: val,
-                });
-                this.chamberType = val;
-                currentChamberType = val;
-              }
-              break;
-            }
-            case LoraxCharacteristicPathMap[
-              Characteristic.STATE_ELAPSED_TIME
-            ]: {
-              const conv = Number(reply.data.readFloatLE(0));
-              if (lastElapsedTime != conv && reply.data.byteLength == 4) {
-                this.poller.emit("data", {
-                  stateTime: conv,
-                });
-                lastElapsedTime = conv;
-              }
-              break;
-            }
-            case LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]: {
-              if (reply.data.byteLength < 4) return;
-              const conv = Number(reply.data.readFloatLE(0).toFixed(0));
-              if (lastTemp != conv && conv < 1000 && conv > 1) {
-                this.poller.emit("data", { temperature: conv });
-                lastTemp = conv;
-              }
-              break;
-            }
-
-            default:
-              break;
-          }
-        }
-      );
-
-      this.loraxEvent.startNotifications();
-
-      for await (const path of [
-        LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE],
-      ]) {
-        try {
-          await this.watchWithConfirmation(path);
-
-          const int = setInterval(async () => {
-            if (
-              new Date().getTime() - this.lastOperatingStateUpdate?.getTime() >
-              intMap[path] * 2
-            ) {
-              console.log(
-                "DEBUG: Deviation for",
-                path,
-                "is beyond 2x, unwatching and rewatching",
-                `(D: ${
-                  new Date().getTime() - this.lastOperatingStateUpdate.getTime()
-                })`
-              );
-
-              await this.unwatchPath(path);
-              setTimeout(() => {
-                this.watchPath(path, intMap[path]);
-              }, 500);
-            }
-          }, intMap[path]);
-
-          this.once("gattdisconnect", () => {
-            if (int) clearInterval(int);
-          });
-        } catch (error) {
-          continue;
-        }
-        await new Promise((resolve) => setTimeout(() => resolve(true), 200));
-      }
-    } else {
-      let currentOperatingState: number;
-      const operatingState = await this.pollValue(
-        Characteristic.OPERATING_STATE,
-        this.isLorax ? 555 : 1200
-      );
-      operatingState.on("change", (data: Buffer) => {
-        if (!data || data.byteLength != (this.isLorax ? 1 : 4)) return;
-        const val = this.isLorax ? data.readUInt8(0) : data.readFloatLE(0);
-        if (val != currentOperatingState) {
-          this.poller.emit("data", { state: val });
-
-          const {
-            group: { group },
-          }: { group: GroupStateInterface } = store.getState();
-
-          if (group) {
-            const groupStartOnBatteryCheck =
-              localStorage.getItem("puff-battery-check-start") == "true" ||
-              false;
-
-            if (
-              group.state == GroupState.Awaiting &&
-              val == PuffcoOperatingState.TEMP_SELECT
-            ) {
-              this.setLightMode(PuffLightMode.MarkedReady);
-            }
-
-            if (
-              group.state == GroupState.Chilling &&
-              val == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
-              groupStartOnBatteryCheck
-            ) {
-              setTimeout(() => gateway.send(Op.InquireHeating));
-            }
-
-            if (
-              group.state == GroupState.Awaiting &&
-              val == PuffcoOperatingState.INIT_BATTERY_DISPLAY &&
-              groupStartOnBatteryCheck
-            ) {
-              setTimeout(() => gateway.send(Op.StartWithReady));
-            }
-          }
-        }
-        currentOperatingState = val;
-      });
-
-      this.poller.on("stop", () => {
-        const pollers = [operatingState];
-
-        for (const poller of pollers) poller.emit("stop");
-      });
-    }
+    this.setupDevice();
 
     let currentBrightness: number;
     let currentLedColor: { r: number; g: number; b: number };
@@ -1330,7 +1480,7 @@ export class Device extends EventEmitter {
   }
 
   private async writeLoraxCommand(message: Buffer) {
-    if (!this.service) return;
+    if (!this.service || !this.server.connected) return;
 
     const char = await this.service.getCharacteristic(
       LoraxCharacteristic.COMMAND
@@ -1381,7 +1531,7 @@ export class Device extends EventEmitter {
     path?: string,
     retry?: boolean
   ) {
-    if (!this.service) return;
+    if (!this.service || !this.server.connected) return;
     if (
       this.sendingCommand &&
       [
@@ -1464,7 +1614,7 @@ export class Device extends EventEmitter {
     let attempts = 0;
     const func = async (attempt: number) => {
       if (attempt > 5) return;
-      if (!this.service) return;
+      if (!this.service || !this.server.connected) return;
       if (this.isLorax)
         await this.sendLoraxValueShort(
           LoraxCharacteristicPathMap[characteristic || Characteristic.COMMAND],
@@ -1485,7 +1635,7 @@ export class Device extends EventEmitter {
   }
 
   async writeRawValue(characteristic: string, value: Uint8Array) {
-    if (!this.service) return;
+    if (!this.service || !this.server.connected) return;
 
     const char = await this.service.getCharacteristic(characteristic);
     try {
@@ -1576,6 +1726,7 @@ export class Device extends EventEmitter {
   }
 
   async openPath(path: string): Promise<Buffer | undefined> {
+    if (!this.server.connected) return;
     return new Promise(async (resolve, reject) => {
       if (this.isLorax) {
         try {
@@ -1959,11 +2110,9 @@ export class Device extends EventEmitter {
 
       func();
       const int = setInterval(
-        () =>
-          suspended ? console.log(`DEBUG: Poller ${name} suspended`) : func(),
+        () => (suspended ? () => {} : this.pollerSuspended ? () => {} : func()),
         time
       );
-
       listener.on("suspend", () => {
         console.log(`DEBUG: Suspending poller for ${name}`);
         suspended = true;
@@ -2188,7 +2337,7 @@ export class Device extends EventEmitter {
     );
   }
 
-  disconnect() {
+  disconnect(end = false) {
     const pollers = ["led", "chamberTemp", "batteryProfile", "totalDabs"];
 
     for (const name of pollers) {
@@ -2199,6 +2348,7 @@ export class Device extends EventEmitter {
       }
     }
 
+    if (end) this.allowReconnection = false;
     if (this.server) this.server.disconnect();
 
     this.lastLoraxSequenceId = 0;
@@ -2208,6 +2358,7 @@ export class Device extends EventEmitter {
     this.watchMap = new Map();
     this.pathWatchers = new Map();
     this.sendingCommand = false;
+    this.reconnectionAttempts = 0;
 
     delete this.poller;
     delete this.server;

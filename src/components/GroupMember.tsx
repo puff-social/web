@@ -47,6 +47,7 @@ import { Device } from "../utils/puffco";
 interface GroupMemberProps {
   strain?: string;
   group?: GatewayGroup;
+  connectingDevice?: BluetoothDevice;
   device?: GatewayMemberDeviceState;
   member?: GatewayGroupMember;
   leaderboardPosition?: number;
@@ -576,8 +577,8 @@ export function GroupMember(props: GroupMemberProps) {
           <span className="flex flex-col space-y-8 justify-center items-center h-72">
             <div className="flex flex-row items-center justify-center space-x-6">
               <p className="text-center text-lg break-normal">
-                {props.instance.device
-                  ? `Connecting to ${props.instance.device.name}`
+                {props.connectingDevice
+                  ? `Connecting to ${props.connectingDevice.name}`
                   : "Pick a device from the bluetooth menu."}
               </p>
             </div>
