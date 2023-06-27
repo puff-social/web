@@ -1666,9 +1666,10 @@ export class Device extends EventEmitter {
             }: { value: DataView } = ev.target as any;
             const data = processLoraxReply(buffer);
             const msg = this.loraxMessages.get(data.seq);
-            msg.response = { data: data.data, error: !!data.error };
+            if (msg) msg.response = { data: data.data, error: !!data.error };
 
             if (
+              msg &&
               msg.op == LoraxCommands.READ_SHORT &&
               msg.seq == req.seq &&
               msg.path ==
