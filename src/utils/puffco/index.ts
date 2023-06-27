@@ -585,7 +585,7 @@ export class Device extends EventEmitter {
         this.emit("reconnecting");
         console.log("reconnecting");
 
-        await new Promise((resolve) => setTimeout(() => resolve(1), 1));
+        await new Promise((resolve) => setTimeout(() => resolve(1), 100));
 
         this.emit("clearWatchers");
 
@@ -638,6 +638,8 @@ export class Device extends EventEmitter {
         this.disconnected = false;
         this.pollerSuspended = false;
 
+        if (this.resetReconnectionsTimer)
+          clearTimeout(this.resetReconnectionsTimer);
         this.resetReconnectionsTimer = setTimeout(() => {
           if (!this.disconnected) {
             console.log(`DEBUG: Connection stable for 10s, resetting attempts`);
