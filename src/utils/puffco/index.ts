@@ -469,6 +469,7 @@ export class Device extends EventEmitter {
             }
             case LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]: {
               if (reply.data.byteLength != 1) return;
+
               const val = reply.data.readUInt8(0);
               if (val != currentChamberType && reply.data.byteLength == 1) {
                 this.poller.emit("data", {
@@ -482,8 +483,10 @@ export class Device extends EventEmitter {
             case LoraxCharacteristicPathMap[
               Characteristic.STATE_ELAPSED_TIME
             ]: {
+              if (reply.data.byteLength != 4) return;
+
               const conv = Number(reply.data.readFloatLE(0));
-              if (lastElapsedTime != conv && reply.data.byteLength == 4) {
+              if (lastElapsedTime != conv) {
                 this.poller.emit("data", {
                   stateTime: conv,
                 });
@@ -492,7 +495,8 @@ export class Device extends EventEmitter {
               break;
             }
             case LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]: {
-              if (reply.data.byteLength < 4) return;
+              if (reply.data.byteLength != 4) return;
+
               const conv = Number(reply.data.readFloatLE(0).toFixed(0));
               if (lastTemp != conv && conv < 1000 && conv > 1) {
                 this.poller.emit("data", { temperature: conv });
