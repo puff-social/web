@@ -1132,7 +1132,7 @@ export class Device extends EventEmitter {
   }
 
   async watchPath(path: string, int: number, len?: number) {
-    if (!this.server.connected) return;
+    if (!this.server || !this.server.connected) return;
     const open = await this.openPath(path);
     if (open.byteLength == 0) return;
 
@@ -1159,7 +1159,7 @@ export class Device extends EventEmitter {
   }
 
   async closePath(path: string) {
-    if (!this.server.connected) return;
+    if (!this.server || !this.server.connected) return;
     const watch = this.pathWatchers.get(path);
 
     const unwatch = closeCmd(watch);
@@ -1171,7 +1171,7 @@ export class Device extends EventEmitter {
   }
 
   async unwatchPath(path: string) {
-    if (!this.server.connected) return;
+    if (!this.server || !this.server.connected) return;
     const close = await this.closePath(path);
 
     const unwatch = unwatchCmd(close);
@@ -1182,7 +1182,7 @@ export class Device extends EventEmitter {
 
   async startPolling() {
     this.poller = new EventEmitter();
-    if (!this.service || !this.server.connected) return;
+    if (!this.service || !this.server || !this.server.connected) return;
 
     const initState: Partial<GatewayMemberDeviceState> = {};
     const deviceInfo: Partial<DeviceInformation> = {};
@@ -1480,7 +1480,7 @@ export class Device extends EventEmitter {
   }
 
   private async writeLoraxCommand(message: Buffer) {
-    if (!this.service || !this.server.connected) return;
+    if (!this.service || !this.server || !this.server.connected) return;
 
     const char = await this.service.getCharacteristic(
       LoraxCharacteristic.COMMAND
@@ -1531,7 +1531,7 @@ export class Device extends EventEmitter {
     path?: string,
     retry?: boolean
   ) {
-    if (!this.service || !this.server.connected) return;
+    if (!this.service || !this.server || !this.server.connected) return;
     if (
       this.sendingCommand &&
       [
@@ -1614,7 +1614,7 @@ export class Device extends EventEmitter {
     let attempts = 0;
     const func = async (attempt: number) => {
       if (attempt > 5) return;
-      if (!this.service || !this.server.connected) return;
+      if (!this.service || !this.server || !this.server.connected) return;
       if (this.isLorax)
         await this.sendLoraxValueShort(
           LoraxCharacteristicPathMap[characteristic || Characteristic.COMMAND],
@@ -1635,7 +1635,7 @@ export class Device extends EventEmitter {
   }
 
   async writeRawValue(characteristic: string, value: Uint8Array) {
-    if (!this.service || !this.server.connected) return;
+    if (!this.service || !this.server || !this.server.connected) return;
 
     const char = await this.service.getCharacteristic(characteristic);
     try {
@@ -1726,7 +1726,7 @@ export class Device extends EventEmitter {
   }
 
   async openPath(path: string): Promise<Buffer | undefined> {
-    if (!this.server.connected) return;
+    if (!this.server || !this.server.connected) return;
     return new Promise(async (resolve, reject) => {
       if (this.isLorax) {
         try {
