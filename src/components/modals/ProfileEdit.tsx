@@ -148,6 +148,7 @@ export function ProfileEditModal({ instance }: Props) {
 
                     <span className="flex flex-row items-center justify-center">
                       <input
+                        disabled
                         type="range"
                         min={PROFILE_TEMPERATURE_MIN}
                         max={TEMPERATURE_MAX}
