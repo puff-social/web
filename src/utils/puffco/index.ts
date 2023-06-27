@@ -1521,9 +1521,14 @@ export class Device extends EventEmitter {
     }
   }
 
-  private async getLoraxValueShort(path: string) {
+  private async getLoraxValueShort(path: string, retry?: boolean) {
     const command = readShortCmd(this.loraxLimits, path);
-    return await this.sendLoraxCommand(LoraxCommands.READ_SHORT, command, path);
+    return await this.sendLoraxCommand(
+      LoraxCommands.READ_SHORT,
+      command,
+      path,
+      retry
+    );
   }
 
   async sendLoraxValueShort(path: string, data: Buffer, padding = true) {
@@ -1661,7 +1666,8 @@ export class Device extends EventEmitter {
           const req = await this.getLoraxValueShort(
             LoraxCharacteristicPathMap[characteristic]
               ? LoraxCharacteristicPathMap[characteristic]
-              : characteristic
+              : characteristic,
+            retry
           );
 
           if (!req) return resolve(Buffer.alloc(0));
