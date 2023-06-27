@@ -40,6 +40,13 @@ import { Op, UserFlags } from "@puff-social/commons";
 import { DonationModal } from "./modals/Donation";
 import { validState } from "@puff-social/commons/dist/puffco";
 import { IntensityIcon } from "./IntensityIcon";
+import {
+  selectUIState,
+  setEditingProfile,
+  setEditingProfileIndex,
+  setProfileModalOpen,
+} from "../state/slices/ui";
+import { ProfileEditModal } from "./modals/ProfileEdit";
 
 interface ActionsProps {
   group?: GatewayGroup;
@@ -75,6 +82,7 @@ export function GroupActions({
 }: ActionsProps) {
   const reactionButton = useRef<HTMLDivElement>();
 
+  const ui = useSelector(selectUIState);
   const session = useSelector(selectSessionState);
   const dispatch = useDispatch();
 
@@ -200,112 +208,133 @@ export function GroupActions({
               <></>
             )}
             {deviceConnected ? (
-              <Tippy
-                arrow={false}
-                interactive
-                content={
-                  <span className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md space-y-2 p-2 w-72">
-                    <Tippy
-                      trigger="click"
-                      interactive
-                      content={
-                        <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-96">
-                          <p className="text-lg font-bold">Profiles</p>
-                          <span className="flex flex-col flex-wrap">
-                            {Object.keys(deviceProfiles).map((key) => (
-                              <span
-                                key={key}
-                                className="select-none text-lg flex justify-between rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 m-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
-                                onClick={async () => {
-                                  await instance.switchProfile(Number(key));
-                                  toast(
-                                    `Switched device profile to ${deviceProfiles[key].name}`
-                                  );
-                                }}
-                              >
-                                <span className="flex flex-col">
-                                  <span className="flex flex-row items-center space-x-2">
-                                    <p className="text-lg">
-                                      {deviceProfiles[key].name}
-                                    </p>
-                                    <div
-                                      className="w-4 h-4 rounded-full"
-                                      style={{
-                                        backgroundColor:
-                                          deviceProfiles[key].color,
-                                      }}
-                                    />
-                                  </span>
-                                  <p className="text-2xl font-bold">
-                                    {Math.floor(
-                                      deviceProfiles[key].temp * 1.8 + 32
-                                    )}
-                                    °
-                                  </p>
-                                </span>
-                                <div className="flex flex-row justify-end items-end">
-                                  {instance.chamberType == ChamberType["3D"] &&
-                                  deviceProfiles[key] ? (
-                                    <div className="flex flex-row space-x-2">
-                                      <IntensityIcon
-                                        intensity={
-                                          deviceProfiles[key].intensity
-                                        }
-                                      />
-                                      <span className="flex mt-2 px-1 rounded-lg bg-black text-white items-center justify-center w-fit">
-                                        <p className="text-sm px-1">
-                                          {deviceProfiles[key].time}
+              <>
+                <ProfileEditModal instance={instance} />
+                <Tippy
+                  arrow={false}
+                  interactive
+                  content={
+                    <span className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md space-y-2 p-2 w-72">
+                      <Tippy
+                        trigger="click"
+                        interactive
+                        content={
+                          <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-96">
+                            <p className="text-lg font-bold">Profiles</p>
+                            <span className="flex flex-col flex-wrap">
+                              {Object.keys(deviceProfiles).map((key) => (
+                                <div className="group" key={key}>
+                                  <div
+                                    className="hidden group-hover:flex rounded-full p-2 w-8 h-8 justify-center items-center bg-black dark:bg-white text-white opacity-50 group-hover:opacity-100 cursor-pointer dark:text-black fixed z-10 right-0"
+                                    onClick={() => {
+                                      toast(`clicked ${key}`);
+                                      dispatch(setEditingProfileIndex(key));
+                                      dispatch(
+                                        setEditingProfile(deviceProfiles[key])
+                                      );
+                                      dispatch(setProfileModalOpen(true));
+                                    }}
+                                  >
+                                    <Edit />
+                                  </div>
+                                  <div
+                                    key={key}
+                                    className="select-none group text-lg flex justify-between rounded-md bg-white dark:bg-stone-800 drop-shadow-lg p-1 m-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-stone-900"
+                                    onClick={async () => {
+                                      await instance.switchProfile(Number(key));
+                                      toast(
+                                        `Switched device profile to ${deviceProfiles[key].name}`
+                                      );
+                                    }}
+                                  >
+                                    <span className="flex flex-col">
+                                      <span className="flex flex-row items-center space-x-2">
+                                        <p className="text-lg">
+                                          {deviceProfiles[key].name}
                                         </p>
+                                        <div
+                                          className="w-4 h-4 rounded-full"
+                                          style={{
+                                            backgroundColor:
+                                              deviceProfiles[key].color,
+                                          }}
+                                        />
                                       </span>
-                                    </div>
-                                  ) : (
-                                    <span className="flex mt-2 px-1 rounded-lg bg-black text-white items-center justify-center w-fit">
-                                      <p className="text-sm px-1">
-                                        {deviceProfiles[key].time}
+                                      <p className="text-2xl font-bold">
+                                        {Math.floor(
+                                          deviceProfiles[key].temp * 1.8 + 32
+                                        )}
+                                        °
                                       </p>
                                     </span>
-                                  )}
+                                    <div className="flex flex-col justify-end items-end">
+                                      <div className="flex flex-col">
+                                        {instance.chamberType ==
+                                          ChamberType["3D"] &&
+                                        deviceProfiles[key] ? (
+                                          <div className="flex flex-row space-x-2">
+                                            <IntensityIcon
+                                              intensity={
+                                                deviceProfiles[key].intensity
+                                              }
+                                            />
+                                            <span className="flex mt-2 px-1 rounded-lg bg-black text-white items-center justify-center w-fit">
+                                              <p className="text-sm px-1">
+                                                {deviceProfiles[key].time}
+                                              </p>
+                                            </span>
+                                          </div>
+                                        ) : (
+                                          <span className="flex mt-2 px-1 rounded-lg bg-black text-white items-center justify-center w-fit">
+                                            <p className="text-sm px-1">
+                                              {deviceProfiles[key].time}
+                                            </p>
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
-                              </span>
-                            ))}
-                          </span>
-                        </div>
-                      }
-                    >
-                      <span className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between">
-                        <p>Switch Profile</p>
-                        <ArrowSwitch />
+                              ))}
+                            </span>
+                          </div>
+                        }
+                      >
+                        <span className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between">
+                          <p>Switch Profile</p>
+                          <ArrowSwitch />
+                        </span>
+                      </Tippy>
+                      <span
+                        className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
+                        onClick={() => setDeviceSettingsModalOpen(true)}
+                      >
+                        <p>Device Settings</p>
+                        <DeviceSettings />
                       </span>
-                    </Tippy>
-                    <span
-                      className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
-                      onClick={() => setDeviceSettingsModalOpen(true)}
-                    >
-                      <p>Device Settings</p>
-                      <DeviceSettings />
+                      <span
+                        className="flex p-2 rounded-md text-red-400 dark:text-red-400 bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
+                        onClick={() => disconnect()}
+                      >
+                        <p>Disconnect</p>
+                        <BluetoothDisabled />
+                      </span>
                     </span>
-                    <span
-                      className="flex p-2 rounded-md text-red-400 dark:text-red-400 bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
-                      onClick={() => disconnect()}
-                    >
-                      <p>Disconnect</p>
-                      <BluetoothDisabled />
-                    </span>
-                  </span>
-                }
-                placement="bottom-start"
-              >
-                <div className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl">
-                  <PuffcoLogo
-                    style={{
-                      color:
-                        DeviceModelColors[
-                          ProductModelMap[instance.deviceModel || "0"]
-                        ],
-                    }}
-                  />
-                </div>
-              </Tippy>
+                  }
+                  placement="bottom-start"
+                >
+                  <div className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl">
+                    <PuffcoLogo
+                      style={{
+                        color:
+                          DeviceModelColors[
+                            ProductModelMap[instance.deviceModel || "0"]
+                          ],
+                      }}
+                    />
+                  </div>
+                </Tippy>
+              </>
             ) : (
               <></>
             )}

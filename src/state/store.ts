@@ -8,6 +8,7 @@ import { createWrapper } from "next-redux-wrapper";
 
 import { session } from "./slices/session";
 import { group } from "./slices/group";
+import { ui } from "./slices/ui";
 import { updater } from "./slices/updater";
 import { desktop } from "./slices/desktop";
 
@@ -19,6 +20,7 @@ const makeStore = () => {
       [session.name]: session.reducer,
       [group.name]: group.reducer,
       [updater.name]: updater.reducer,
+      [ui.name]: ui.reducer,
       [desktop.name]: desktop.reducer,
     },
     devTools: true,

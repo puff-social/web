@@ -63,13 +63,14 @@ export const instance = new Device();
 if (typeof window != "undefined") window["instance"] = instance;
 
 export default function Group({
-  group: initGroup,
+  group: initGrp,
   headless,
 }: {
   group: APIGroup;
   headless: boolean;
 }) {
   const router = useRouter();
+  const [initGroup] = useState(initGrp);
 
   const membersList = useRef<HTMLDivElement>();
 
@@ -459,6 +460,7 @@ export default function Group({
         });
 
       return () => {
+        console.log("unregistering", initGroup);
         gateway.send(Op.LeaveGroup);
         disconnect();
         gateway.removeListener("group_join_error", groupJoinError);

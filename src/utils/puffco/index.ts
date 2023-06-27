@@ -269,7 +269,7 @@ export class Device extends EventEmitter {
       const firmwareRaw = await this.getValue(Characteristic.FIRMWARE_VERSION);
       this.deviceFirmware = numbersToLetters(firmwareRaw.readUInt8(0) + 5);
 
-      this.profiles = await this.loraxProfiles();
+      await this.loraxProfiles(false);
     } else {
       const accessSeedKey = await this.service.getCharacteristic(
         Characteristic.ACCESS_KEY
@@ -1971,7 +1971,7 @@ export class Device extends EventEmitter {
     }
   }
 
-  private async loraxProfiles() {
+  async loraxProfiles(emit = true) {
     const profileCurrentRaw = await this.getValue(
       Characteristic.PROFILE_CURRENT
     );
@@ -1981,24 +1981,29 @@ export class Device extends EventEmitter {
     let profiles: Record<number, PuffcoProfile> = {};
     for await (const idx of [0, 1, 2, 3]) {
       const profileName = await this.getValue(
-        DynamicLoraxCharacteristics[Characteristic.PROFILE_NAME](idx)
+        DynamicLoraxCharacteristics[Characteristic.PROFILE_NAME](idx),
+        true
       );
       const name = profileName.toString();
 
       const temperatureCall = await this.getValue(
-        DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TEMP](idx)
+        DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TEMP](idx),
+        true
       );
 
       const timeCall = await this.getValue(
-        DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TIME](idx)
+        DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TIME](idx),
+        true
       );
 
       const colorCall = await this.getValue(
-        DynamicLoraxCharacteristics[Characteristic.PROFILE_COLOR](idx)
+        DynamicLoraxCharacteristics[Characteristic.PROFILE_COLOR](idx),
+        true
       );
 
       const intensityCall = await this.getValue(
-        DynamicLoraxCharacteristics.PROFILE_INTENSITY(idx)
+        DynamicLoraxCharacteristics.PROFILE_INTENSITY(idx),
+        true
       );
 
       const temp = Number(temperatureCall.readFloatLE(0).toFixed(0));
@@ -2025,6 +2030,9 @@ export class Device extends EventEmitter {
         intensity,
       };
     }
+
+    this.profiles = profiles;
+    if (emit) this.emit("profiles", profiles);
 
     return profiles;
   }

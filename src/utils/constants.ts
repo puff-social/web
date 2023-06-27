@@ -1,7 +1,8 @@
 export const EASTER_EGG_CYCLE_COUNTS = [420, 710, 1620, 1910];
 
-export const TEMPERATURE_MAX = 500;
+export const TEMPERATURE_MAX = 644;
 export const TEMPERATURE_MIN = 0;
+export const PROFILE_TEMPERATURE_MIN = 400;
 
 export const DeviceModelColors = {
   Peak: "#6A6D78",
