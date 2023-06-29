@@ -151,7 +151,6 @@ export default function Group({
 
   function groupMemberLeft({ session_id }: GroupUserLeft) {
     const member = group.members.find((mem) => mem.session_id == session_id);
-    console.log("a user left", session_id, group.members, member);
     if (member)
       toast(
         `${
@@ -395,7 +394,7 @@ export default function Group({
 
   const disconnect = useCallback(async () => {
     if (deviceConnected) await instance.setLightMode(PuffLightMode.Default);
-    instance.disconnect(true);
+    instance.disconnect();
     setDeviceConnected(false);
     setMyDevice(null);
     gateway.send(Op.DisconnectDevice);
@@ -460,7 +459,6 @@ export default function Group({
         });
 
       return () => {
-        console.log("unregistering", initGroup);
         gateway.send(Op.LeaveGroup);
         disconnect();
         gateway.removeListener("group_join_error", groupJoinError);
@@ -528,6 +526,8 @@ export default function Group({
       } catch (error) {}
 
       instance.once("gattdisconnect", async () => {
+        instance.removeAllListeners("reconnecting");
+        instance.removeAllListeners("reconnected");
         setDeviceConnected(false);
 
         poller.emit("stop", false);
@@ -536,6 +536,36 @@ export default function Group({
         toast(`Disconnected from ${deviceInfo.name}`, {
           icon: <BluetoothDisabled />,
           position: "top-right",
+        });
+      });
+
+      instance.on("reconnecting", () => {
+        toast(`Reconnecting to ${deviceInfo.name}`, {
+          icon: (
+            <PuffcoLogo
+              style={{
+                color:
+                  DeviceModelColors[ProductModelMap[deviceInfo.model || "0"]],
+              }}
+            />
+          ),
+          position: "top-right",
+          duration: 1000,
+        });
+      });
+
+      instance.on("reconnected", () => {
+        toast(`Reconnected to ${deviceInfo.name}`, {
+          icon: (
+            <PuffcoLogo
+              style={{
+                color:
+                  DeviceModelColors[ProductModelMap[deviceInfo.model || "0"]],
+              }}
+            />
+          ),
+          position: "top-right",
+          duration: 1000,
         });
       });
 

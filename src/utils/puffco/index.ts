@@ -122,6 +122,8 @@ export interface Device {
   allowReconnection: boolean;
   resetReconnectionsTimer: NodeJS.Timeout;
 
+  registeredDisconnectHandler: () => void;
+
   on(event: "clearWatchers", listener: () => void): this;
   on(
     event: "profiles",
@@ -137,6 +139,7 @@ export interface Device {
     listener: (server: BluetoothRemoteGATTServer) => void
   ): this;
   on(event: "reconnecting", listener: () => void): this;
+  on(event: "reconnected", listener: () => void): this;
   on(event: "inited", listener: () => void): this;
 }
 
@@ -214,7 +217,12 @@ export class Device extends EventEmitter {
                   console.log("error unlocking");
                   return;
                 }
-                console.log("Authenticated with Lorax protocol");
+
+                console.log(
+                  `%c${this.device.name}%c Lorax: Authenticated`,
+                  `padding: 10px; font-size: 1em; line-height: 1.4em; color: white; background: #000000; border-radius: 15px;`,
+                  "font-size: 1em;"
+                );
 
                 upperResolve(true);
 
@@ -239,7 +247,6 @@ export class Device extends EventEmitter {
                   this.loraxLimits.maxFiles = data.data.readUInt16LE(1);
                   this.loraxLimits.maxCommands = data.data.readUInt16LE(2);
 
-                  console.log("Lorax Limits:", this.loraxLimits);
                   this.sendLoraxCommand(
                     LoraxCommands.GET_ACCESS_SEED,
                     null,
@@ -365,8 +372,7 @@ export class Device extends EventEmitter {
           const reply = processLoraxEvent(buf);
           const path = this.watchMap.get(reply.watchId);
 
-          if (!reply.data || reply.data.byteLength == 0)
-            return console.log("Ignoring", reply, path);
+          if (!reply.data || reply.data.byteLength == 0) return;
 
           switch (path) {
             case LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE]: {
@@ -443,11 +449,7 @@ export class Device extends EventEmitter {
                     PuffcoOperatingState.HEAT_CYCLE_ACTIVE,
                   ].includes(currentOperatingState)
                 ) {
-                  console.log(
-                    `DEBUG: Back to Idle, unsuspending poller and stopping watcher`
-                  );
                   this.watcherSuspendTimeout = setTimeout(async () => {
-                    console.log("Waited 15s, unwatching and resuming");
                     await this.unwatchPath(
                       LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]
                     );
@@ -566,24 +568,31 @@ export class Device extends EventEmitter {
         const pollers = [operatingState];
 
         for (const poller of pollers) poller.emit("stop");
+
+        delete this.poller;
       });
     }
   }
 
   async disconnectHandler() {
     try {
-      if (this.reconnectionAttempts == 3) {
+      if (this.reconnectionAttempts >= 3) {
         console.log(
           "Reconnection failed after 3 attempts, gatt server disconnected"
         );
         this.emit("gattdisconnect");
-        this.disconnect(true);
+        if (!this.disconnected) this.disconnect();
       }
 
-      if (this.allowReconnection) {
+      if (this.allowReconnection && this.device) {
         this.disconnected = true;
         this.emit("reconnecting");
-        console.log("reconnecting");
+        console.log(
+          "reconnecting",
+          this.allowReconnection,
+          this.server,
+          this.disconnected
+        );
 
         await new Promise((resolve) => setTimeout(() => resolve(1), 100));
 
@@ -604,7 +613,7 @@ export class Device extends EventEmitter {
         ]);
 
         const primaryServices = await this.server.getPrimaryServices();
-        console.log("services", this.sendingCommand);
+
         this.isLorax = !!primaryServices.find(
           (service) => service.uuid == LORAX_SERVICE
         );
@@ -635,28 +644,21 @@ export class Device extends EventEmitter {
 
         await this.setupDevice();
         this.emit("gatt_connected", this.server);
+        this.emit("reconnected", this.device);
         this.disconnected = false;
         this.pollerSuspended = false;
 
         if (this.resetReconnectionsTimer)
           clearTimeout(this.resetReconnectionsTimer);
         this.resetReconnectionsTimer = setTimeout(() => {
-          if (!this.disconnected) {
-            console.log(`DEBUG: Connection stable for 10s, resetting attempts`);
-            this.reconnectionAttempts = 0;
-          }
+          if (!this.disconnected) this.reconnectionAttempts = 0;
         }, 10 * 1000);
       } else {
-        console.log("Gatt server disconnected");
         this.emit("gattdisconnect");
-
-        this.disconnect();
+        if (!this.disconnected) this.disconnect();
       }
     } catch (error) {
-      console.log(
-        `DEBUG: Gatt reconnection failed #${this.reconnectionAttempts}`
-      );
-
+      console.log("Error", error);
       this.reconnectionAttempts = (this.reconnectionAttempts || 0) + 1;
 
       this.disconnectHandler();
@@ -813,7 +815,11 @@ export class Device extends EventEmitter {
 
                       case LoraxCommands.UNLOCK_ACCESS: {
                         if (msg.response.error) return;
-                        console.log("Authenticated with Lorax protocol");
+                        console.log(
+                          `%c${this.device.name}%c Lorax: Authenticated`,
+                          `padding: 10px; font-size: 1em; line-height: 1.4em; color: white; background: #000000; border-radius: 15px;`,
+                          "font-size: 1em;"
+                        );
 
                         upperResolve(true);
 
@@ -839,7 +845,6 @@ export class Device extends EventEmitter {
                           this.loraxLimits.maxCommands =
                             data.data.readUInt16LE(2);
 
-                          console.log("Lorax Limits:", this.loraxLimits);
                           this.sendLoraxCommand(
                             LoraxCommands.GET_ACCESS_SEED,
                             null
@@ -906,7 +911,6 @@ export class Device extends EventEmitter {
         }
 
         this.device.addEventListener("gattserverdisconnected", () => {
-          console.log("Gatt server disconnected");
           this.emit("gattdisconnect");
 
           this.disconnect();
@@ -976,9 +980,13 @@ export class Device extends EventEmitter {
           this.isLorax ? LORAX_SERVICE : SERVICE
         );
 
+        this.registeredDisconnectHandler = () => {
+          this.disconnectHandler.bind(this)();
+        };
+
         this.device.addEventListener(
           "gattserverdisconnected",
-          this.disconnectHandler.bind(this)
+          this.registeredDisconnectHandler
         );
 
         if (!this.isLorax)
@@ -1465,6 +1473,8 @@ export class Device extends EventEmitter {
           poller.emit("stop");
         }
       }
+
+      delete this.poller;
     });
 
     const {
@@ -2358,19 +2368,18 @@ export class Device extends EventEmitter {
     );
   }
 
-  disconnect(end = false) {
-    const pollers = ["led", "chamberTemp", "batteryProfile", "totalDabs"];
+  disconnect() {
+    // const pollers = ["led", "chamberTemp", "batteryProfile", "totalDabs"];
 
-    for (const name of pollers) {
-      const poller = this.pollerMap.get(name);
-      if (poller) {
-        this.pollerMap.delete(name);
-        poller.emit("stop");
-      }
-    }
-
-    if (end) this.allowReconnection = false;
-    if (this.server) this.server.disconnect();
+    this.disconnected = true;
+    this.allowReconnection = false;
+    this.poller?.emit("stop");
+    // for (const name of pollers) {
+    //   const poller = this.pollerMap.get(name);
+    //   if (poller) {
+    //     this.pollerMap.delete(name);
+    //   }
+    // }
 
     this.lastLoraxSequenceId = 0;
     this.loraxLimits = { maxCommands: 0, maxFiles: 0, maxPayload: 0 };
@@ -2381,10 +2390,20 @@ export class Device extends EventEmitter {
     this.sendingCommand = false;
     this.reconnectionAttempts = 0;
 
-    delete this.poller;
+    this.device.removeEventListener(
+      "gattserverdisconnected",
+      this.registeredDisconnectHandler
+    );
+
+    this.server?.disconnect();
     delete this.server;
     delete this.service;
+    delete this.pupService;
     delete this.device;
+    delete this.registeredDisconnectHandler;
+
+    delete this.loraxReply;
+    delete this.loraxEvent;
 
     delete this.deviceFirmware;
     delete this.deviceName;
@@ -2403,6 +2422,11 @@ export class Device extends EventEmitter {
     delete this.lastOperatingStateUpdate;
 
     if (this.watcherSuspendTimeout) clearTimeout(this.watcherSuspendTimeout);
+
+    if (this.resetReconnectionsTimer)
+      clearTimeout(this.resetReconnectionsTimer);
+
     delete this.watcherSuspendTimeout;
+    delete this.resetReconnectionsTimer;
   }
 }

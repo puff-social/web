@@ -167,7 +167,6 @@ export default function Updater() {
         }
       );
 
-      console.log("Write");
       await instance.writeFirmware(firmware);
 
       toast(`Write complete, verifying firmware and restarting device.`, {
@@ -176,7 +175,6 @@ export default function Updater() {
       });
 
       if (isPup) {
-        console.log("Verify");
         await Promise.race([
           instance.verifyTransfer,
           new Promise((resolve) => {
@@ -185,10 +183,8 @@ export default function Updater() {
         ]);
       }
 
-      console.log("End");
       await instance.endTransfer();
 
-      console.log("Disconnect");
       setWaitingOta(false);
 
       instance.disconnect();
@@ -316,7 +312,6 @@ export default function Updater() {
                             </select>
                             <select
                               onChange={({ target: { value } }) => {
-                                console.log("changing", value);
                                 setSelectedFileId(Number(value));
                               }}
                               className="p-2 m-1 rounded-md bg-neutral-700 text-white"
