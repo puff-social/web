@@ -1,6 +1,6 @@
 import { createHash } from "crypto";
 import { EventEmitter } from "events";
-import { unpack, pack } from "byte-data";
+import { pack } from "byte-data";
 import { GatewayMemberDeviceState, GroupState } from "../../types/gateway";
 import {
   convertFromHex,
@@ -49,7 +49,6 @@ import {
   PUP_DEVICE_INFO,
   PUP_GENERAL_COMMAND_CHAR,
   SILLABS_DATA_CHAR,
-  SILLABS_OTA_VERSION,
   PUP_SERIAL_NUMBER_CHAR,
 } from "./constants";
 import { store } from "../../state/store";
