@@ -581,6 +581,7 @@ export class Device extends EventEmitter {
         );
         this.emit("gattdisconnect");
         if (!this.disconnected) this.disconnect();
+        return;
       }
 
       if (this.allowReconnection && this.device) {
@@ -657,7 +658,7 @@ export class Device extends EventEmitter {
         if (!this.disconnected) this.disconnect();
       }
     } catch (error) {
-      console.log("Error", error);
+      console.log("Error", error, error.toString());
       this.reconnectionAttempts = (this.reconnectionAttempts || 0) + 1;
 
       this.disconnectHandler();
@@ -2389,7 +2390,7 @@ export class Device extends EventEmitter {
     this.sendingCommand = false;
     this.reconnectionAttempts = 0;
 
-    this.device.removeEventListener(
+    this.device?.removeEventListener(
       "gattserverdisconnected",
       this.registeredDisconnectHandler
     );
