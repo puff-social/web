@@ -154,7 +154,7 @@ export class Device extends EventEmitter {
     this.sendingCommand = false;
     this.reconnectionAttempts = 0;
     this.disconnected = true;
-    this.allowReconnection = true;
+    this.allowReconnection = false;
   }
 
   async handleAuthentication() {
@@ -935,7 +935,7 @@ export class Device extends EventEmitter {
     return new Promise(async (resolve, reject) => {
       try {
         try {
-          this.allowReconnection = true;
+          this.allowReconnection = false;
           if (isElectron()) store.dispatch(setBleConnectionModalOpen(true));
 
           this.device = await navigator.bluetooth.requestDevice({
