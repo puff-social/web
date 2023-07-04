@@ -1550,7 +1550,13 @@ export class Device extends EventEmitter {
       this.poller.removeAllListeners();
       if (this.server.connected && disconnect) this.server.disconnect();
 
-      const pollers = ["led", "chamberTemp", "batteryProfile", "totalDabs"];
+      const pollers = [
+        "led",
+        "chamberTemp",
+        "batteryProfile",
+        "totalDabs",
+        "utcTime",
+      ];
 
       for (const name of pollers) {
         const poller = this.pollerMap.get(name);
