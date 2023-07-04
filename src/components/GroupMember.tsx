@@ -84,13 +84,6 @@ export function GroupMember(props: GroupMemberProps) {
     props.leaderboardPosition || 0
   );
 
-  const [currentTimestamp, setCurrentTimestamp] = useState(0);
-
-  const lastDabDate = useMemo(
-    () => new Date(props.device?.lastDab?.timestamp),
-    [props.device?.lastDab, currentTimestamp]
-  );
-
   const session = useSelector(selectSessionState);
 
   const [bluetooth] = useState<boolean>(() => {
@@ -98,14 +91,6 @@ export function GroupMember(props: GroupMemberProps) {
     if (typeof window == "undefined") return false;
     return typeof window.navigator.bluetooth !== "undefined";
   });
-
-  useEffect(() => {
-    const int = setInterval(
-      () => setCurrentTimestamp(new Date().getTime()),
-      1000
-    );
-    return () => clearInterval(int);
-  }, []);
 
   useEffect(() => {
     (async () => {

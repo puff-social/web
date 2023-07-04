@@ -1533,7 +1533,7 @@ export class Device extends EventEmitter {
 
     const UTCTimePoll = await this.pollValue(
       [Characteristic.UTC_TIME],
-      20 * 1000
+      10 * 1000
     );
     UTCTimePoll.on("data", (data: Buffer, characteristic: string) => {
       if (characteristic == Characteristic.UTC_TIME) {
