@@ -199,8 +199,8 @@ export function DeviceSettingsModal({
                           new Date(device.utcTime * 1000)
                         ).startsWith("-")
                           ? "behind"
-                          : "ahead"
-                      } by ${formatRelativeTime(
+                          : "ahead of"
+                      } your system time by ${formatRelativeTime(
                         new Date(),
                         new Date(device.utcTime * 1000)
                       ).replace("-", "")}`}
