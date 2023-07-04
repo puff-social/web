@@ -480,6 +480,7 @@ export class Device extends EventEmitter {
                     PuffcoOperatingState.HEAT_CYCLE_ACTIVE,
                   ].includes(currentOperatingState)
                 ) {
+                  await this.readDeviceAuditLogs({ limit: 3, reverse: true });
                   this.watcherSuspendTimeout = setTimeout(async () => {
                     await this.unwatchPath(
                       LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]
@@ -2580,8 +2581,8 @@ export class Device extends EventEmitter {
       switch (logType) {
         case AuditLogCode.HEAT_CYCLE_COMPLETE: {
           if (
-            timestamp.getTime() < new Date(this.utcTime * 1000).getTime() &&
-            this.lastHeatCycleCompleted
+            timestamp.getTime() <
+            new Date(this.lastHeatCycleCompleted?.timestamp).getTime()
           )
             break;
 
