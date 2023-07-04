@@ -1,4 +1,4 @@
-import { AuditLogCode } from "../utils/puffco/constants";
+import { AuditLogCode } from "@puff-social/commons/dist/puffco";
 
 export interface PuffcoProfile {
   name: string;
