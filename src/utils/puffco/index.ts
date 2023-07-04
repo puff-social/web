@@ -2543,13 +2543,6 @@ export class Device extends EventEmitter {
   }) {
     if (!this.service || !this.server || !this.server.connected) return;
 
-    const initDeviceUTCTime = await this.getValue(
-      Characteristic.UTC_TIME,
-      true
-    );
-
-    this.utcTime = initDeviceUTCTime.readUInt32LE(0);
-
     const auditBegin =
       (await this.getValue(Characteristic.AUDIT_BEGIN)).readUInt32LE() + 1;
     const auditEnd =
