@@ -18,6 +18,7 @@ import {
   ProductModelMap,
 } from "@puff-social/commons/dist/puffco/constants";
 import { Tippy } from "../Tippy";
+import { formatRelativeTime } from "../../utils/time";
 
 interface Props {
   instance: Device;
@@ -191,7 +192,19 @@ export function DeviceSettingsModal({
                   </span>
                   <span className="flex justify-between">
                     <p className="font-bold">Device Clock</p>
-                    <Tippy content={`Your device time is off by X`}>
+                    <Tippy
+                      content={`Your device clock is ${
+                        formatRelativeTime(
+                          new Date(),
+                          new Date(device.utcTime * 1000)
+                        ).startsWith("-")
+                          ? "behind"
+                          : "ahead"
+                      } by ${formatRelativeTime(
+                        new Date(),
+                        new Date(device.utcTime * 1000)
+                      ).replace("-", "")}`}
+                    >
                       <div>
                         <p className="font-bold opacity-40">
                           {new Date(device.utcTime * 1000).toLocaleString()}

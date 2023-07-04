@@ -527,7 +527,8 @@ export function GroupMember(props: GroupMemberProps) {
                               new Date(props.device.lastDab.timestamp),
                               props.device.utcTime &&
                                 new Date(props.device.utcTime * 1000)
-                            )}
+                            )}{" "}
+                            ago
                           </p>
                           <span className="flex flex-row items-center space-x-2">
                             <p className="opacity-40">

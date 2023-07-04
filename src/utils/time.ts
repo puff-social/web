@@ -27,14 +27,14 @@ export function formatRelativeTime(fromDate: Date, toDate?: Date): string {
   const months = Math.floor(days / 30);
 
   if (months > 0) {
-    return `${months} month${months > 1 ? "s" : ""} ago`;
+    return `${months} month${months > 1 ? "s" : ""}`;
   } else if (days > 0) {
-    return `${days} day${days > 1 ? "s" : ""} ago`;
+    return `${days} day${days > 1 ? "s" : ""}`;
   } else if (hours > 0) {
-    return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    return `${hours} hour${hours > 1 ? "s" : ""}`;
   } else if (minutes > 0) {
-    return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+    return `${minutes} minute${minutes > 1 ? "s" : ""}`;
   } else {
-    return `${seconds} second${seconds !== 1 ? "s" : ""} ago`;
+    return `${seconds} second${seconds !== 1 ? "s" : ""}`;
   }
 }
