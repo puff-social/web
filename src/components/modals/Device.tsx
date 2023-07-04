@@ -10,15 +10,14 @@ import {
 import { DeviceInformation } from "../../types/api";
 import { Device } from "../../utils/puffco";
 import toast from "react-hot-toast";
-import DatePicker from "react-datepicker";
 import { trackDevice } from "../../utils/hash";
-import Tippy from "@tippyjs/react";
 import { ChamberTypeMap } from "../../utils/puffco/constants";
 import { Info } from "../icons/Info";
 import {
   DeviceState,
   ProductModelMap,
 } from "@puff-social/commons/dist/puffco/constants";
+import { Tippy } from "../Tippy";
 
 interface Props {
   instance: Device;
@@ -46,7 +45,9 @@ export function DeviceSettingsModal({
   const [brightness, setBrightness] = useState(device.brightness);
 
   const [deviceName, setDeviceName] = useState(device.deviceName);
-  const [deviceDob, setDeviceDob] = useState(new Date(info.dob * 1000));
+  const [deviceDob, setDeviceDob] = useState(
+    new Date(info.dob * 1000).toLocaleDateString()
+  );
 
   const [badBirthday, setBadBirthday] = useState(false);
 
@@ -63,20 +64,21 @@ export function DeviceSettingsModal({
   }, [info.dob]);
 
   const updateBirthday = useCallback(async () => {
+    const newDob = new Date(deviceDob);
     const current = new Date(info.dob * 1000);
-    if (deviceDob.getTime() != current.getTime()) {
-      deviceDob.setHours(4, 20, 0, 0);
+    if (newDob.getTime() != current.getTime()) {
+      newDob.setHours(4, 20, 0, 0);
 
       setBadBirthday(
-        deviceDob.getFullYear() > new Date().getFullYear() ||
-          deviceDob.getFullYear() < 2018
+        newDob.getFullYear() > new Date().getFullYear() ||
+          newDob.getFullYear() < 2018
       );
-      await instance.updateDeviceDob(deviceDob);
-      setDeviceInfo((curr) => ({ ...curr, dob: deviceDob.getTime() / 1000 }));
+      await instance.updateDeviceDob(newDob);
+      setDeviceInfo((curr) => ({ ...curr, dob: newDob.getTime() / 1000 }));
       await trackDevice({
         ...info,
         name: deviceName,
-        dob: deviceDob.getTime() / 1000,
+        dob: newDob.getTime() / 1000,
       });
     }
   }, [deviceName, deviceDob]);
@@ -88,11 +90,10 @@ export function DeviceSettingsModal({
     await trackDevice({
       ...info,
       name: deviceName,
-      dob: deviceDob.getTime() / 1000,
     });
     toast("Updated device");
     closeModal();
-  }, [deviceName, deviceDob]);
+  }, [deviceName]);
 
   const updateBrightness = useCallback(async () => {
     instance.setBrightness(brightness);
@@ -189,10 +190,20 @@ export function DeviceSettingsModal({
                     </p>
                   </span>
                   <span className="flex justify-between">
+                    <p className="font-bold">Device Clock</p>
+                    <Tippy content={`Your device time is off by X`}>
+                      <div>
+                        <p className="font-bold opacity-40">
+                          {new Date(device.utcTime * 1000).toLocaleString()}
+                        </p>
+                      </div>
+                    </Tippy>
+                  </span>
+                  <span className="flex justify-between">
                     <p className="font-bold">Birthday</p>
                     <span className="flex items-center">
                       <p className="font-bold opacity-40">
-                        {deviceDob.toLocaleDateString()}
+                        {new Date(deviceDob).toLocaleDateString()}
                       </p>
                       {badBirthday ? (
                         <Tippy
@@ -211,24 +222,15 @@ export function DeviceSettingsModal({
                                 </span>
                               </p>
                               <hr className="my-2" />
-                              <p className="font-bold">Device Date of Birth</p>
-                              <DatePicker
-                                popperPlacement="auto"
+                              <p className="font-bold">
+                                Device Date of Birth (MM/DD/YYYY)
+                              </p>
+                              <input
                                 className="w-full rounded-md p-2 mt-2 border-2 border-slate-300 text-black"
-                                filterDate={(date) =>
-                                  date.getFullYear() <=
-                                    new Date().getFullYear() &&
-                                  date.getFullYear() >= 2018
+                                value={deviceDob}
+                                onChange={({ target: { value } }) =>
+                                  setDeviceDob(value)
                                 }
-                                selected={
-                                  deviceDob.getFullYear() >
-                                    new Date().getFullYear() ||
-                                  deviceDob.getFullYear() < 2018
-                                    ? null
-                                    : deviceDob
-                                }
-                                startDate={new Date()}
-                                onChange={(data) => setDeviceDob(data)}
                               />
                               <button
                                 className="w-full self-center rounded-md bg-indigo-600 hover:bg-indigo-700 p-1 mt-3 text-white"

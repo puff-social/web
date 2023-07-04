@@ -203,6 +203,7 @@ export const intMap = {
   [LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]]: 600,
   [LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]]: 500,
   [LoraxCharacteristicPathMap[Characteristic.STATE_ELAPSED_TIME]]: 1000,
+  [LoraxCharacteristicPathMap[Characteristic.UTC_TIME]]: 1000,
 };
 
 export const DynamicLoraxCharacteristics = {

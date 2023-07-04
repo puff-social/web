@@ -337,6 +337,7 @@ export class Device extends EventEmitter {
   async setupWatchers() {
     for await (const path of [
       LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE],
+      LoraxCharacteristicPathMap[Characteristic.UTC_TIME],
     ]) {
       try {
         await this.watchWithConfirmation(path);
@@ -535,6 +536,16 @@ export class Device extends EventEmitter {
               if (lastTemp != conv && conv < 1000 && conv > 1) {
                 this.poller.emit("data", { temperature: conv });
                 lastTemp = conv;
+              }
+              break;
+            }
+            case LoraxCharacteristicPathMap[Characteristic.UTC_TIME]: {
+              if (reply.data.byteLength != 4) return;
+
+              const conv = Number(reply.data.readUInt32LE(0));
+              if (conv) {
+                this.poller.emit("data", { utcTime: conv });
+                this.utcTime = conv;
               }
               break;
             }
@@ -1531,21 +1542,21 @@ export class Device extends EventEmitter {
     });
     this.pollerMap.set("totalDabs", DabCountPoll);
 
-    const UTCTimePoll = await this.pollValue(
-      [Characteristic.UTC_TIME],
-      10 * 1000
-    );
-    UTCTimePoll.on("data", (data: Buffer, characteristic: string) => {
-      if (characteristic == Characteristic.UTC_TIME) {
-        if (data.byteLength != 4) return;
-        const val = data.readUInt32LE(0);
-        this.poller.emit("data", {
-          utcTime: val,
-        });
-        this.utcTime = val;
-      }
-    });
-    this.pollerMap.set("utcTime", UTCTimePoll);
+    // const UTCTimePoll = await this.pollValue(
+    //   [Characteristic.UTC_TIME],
+    //   2 * 1000
+    // );
+    // UTCTimePoll.on("data", (data: Buffer, characteristic: string) => {
+    //   if (characteristic == Characteristic.UTC_TIME) {
+    //     if (data.byteLength != 4) return;
+    //     const val = data.readUInt32LE(0);
+    //     this.poller.emit("data", {
+    //       utcTime: val,
+    //     });
+    //     this.utcTime = val;
+    //   }
+    // });
+    // this.pollerMap.set("utcTime", UTCTimePoll);
 
     this.poller.on("stop", (disconnect = true) => {
       this.poller.removeAllListeners();
