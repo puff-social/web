@@ -532,9 +532,11 @@ export function GroupMember(props: GroupMemberProps) {
                           <span className="flex flex-row items-center space-x-2">
                             <p className="opacity-40">
                               (
-                              {millisToMinutesAndSeconds(
-                                props.device.lastDab.totalTime * 1000
-                              )}
+                              {props.device.lastDab.timeElapsed * 1000 < 1
+                                ? "now"
+                                : millisToMinutesAndSeconds(
+                                    props.device.lastDab.timeElapsed * 1000
+                                  )}
                             </p>
                             <p className="opacity-40">@</p>
                             <p className="opacity-40">

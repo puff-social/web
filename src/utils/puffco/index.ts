@@ -2579,6 +2579,7 @@ export class Device extends EventEmitter {
       });
 
       switch (logType) {
+        case AuditLogCode.HEAT_CYCLE_ABORT_ACTIVE:
         case AuditLogCode.HEAT_CYCLE_COMPLETE: {
           if (
             timestamp.getTime() <
