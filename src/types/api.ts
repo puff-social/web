@@ -33,6 +33,7 @@ export interface DeviceInformation {
   firmware: string;
   hardware: number;
   gitHash: string;
+  utcTime: number;
 }
 
 export interface DiagService {

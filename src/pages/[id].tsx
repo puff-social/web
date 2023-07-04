@@ -6,7 +6,6 @@ import { Tippy } from "../components/Tippy";
 
 import {
   GatewayError,
-  GatewayMemberDeviceState,
   GroupActionInitiator,
   GroupHeatBegin,
   GroupHeatInquire,
@@ -95,7 +94,7 @@ export default function Group({
     Record<number, PuffcoProfile>
   >({});
   const [deviceInfo, setDeviceInfo] = useState<DeviceInformation>();
-  const [myDevice, setMyDevice] = useState<GatewayMemberDeviceState>();
+  const [myDevice, setMyDevice] = useState<DeviceState>();
 
   const [connectingDevice, setConnectingDevice] = useState<BluetoothDevice>();
 

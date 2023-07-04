@@ -8,7 +8,6 @@ import {
   useState,
 } from "react";
 import { DeviceInformation } from "../../types/api";
-import { GatewayMemberDeviceState } from "../../types/gateway";
 import { Device } from "../../utils/puffco";
 import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
@@ -16,16 +15,19 @@ import { trackDevice } from "../../utils/hash";
 import Tippy from "@tippyjs/react";
 import { ChamberTypeMap } from "../../utils/puffco/constants";
 import { Info } from "../icons/Info";
-import { ProductModelMap } from "@puff-social/commons/dist/puffco/constants";
+import {
+  DeviceState,
+  ProductModelMap,
+} from "@puff-social/commons/dist/puffco/constants";
 
 interface Props {
   instance: Device;
-  device: GatewayMemberDeviceState;
+  device: DeviceState;
   info: DeviceInformation;
   modalOpen: boolean;
   setModalOpen: Function;
   setDeviceInfo: Dispatch<SetStateAction<DeviceInformation>>;
-  setMyDevice: Dispatch<SetStateAction<GatewayMemberDeviceState>>;
+  setMyDevice: Dispatch<SetStateAction<DeviceState>>;
 }
 
 export function DeviceSettingsModal({

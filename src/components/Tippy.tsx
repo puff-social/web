@@ -1,6 +1,7 @@
 import TippyReact, { TippyProps } from "@tippyjs/react";
 
 interface CustomProps {
+  bg?: boolean;
   extraClass?: string;
 }
 
@@ -12,7 +13,11 @@ export function Tippy(props: TippyProps & CustomProps) {
       {...props}
       theme="custom"
       className={`${
-        typeof props.content == "string" ? "tippy-box-tip" : "tippy-box-none"
+        typeof props.content == "string"
+          ? "tippy-box-tip"
+          : props.bg
+          ? "tippy-box-tip"
+          : "tippy-box-none"
       } ${props.extraClass}`}
       content={
         typeof props.content == "string" ? (

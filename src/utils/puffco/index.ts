@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 import { EventEmitter } from "events";
 import { pack } from "byte-data";
-import { GatewayMemberDeviceState, GroupState } from "../../types/gateway";
+import { GroupState } from "../../types/gateway";
 import {
   convertFromHex,
   convertHexStringToNumArray,
@@ -21,7 +21,12 @@ import {
 } from "../functions";
 import { DeviceInformation, DiagData } from "../../types/api";
 import { trackDiags } from "../hash";
-import { LoraxLimits, LoraxMessage, PuffcoProfile } from "../../types/puffco";
+import {
+  AuditLogEntry,
+  LoraxLimits,
+  LoraxMessage,
+  PuffcoProfile,
+} from "../../types/puffco";
 import { gateway } from "../gateway";
 import {
   Characteristic,
@@ -53,11 +58,17 @@ import {
 } from "./constants";
 import { store } from "../../state/store";
 import { GroupState as GroupStateInterface } from "../../state/slices/group";
-import { PuffcoOperatingState } from "@puff-social/commons/dist/puffco";
+import {
+  PuffcoOperatingState,
+  AuditLogCode,
+  GatewayDeviceLastDab,
+  DeviceState,
+} from "@puff-social/commons/dist/puffco";
 import { Op } from "@puff-social/commons/dist/constants";
 import { setProgress } from "../../state/slices/updater";
 import { setBleConnectionModalOpen } from "../../state/slices/desktop";
 import { isElectron } from "../electron";
+import { HeatCycleOffset } from "./audit";
 
 const decoder = new TextDecoder("utf-8");
 
@@ -83,8 +94,15 @@ export interface Device {
   watcherSuspendTimeout: NodeJS.Timeout;
 
   lastLoraxSequenceId: number;
+  auditLogEntries: Map<number, AuditLogEntry>;
   loraxMessages: Map<number, LoraxMessage>;
   loraxLimits: LoraxLimits;
+
+  deviceInfo: Partial<DeviceInformation>;
+  initState: Partial<DeviceState>;
+
+  auditOffset: number;
+  faultOffset: number;
 
   isOta: boolean;
   isPup: boolean;
@@ -99,6 +117,7 @@ export interface Device {
   lastOperatingStateUpdate: Date;
 
   gitHash: string;
+  utcTime: number;
   deviceName: string;
   chamberType: number;
   deviceModel: string;
@@ -121,6 +140,9 @@ export interface Device {
   allowReconnection: boolean;
   resetReconnectionsTimer: NodeJS.Timeout;
 
+  lastHeatCycleCompleted: GatewayDeviceLastDab;
+  lastChargeCompleted: Date;
+
   registeredDisconnectHandler: () => void;
 
   on(event: "clearWatchers", listener: () => void): this;
@@ -140,6 +162,12 @@ export interface Device {
   on(event: "reconnecting", listener: () => void): this;
   on(event: "reconnected", listener: () => void): this;
   on(event: "inited", listener: () => void): this;
+
+  on(event: "device_last_heat_completed", listener: (date: Date) => void): this;
+  on(
+    event: "device_last_charge_completed",
+    listener: (date: Date) => void
+  ): this;
 }
 
 export class Device extends EventEmitter {
@@ -147,6 +175,7 @@ export class Device extends EventEmitter {
     super();
     this.lastLoraxSequenceId = 0;
     this.loraxLimits = { maxCommands: 0, maxFiles: 0, maxPayload: 0 };
+    this.auditLogEntries = new Map();
     this.loraxMessages = new Map();
     this.pollerMap = new Map();
     this.watchMap = new Map();
@@ -155,6 +184,9 @@ export class Device extends EventEmitter {
     this.reconnectionAttempts = 0;
     this.disconnected = true;
     this.allowReconnection = false;
+
+    this.auditOffset = 0;
+    this.faultOffset = 0;
   }
 
   async handleAuthentication() {
@@ -600,6 +632,7 @@ export class Device extends EventEmitter {
 
         this.pollerSuspended = true;
         this.lastLoraxSequenceId = 0;
+        this.auditLogEntries = new Map();
         this.loraxMessages = new Map();
         this.watchMap = new Map();
         this.pathWatchers = new Map();
@@ -1127,6 +1160,11 @@ export class Device extends EventEmitter {
           this.emit("profiles", this.profiles || {});
           this.emit("inited", this.device);
 
+          (async () => {
+            await this.readDeviceAuditLogs({ reverse: true });
+            console.log("Read device", this.auditLogEntries);
+          })();
+
           resolve({
             device: this.device,
             profiles: this.profiles || {},
@@ -1198,7 +1236,7 @@ export class Device extends EventEmitter {
     this.poller = new EventEmitter();
     if (!this.service || !this.server || !this.server.connected) return;
 
-    const initState: Partial<GatewayMemberDeviceState> = {};
+    const initState: Partial<DeviceState> = {};
     const deviceInfo: Partial<DeviceInformation> = {};
 
     initState.deviceModel = this.deviceModel;
@@ -1207,7 +1245,10 @@ export class Device extends EventEmitter {
     deviceInfo.hardware = this.hardwareVersion;
     deviceInfo.gitHash = this.gitHash;
 
-    const initTemperature = await this.getValue(Characteristic.HEATER_TEMP);
+    const initTemperature = await this.getValue(
+      Characteristic.HEATER_TEMP,
+      true
+    );
     initState.temperature = Number(initTemperature.readFloatLE(0).toFixed(0));
 
     const initActiveColor = await this.getValue(
@@ -1220,26 +1261,34 @@ export class Device extends EventEmitter {
       b: initActiveColor.readUInt8(2),
     };
 
-    const initBrightness = await this.getValue(Characteristic.LED_BRIGHTNESS);
+    const initBrightness = await this.getValue(
+      Characteristic.LED_BRIGHTNESS,
+      true
+    );
     initState.brightness = Number(
       (((Number(initBrightness.readUInt8(0)) - 0) / (255 - 0)) * 100).toFixed(0)
     );
 
-    const initBattery = await this.getValue(Characteristic.BATTERY_SOC);
+    const initBattery = await this.getValue(Characteristic.BATTERY_SOC, true);
     initState.battery = Number(initBattery.readFloatLE(0).toFixed(0));
 
-    const initStateState = await this.getValue(Characteristic.OPERATING_STATE);
+    const initStateState = await this.getValue(
+      Characteristic.OPERATING_STATE,
+      true
+    );
     initState.state = this.isLorax
       ? initStateState.readUInt8(0)
       : initStateState.readFloatLE(0);
 
     const initStateTime = await this.getValue(
-      Characteristic.STATE_ELAPSED_TIME
+      Characteristic.STATE_ELAPSED_TIME,
+      true
     );
     initState.stateTime = Number(initStateTime.readFloatLE(0));
 
     const initChargeSource = await this.getValue(
-      Characteristic.BATTERY_CHARGE_SOURCE
+      Characteristic.BATTERY_CHARGE_SOURCE,
+      true
     );
     initState.chargeSource = Number(
       (this.isLorax
@@ -1248,11 +1297,17 @@ export class Device extends EventEmitter {
       ).toFixed(0)
     );
 
-    const initTotalDabs = await this.getValue(Characteristic.TOTAL_HEAT_CYCLES);
+    const initTotalDabs = await this.getValue(
+      Characteristic.TOTAL_HEAT_CYCLES,
+      true
+    );
     initState.totalDabs = Number(initTotalDabs.readFloatLE(0));
     deviceInfo.totalDabs = initState.totalDabs;
 
-    const initDabsPerDay = await this.getValue(Characteristic.DABS_PER_DAY);
+    const initDabsPerDay = await this.getValue(
+      Characteristic.DABS_PER_DAY,
+      true
+    );
 
     deviceInfo.dabsPerDay = Number(initDabsPerDay.readFloatLE(0).toFixed(2));
     if (isNaN(deviceInfo.dabsPerDay)) deviceInfo.dabsPerDay = 0.0;
@@ -1275,7 +1330,8 @@ export class Device extends EventEmitter {
         ? DynamicLoraxCharacteristics[Characteristic.PROFILE_NAME](
             this.currentProfileId
           )
-        : Characteristic.PROFILE_NAME
+        : Characteristic.PROFILE_NAME,
+      true
     );
 
     const temperatureCall = await this.getValue(
@@ -1283,19 +1339,22 @@ export class Device extends EventEmitter {
         ? DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TEMP](
             this.currentProfileId
           )
-        : Characteristic.PROFILE_PREHEAT_TEMP
+        : Characteristic.PROFILE_PREHEAT_TEMP,
+      true
     );
     const timeCall = await this.getValue(
       this.isLorax
         ? DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TIME](
             this.currentProfileId
           )
-        : Characteristic.PROFILE_PREHEAT_TIME
+        : Characteristic.PROFILE_PREHEAT_TIME,
+      true
     );
     const colorCall = await this.getValue(
       DynamicLoraxCharacteristics[Characteristic.PROFILE_COLOR](
         this.currentProfileId
-      )
+      ),
+      true
     );
     const temp = Number(temperatureCall.readFloatLE(0).toFixed(0));
     const time = Number(timeCall.readFloatLE(0).toFixed(0));
@@ -1323,15 +1382,25 @@ export class Device extends EventEmitter {
     };
 
     const initDeviceBirthday = await this.getValue(
-      Characteristic.DEVICE_BIRTHDAY
+      Characteristic.DEVICE_BIRTHDAY,
+      true
     );
     deviceInfo.dob = initDeviceBirthday.readUInt32LE(0);
 
-    const initDeviceMac = await this.getValue(Characteristic.BT_MAC);
+    const initDeviceUTCTime = await this.getValue(
+      Characteristic.UTC_TIME,
+      true
+    );
+    this.utcTime = initDeviceUTCTime.readUInt32LE(0);
+
+    const initDeviceMac = await this.getValue(Characteristic.BT_MAC, true);
     deviceInfo.mac = intArrayToMacAddress(initDeviceMac);
     initState.deviceMac = deviceInfo.mac;
 
-    const initChamberType = await this.getValue(Characteristic.CHAMBER_TYPE);
+    const initChamberType = await this.getValue(
+      Characteristic.CHAMBER_TYPE,
+      true
+    );
     initState.chamberType = initChamberType.readUInt8(0);
     this.chamberType = initState.chamberType;
 
@@ -1491,6 +1560,12 @@ export class Device extends EventEmitter {
         await this.setLightMode(PuffLightMode.Default);
       }
     }
+
+    this.deviceInfo = deviceInfo;
+    this.initState = initState;
+
+    if (this.lastHeatCycleCompleted)
+      this.initState.lastDab = this.lastHeatCycleCompleted;
 
     return { poller: this.poller, initState, deviceInfo };
   }
@@ -1680,7 +1755,12 @@ export class Device extends EventEmitter {
             retry
           );
 
-          if (!req) return resolve(Buffer.alloc(0));
+          if (!req)
+            return resolve(
+              new Promise((res) =>
+                setTimeout(() => res(this.getValue(characteristic, retry)), 50)
+              )
+            );
 
           const func = async (ev: Event) => {
             const {
@@ -2368,8 +2448,174 @@ export class Device extends EventEmitter {
     );
   }
 
+  async readDeviceAuditLog(index: number): Promise<Buffer> {
+    try {
+      if (
+        !this.service ||
+        !this.server ||
+        !this.server.connected ||
+        !this.isLorax
+      )
+        return;
+
+      const buf = Buffer.alloc(4);
+      buf.writeUInt32LE(index);
+      try {
+        await this.sendLoraxValueShort(
+          LoraxCharacteristicPathMap.AUDIT_SELECTOR,
+          buf
+        );
+      } catch (error) {
+        await new Promise((resolve) =>
+          setTimeout(
+            () =>
+              resolve(
+                this.sendLoraxValueShort(
+                  LoraxCharacteristicPathMap.AUDIT_SELECTOR,
+                  buf
+                )
+              ),
+            10
+          )
+        );
+      }
+
+      let currentIndex: number;
+      do {
+        await new Promise((resolve) => setTimeout(() => resolve(1), 10));
+        const auditCall = await this.getValue(
+          Characteristic.AUDIT_POINTER,
+          true
+        );
+        currentIndex = auditCall.readUInt32LE(0);
+      } while (currentIndex !== index);
+
+      const entryCall = await this.getValue(Characteristic.AUDIT_ENTRY, true);
+      return entryCall;
+    } catch (error) {
+      return new Promise((resolve) =>
+        setTimeout(() => resolve(this.readDeviceAuditLog(index)), 5)
+      );
+    }
+  }
+
+  async readDeviceAuditLogs({
+    limit,
+    reverse,
+  }: {
+    limit?: number;
+    reverse?: boolean;
+  }) {
+    if (!this.service || !this.server || !this.server.connected) return;
+
+    const initDeviceUTCTime = await this.getValue(
+      Characteristic.UTC_TIME,
+      true
+    );
+
+    this.utcTime = initDeviceUTCTime.readUInt32LE(0);
+
+    const auditBegin =
+      (await this.getValue(Characteristic.AUDIT_BEGIN)).readUInt32LE() + 1;
+    const auditEnd =
+      (await this.getValue(Characteristic.AUDIT_END)).readUInt32LE() - 1;
+
+    let currentIndex = 0;
+
+    const currentOffset = reverse
+      ? this.auditOffset &&
+        this.auditOffset <= auditBegin &&
+        this.auditOffset >= auditEnd
+        ? this.auditOffset
+        : auditEnd
+      : this.auditOffset &&
+        this.auditOffset > auditBegin &&
+        this.auditOffset <= auditEnd
+      ? this.auditOffset
+      : auditBegin;
+
+    while (
+      currentIndex < (limit ?? (reverse ? auditEnd - auditBegin : auditBegin))
+    ) {
+      const log = await this.readDeviceAuditLog(
+        reverse ? currentOffset - currentIndex : currentOffset + currentIndex
+      );
+
+      const timestamp = new Date(log.readUInt32LE(0) * 1000);
+      const logType = log[4];
+
+      const curr = reverse
+        ? currentOffset - currentIndex
+        : currentOffset + currentIndex;
+      this.auditLogEntries.set(curr, {
+        id: curr,
+        type: log[4],
+        timestamp,
+        data: log,
+      });
+
+      switch (logType) {
+        case AuditLogCode.HEAT_CYCLE_COMPLETE: {
+          if (
+            timestamp.getTime() < new Date(this.utcTime * 1000).getTime() &&
+            this.lastHeatCycleCompleted
+          )
+            break;
+
+          const timeElapsed =
+            log.readInt16LE(HeatCycleOffset.TIME_ELAPSED) / 100;
+          const totalTime = log.readInt16LE(HeatCycleOffset.TOTAL_TIME) / 100;
+          const nominalTemp =
+            log.readInt16LE(HeatCycleOffset.HEAT_CYCLE_NOMINAL_TEMP) / 10;
+          const actualTemp =
+            log.readInt16LE(HeatCycleOffset.PRESENT_ACTUAL_TEMP) / 10;
+
+          this.lastHeatCycleCompleted = {
+            timestamp: timestamp.getTime(),
+            timeElapsed,
+            totalTime,
+            actualTemp,
+            nominalTemp,
+          };
+          this.poller.emit("data", {
+            lastDab: this.lastHeatCycleCompleted,
+          });
+          this.emit("device_last_heat_completed", timestamp);
+
+          break;
+        }
+        case AuditLogCode.CHARGE_COMPLETE: {
+          if (
+            timestamp.getTime() < new Date(this.utcTime * 1000).getTime() &&
+            this.lastChargeCompleted
+          )
+            break;
+
+          this.lastChargeCompleted = timestamp;
+          this.emit("device_last_charge_completed", timestamp);
+
+          break;
+        }
+      }
+
+      currentIndex++;
+
+      if (currentIndex >= limit) return;
+
+      await new Promise((resolve) => setTimeout(() => resolve(1), 10));
+    }
+  }
+
   disconnect() {
     // const pollers = ["led", "chamberTemp", "batteryProfile", "totalDabs"];
+
+    this.removeAllListeners("reconnecting");
+    this.removeAllListeners("reconnected");
+    this.removeAllListeners("profiles");
+    this.removeAllListeners("device_connected");
+    this.removeAllListeners("gatt_connected");
+    this.removeAllListeners("device_last_heat_completed");
+    this.removeAllListeners("device_last_charge_completed");
 
     this.disconnected = true;
     this.allowReconnection = false;
@@ -2383,6 +2629,7 @@ export class Device extends EventEmitter {
 
     this.lastLoraxSequenceId = 0;
     this.loraxLimits = { maxCommands: 0, maxFiles: 0, maxPayload: 0 };
+    this.auditLogEntries = new Map();
     this.loraxMessages = new Map();
     this.pollerMap = new Map();
     this.watchMap = new Map();
@@ -2402,6 +2649,9 @@ export class Device extends EventEmitter {
     delete this.device;
     delete this.registeredDisconnectHandler;
 
+    delete this.deviceInfo;
+    delete this.initState;
+
     delete this.loraxReply;
     delete this.loraxEvent;
 
@@ -2414,6 +2664,7 @@ export class Device extends EventEmitter {
     delete this.currentProfileId;
     delete this.chamberType;
     delete this.gitHash;
+    delete this.utcTime;
     delete this.isPup;
     delete this.isLorax;
     delete this.hardwareVersion;
@@ -2428,5 +2679,7 @@ export class Device extends EventEmitter {
 
     delete this.watcherSuspendTimeout;
     delete this.resetReconnectionsTimer;
+    delete this.lastChargeCompleted;
+    delete this.lastHeatCycleCompleted;
   }
 }

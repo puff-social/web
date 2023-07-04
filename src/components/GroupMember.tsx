@@ -1,9 +1,15 @@
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import toast from "react-hot-toast";
 import {
   GatewayGroup,
   GatewayGroupMember,
-  GatewayMemberDeviceState,
   PuffcoOperatingMap,
 } from "../types/gateway";
 import {
@@ -11,6 +17,7 @@ import {
   TEMPERATURE_MAX,
   TEMPERATURE_MIN,
 } from "../utils/constants";
+import { automaticRelativeDifference } from "../utils/time";
 import { Battery, BatteryBolt } from "./icons/Battery";
 import { Checkmark } from "./icons/Checkmark";
 import { Counter } from "./icons/Counter";
@@ -35,6 +42,7 @@ import { Op, UserFlags } from "@puff-social/commons";
 import {
   ChamberType,
   ChargeSource,
+  DeviceState,
   ProductModelMap,
   PuffcoOperatingState,
 } from "@puff-social/commons/dist/puffco/constants";
@@ -44,11 +52,16 @@ import { useSelector } from "react-redux";
 import { selectSessionState } from "../state/slices/session";
 import { Device } from "../utils/puffco";
 
+const formatter = new Intl.RelativeTimeFormat("en", {
+  style: "short",
+  numeric: "always",
+});
+
 interface GroupMemberProps {
   strain?: string;
   group?: GatewayGroup;
   connectingDevice?: BluetoothDevice;
-  device?: GatewayMemberDeviceState;
+  device?: DeviceState;
   member?: GatewayGroupMember;
   leaderboardPosition?: number;
   ready?: boolean;
@@ -76,6 +89,13 @@ export function GroupMember(props: GroupMemberProps) {
     props.leaderboardPosition || 0
   );
 
+  const [currentTimestamp, setCurrentTimestamp] = useState(0);
+
+  const lastDabDate = useMemo(
+    () => new Date(props.device?.lastDab?.timestamp),
+    [props.device?.lastDab, currentTimestamp]
+  );
+
   const session = useSelector(selectSessionState);
 
   const [bluetooth] = useState<boolean>(() => {
@@ -83,6 +103,14 @@ export function GroupMember(props: GroupMemberProps) {
     if (typeof window == "undefined") return false;
     return typeof window.navigator.bluetooth !== "undefined";
   });
+
+  useEffect(() => {
+    const int = setInterval(
+      () => setCurrentTimestamp(new Date().getTime()),
+      1000
+    );
+    return () => clearInterval(int);
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -493,7 +521,10 @@ export function GroupMember(props: GroupMemberProps) {
                         PuffcoOperatingState.HEAT_CYCLE_ACTIVE
                         ? "Ready"
                         : PuffcoOperatingMap[props.device.state]}
-                      {[7, 8].includes(props.device.state)
+                      {[
+                        PuffcoOperatingState.HEAT_CYCLE_PREHEAT,
+                        PuffcoOperatingState.HEAT_CYCLE_ACTIVE,
+                      ].includes(props.device.state)
                         ? ` - ${millisToMinutesAndSeconds(
                             props.device.stateTime * 1000
                           )}`
@@ -505,7 +536,41 @@ export function GroupMember(props: GroupMemberProps) {
                       <></>
                     )}
                   </span>
-                  <Tippy content="Current device profile" placement="bottom">
+                  <Tippy
+                    bg
+                    content={
+                      props.device.lastDab ? (
+                        <div className="">
+                          <p>
+                            Last Dab :{" "}
+                            {formatter.format(
+                              ...(Object.values(
+                                automaticRelativeDifference(lastDabDate)
+                              ) as [number, Intl.RelativeTimeFormatUnit])
+                            )}
+                          </p>
+                          <span className="flex flex-row items-center space-x-2">
+                            <p className="opacity-40">
+                              (
+                              {millisToMinutesAndSeconds(
+                                props.device.lastDab.totalTime * 1000
+                              )}
+                            </p>
+                            <p className="opacity-40">@</p>
+                            <p className="opacity-40">
+                              {Math.floor(
+                                props.device.lastDab.nominalTemp * 1.8 + 32
+                              )}
+                              °)
+                            </p>
+                          </span>
+                        </div>
+                      ) : (
+                        `Current Profile`
+                      )
+                    }
+                    placement="bottom"
+                  >
                     <span className="flex space-x-2">
                       <p className="text-sm truncate max-w-[8rem]">
                         {props.device.profile.name}

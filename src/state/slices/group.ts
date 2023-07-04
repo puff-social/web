@@ -4,20 +4,20 @@ import { HYDRATE } from "next-redux-wrapper";
 import { AppState } from "../store";
 import {
   GatewayGroup,
-  GatewayMemberDeviceState,
   GroupUserDeviceUpdate,
   GroupUserJoin,
   GroupUserUpdate,
 } from "../../types/gateway";
 import { DeviceInformation } from "../../types/api";
 import { PuffcoProfile } from "../../types/puffco";
+import { DeviceState } from "@puff-social/commons/dist/puffco";
 
 export interface GroupState {
   group?: GatewayGroup;
 
   deviceProfiles?: Record<number, PuffcoProfile>;
   deviceInfo?: DeviceInformation;
-  device?: GatewayMemberDeviceState;
+  device?: DeviceState;
 
   joinErrorMessage?: string;
   usAway?: boolean;

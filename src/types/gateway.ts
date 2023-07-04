@@ -1,11 +1,6 @@
 import { VoiceChannelState } from "@puff-social/commons";
 import { User } from "./api";
-import {
-  ChamberType,
-  ChargeSource,
-  Colors,
-  DeviceState,
-} from "@puff-social/commons/dist/puffco/constants";
+import { DeviceState } from "@puff-social/commons/dist/puffco/constants";
 
 export const PuffcoOperatingMap = [
   "Memory",
@@ -67,7 +62,7 @@ export interface GatewayGroupAction {
 }
 
 export interface GatewayGroupMember {
-  device_state?: GatewayMemberDeviceState;
+  device_state?: DeviceState;
   session_id: string;
   group_joined?: string;
   strain?: string;
@@ -76,31 +71,6 @@ export interface GatewayGroupMember {
   away?: boolean;
   user?: User;
   voice?: VoiceChannelState;
-}
-
-export interface GatewayDeviceProfile {
-  name: string;
-  temp: number;
-  time: string;
-  color: string;
-  intensity?: number;
-}
-
-export interface GatewayMemberDeviceState {
-  deviceMac: string;
-  activeColor: Colors;
-  brightness: number;
-  battery: number;
-  stateTime: number;
-  state: number;
-  temperature: number;
-  totalDabs: number;
-  dabsPerDay: number;
-  chargeSource: ChargeSource;
-  deviceName: string;
-  profile: GatewayDeviceProfile;
-  chamberType: ChamberType;
-  deviceModel: string;
 }
 
 export interface GroupUserUpdate {

@@ -117,6 +117,16 @@ export const Characteristic = {
   FIRMWARE_VERSION: "00002a28-0000-1000-8000-00805f9b34fb",
   HARDWARE_VERSION: "00002a27-0000-1000-8000-00805f9b34fb",
   SERIAL_NUMBER: "00002a25-0000-1000-8000-00805f9b34fb",
+
+  AUDIT_POINTER: `${BASE_CHARACTERISTIC}c1`,
+  AUDIT_ENTRY: `${BASE_CHARACTERISTIC}c2`,
+  AUDIT_BEGIN: `${BASE_CHARACTERISTIC}c3`,
+  AUDIT_END: `${BASE_CHARACTERISTIC}c4`,
+
+  FAULT_POINTER: `${BASE_CHARACTERISTIC}d1`,
+  FAULT_ENTRY: `${BASE_CHARACTERISTIC}d2`,
+  FAULT_BEGIN: `${BASE_CHARACTERISTIC}d3`,
+  FAULT_END: `${BASE_CHARACTERISTIC}d4`,
 };
 
 export const LoraxCharacteristicPathMap = {
@@ -175,6 +185,17 @@ export const LoraxCharacteristicPathMap = {
   [Characteristic.P_COEFF]: "/p/htr/tun/pco",
   [Characteristic.I_COEFF]: "/p/htr/tun/ico",
   [Characteristic.D_COEFF]: "/p/htr/tun/dco",
+
+  AUDIT_SELECTOR: "/p/logv/aud/sel", // Int32
+  [Characteristic.AUDIT_POINTER]: "/p/logv/aud/curr", // Int32
+  [Characteristic.AUDIT_ENTRY]: "/p/logv/aud/entr", // Buffer
+  [Characteristic.AUDIT_BEGIN]: "/p/logv/aud/begn", // Int32
+  [Characteristic.AUDIT_END]: "/p/logv/aud/end", // Int32
+
+  [Characteristic.FAULT_POINTER]: "/p/logv/flt/curr", // Int32
+  [Characteristic.FAULT_ENTRY]: "/p/logv/flt/entr", // Buffer
+  [Characteristic.FAULT_BEGIN]: "/p/logv/flt/begn", // Int32
+  [Characteristic.FAULT_END]: "/p/logv/flt/end", // Int32
 };
 
 export const intMap = {

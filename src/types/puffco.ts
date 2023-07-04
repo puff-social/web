@@ -1,9 +1,18 @@
+import { AuditLogCode } from "../utils/puffco/constants";
+
 export interface PuffcoProfile {
   name: string;
   temp: number;
   time: string;
   color: string;
   intensity?: number;
+}
+
+export interface AuditLogEntry {
+  id: number;
+  type: AuditLogCode;
+  timestamp: Date;
+  data: Buffer;
 }
 
 export interface LoraxMessage {
