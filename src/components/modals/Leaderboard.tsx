@@ -340,7 +340,13 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
 
                 <p className="pt-4 opacity-60 flex flex-wrap italic">
                   Your device will only show on the leaderboards if you've
-                  logged in with a puffco or discord account
+                  logged in with a puffco or discord account.
+                </p>
+
+                <p className="pt-4 opacity-60 flex flex-wrap italic">
+                  Inactive devices are not shown in the leaderboard. (Inactive
+                  device means the device has not been used on the site within
+                  the last 28 days.)
                 </p>
 
                 <p className="pt-4 opacity-60 flex flex-wrap">
@@ -348,8 +354,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                   reported from device, and on device connection.{" "}
                   <span className="font-black">
                     Leaderboards will be moderated for abuse.
-                  </span>{" "}
-                  (If you would like to opt-out of tracking, submit feedback)
+                  </span>
                 </p>
               </Dialog.Panel>
             </Transition.Child>
