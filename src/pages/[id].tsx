@@ -612,7 +612,7 @@ export default function Group({
           setDeviceInfo((deviceInfo) => {
             trackDevice({
               ...deviceInfo,
-              lastDabAt: data.lastDab.timestamp.toISOString(),
+              lastDabAt: new Date(data.lastDab.timestamp).toISOString(),
             });
             return deviceInfo;
           });
