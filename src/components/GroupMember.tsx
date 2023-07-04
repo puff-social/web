@@ -17,7 +17,7 @@ import {
   TEMPERATURE_MAX,
   TEMPERATURE_MIN,
 } from "../utils/constants";
-import { automaticRelativeDifference } from "../utils/time";
+import { formatRelativeTime } from "../utils/time";
 import { Battery, BatteryBolt } from "./icons/Battery";
 import { Checkmark } from "./icons/Checkmark";
 import { Counter } from "./icons/Counter";
@@ -51,11 +51,6 @@ import { IntensityIcon } from "./IntensityIcon";
 import { useSelector } from "react-redux";
 import { selectSessionState } from "../state/slices/session";
 import { Device } from "../utils/puffco";
-
-const formatter = new Intl.RelativeTimeFormat("en", {
-  style: "short",
-  numeric: "always",
-});
 
 interface GroupMemberProps {
   strain?: string;
@@ -543,10 +538,10 @@ export function GroupMember(props: GroupMemberProps) {
                         <div className="">
                           <p>
                             Last Dab :{" "}
-                            {formatter.format(
-                              ...(Object.values(
-                                automaticRelativeDifference(lastDabDate)
-                              ) as [number, Intl.RelativeTimeFormatUnit])
+                            {formatRelativeTime(
+                              new Date(props.device.lastDab.timestamp),
+                              props.device.utcTime &&
+                                new Date(props.device.utcTime * 1000)
                             )}
                           </p>
                           <span className="flex flex-row items-center space-x-2">

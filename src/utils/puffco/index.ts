@@ -1392,6 +1392,7 @@ export class Device extends EventEmitter {
       true
     );
     this.utcTime = initDeviceUTCTime.readUInt32LE(0);
+    initState.utcTime = this.utcTime;
 
     const initDeviceMac = await this.getValue(Characteristic.BT_MAC, true);
     deviceInfo.mac = intArrayToMacAddress(initDeviceMac);
@@ -1528,6 +1529,22 @@ export class Device extends EventEmitter {
       }
     });
     this.pollerMap.set("totalDabs", DabCountPoll);
+
+    const UTCTimePoll = await this.pollValue(
+      [Characteristic.UTC_TIME],
+      20 * 1000
+    );
+    UTCTimePoll.on("data", (data: Buffer, characteristic: string) => {
+      if (characteristic == Characteristic.UTC_TIME) {
+        if (data.byteLength != 4) return;
+        const val = data.readUInt32LE(0);
+        this.poller.emit("data", {
+          utcTime: val,
+        });
+        this.utcTime = val;
+      }
+    });
+    this.pollerMap.set("utcTime", UTCTimePoll);
 
     this.poller.on("stop", (disconnect = true) => {
       this.poller.removeAllListeners();
