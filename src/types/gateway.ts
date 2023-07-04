@@ -53,6 +53,7 @@ export interface GatewayGroup {
   name: string;
   state: GroupState;
   visibility: string;
+  persistent: boolean;
   owner_session_id: string;
   sesh_counter: number;
 }

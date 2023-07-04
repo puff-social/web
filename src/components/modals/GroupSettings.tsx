@@ -8,7 +8,10 @@ import { Checkmark } from "../icons/Checkmark";
 import { GatewayGroup } from "../../types/gateway";
 import { useRouter } from "next/router";
 import { Lock, Unlock } from "../icons/Lock";
-import { Op } from "@puff-social/commons";
+import { Op, UserFlags } from "@puff-social/commons";
+import { useSelector } from "react-redux";
+import { selectSessionState } from "../../state/slices/session";
+import { Tippy } from "../Tippy";
 
 export interface ModalProps {
   modalOpen: boolean;
@@ -26,19 +29,25 @@ export function GroupSettingsModal({
   }, []);
   const router = useRouter();
 
+  const session = useSelector(selectSessionState);
+
   const [groupName, setGroupName] = useState<string>(group.name);
   const [groupVisibility, setGroupVisibility] = useState<string>(
     group.visibility
+  );
+  const [groupPersistent, setGroupPersistent] = useState<boolean>(
+    group.persistent
   );
 
   const saveSettings = useCallback(() => {
     gateway.send(Op.UpdateGroup, {
       name: groupName,
       visibility: groupVisibility,
+      persistent: groupPersistent,
     });
     toast("Updated group", { position: "top-right", duration: 3000 });
     closeModal();
-  }, [groupName, groupVisibility]);
+  }, [groupName, groupVisibility, groupPersistent]);
 
   const deleteGroup = useCallback(() => {
     gateway.send(Op.DeleteGroup);
@@ -79,7 +88,7 @@ export function GroupSettingsModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-neutral-800 text-black dark:text-white p-6 text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl space-y-3 bg-white dark:bg-neutral-800 text-black dark:text-white p-6 text-left align-middle shadow-xl transition-all">
                 <p className="font-bold m-1 text-center">Edit Group</p>
                 <span>
                   <p className="font-bold">Name</p>
@@ -125,6 +134,22 @@ export function GroupSettingsModal({
                   </span>
                 </span>
 
+                {session.user?.flags & UserFlags.admin ? (
+                  <span className="flex justify-between items-center">
+                    <p className="font-bold w-64">Persistent Group</p>
+                    <input
+                      className="w-6 h-6 rounded-md"
+                      type="checkbox"
+                      checked={groupPersistent}
+                      onChange={({ target: { checked } }) =>
+                        setGroupPersistent(checked)
+                      }
+                    />
+                  </span>
+                ) : (
+                  <></>
+                )}
+
                 <button
                   className="w-full self-center rounded-md bg-indigo-600 hover:bg-indigo-700 p-1 mt-3 text-white"
                   onClick={() => saveSettings()}
@@ -132,12 +157,30 @@ export function GroupSettingsModal({
                   Save
                 </button>
                 <hr className="mt-3 border-neutral-500/30 rounded-md" />
-                <button
-                  className="w-full self-center rounded-md bg-red-500 hover:bg-red-600 p-1 mt-3 text-white"
-                  onClick={() => deleteGroup()}
-                >
-                  Delete Group
-                </button>
+                {group.persistent &&
+                !(session.user?.flags & UserFlags.admin) ? (
+                  <Tippy
+                    placement="bottom"
+                    content="Cannot delete a persistent group"
+                  >
+                    <div className="mt-3">
+                      <button
+                        className="w-full self-center rounded-md bg-red-500 hover:bg-red-600 p-1 text-white opacity-40"
+                        disabled
+                        onClick={() => deleteGroup()}
+                      >
+                        Delete Group
+                      </button>
+                    </div>
+                  </Tippy>
+                ) : (
+                  <button
+                    className="w-full self-center rounded-md bg-red-500 hover:bg-red-600 p-1 mt-3 text-white"
+                    onClick={() => deleteGroup()}
+                  >
+                    Delete Group
+                  </button>
+                )}
               </Dialog.Panel>
             </Transition.Child>
           </div>

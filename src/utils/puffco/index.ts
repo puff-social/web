@@ -1161,11 +1161,6 @@ export class Device extends EventEmitter {
           this.emit("profiles", this.profiles || {});
           this.emit("inited", this.device);
 
-          (async () => {
-            await this.readDeviceAuditLogs({ reverse: true });
-            console.log("Read device", this.auditLogEntries);
-          })();
-
           resolve({
             device: this.device,
             profiles: this.profiles || {},
@@ -1407,6 +1402,11 @@ export class Device extends EventEmitter {
     this.chamberType = initState.chamberType;
 
     this.setupDevice();
+
+    (async () => {
+      await this.readDeviceAuditLogs({ reverse: true });
+      console.log("Read device", this.auditLogEntries);
+    })();
 
     let currentBrightness: number;
     let currentLedColor: { r: number; g: number; b: number };

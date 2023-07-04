@@ -520,7 +520,12 @@ export default function Group({
 
       const { poller, initState, deviceInfo } = await instance.startPolling();
       try {
-        const tracked = await trackDevice(deviceInfo);
+        const tracked = await trackDevice({
+          ...deviceInfo,
+          ...(initState.lastDab
+            ? { lastDabAt: new Date(initState.lastDab.timestamp).toISOString() }
+            : {}),
+        });
         setOurLeaderboardPosition(tracked.data.position);
       } catch (error) {}
 
@@ -600,6 +605,15 @@ export default function Group({
         if (data.totalDabs)
           setDeviceInfo((deviceInfo) => {
             trackDevice({ ...deviceInfo, totalDabs: data.totalDabs });
+            return deviceInfo;
+          });
+
+        if (data.lastDab)
+          setDeviceInfo((deviceInfo) => {
+            trackDevice({
+              ...deviceInfo,
+              lastDabAt: data.lastDab.timestamp.toISOString(),
+            });
             return deviceInfo;
           });
 

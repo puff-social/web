@@ -20,6 +20,9 @@ export const session = createSlice({
   name: "session",
   initialState,
   reducers: {
+    updateSessionUser(state, action: PayloadAction<Partial<User>>) {
+      for (const key in action.payload) state.user[key] = action.payload[key];
+    },
     setSessionState(state, action: PayloadAction<Partial<SessionState>>) {
       if (typeof action.payload.user != "undefined")
         state.user = action.payload.user;
@@ -40,7 +43,7 @@ export const session = createSlice({
   },
 });
 
-export const { setSessionState } = session.actions;
+export const { updateSessionUser, setSessionState } = session.actions;
 
 export const selectSessionState = (state: AppState) => state.session;
 
