@@ -44,7 +44,7 @@ export function DeviceSettingsModal({
   }, []);
 
   const [batteryPreservation, setBatteryPreservation] = useState(
-    device.batteryPreservation
+    device.batteryPreservation || 100
   );
   const [brightness, setBrightness] = useState(device.brightness);
 
