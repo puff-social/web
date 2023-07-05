@@ -1279,6 +1279,12 @@ export class Device extends EventEmitter {
     const initBattery = await this.getValue(Characteristic.BATTERY_SOC, true);
     initState.battery = Number(initBattery.readFloatLE(0).toFixed(0));
 
+    const initBatterySaver = await this.getValue(
+      Characteristic.BATTERY_SAVER,
+      true
+    );
+    deviceInfo.batteryPreservation = Number(initBatterySaver.readFloatLE(0));
+
     const initStateState = await this.getValue(
       Characteristic.OPERATING_STATE,
       true
@@ -1958,6 +1964,20 @@ export class Device extends EventEmitter {
         Characteristic.DEVICE_NAME,
         new TextEncoder().encode(name)
       );
+    }
+  }
+
+  async updateBatteryPreservation(percentage: number) {
+    if (this.isLorax) {
+      const buf = Buffer.alloc(4);
+      buf.writeFloatLE(percentage);
+      await this.sendLoraxValueShort(
+        LoraxCharacteristicPathMap[Characteristic.BATTERY_SAVER],
+        buf
+      );
+      this.deviceInfo.batteryPreservation = percentage;
+    } else {
+      throw { code: "impement_this" };
     }
   }
 

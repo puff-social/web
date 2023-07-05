@@ -35,6 +35,7 @@ export interface DeviceInformation {
   gitHash: string;
   utcTime: number;
   lastDabAt: string;
+  batteryPreservation: number;
 }
 
 export interface DiagService {

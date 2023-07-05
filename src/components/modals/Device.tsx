@@ -43,6 +43,9 @@ export function DeviceSettingsModal({
     setModalOpen(false);
   }, []);
 
+  const [batteryPreservation, setBatteryPreservation] = useState(
+    device.batteryPreservation
+  );
   const [brightness, setBrightness] = useState(device.brightness);
 
   const [deviceName, setDeviceName] = useState(device.deviceName);
@@ -87,6 +90,8 @@ export function DeviceSettingsModal({
   const updateDevice = useCallback(async () => {
     if (deviceName != device.deviceName)
       await instance.updateDeviceName(deviceName);
+    if (batteryPreservation != device.batteryPreservation)
+      await instance.updateBatteryPreservation(batteryPreservation);
     setMyDevice((curr) => ({ ...curr, deviceName }));
     await trackDevice({
       ...info,
@@ -94,7 +99,7 @@ export function DeviceSettingsModal({
     });
     toast("Updated device");
     closeModal();
-  }, [deviceName]);
+  }, [deviceName, batteryPreservation]);
 
   const updateBrightness = useCallback(async () => {
     instance.setBrightness(brightness);
@@ -279,6 +284,23 @@ export function DeviceSettingsModal({
                       <p className="font-bold pl-1">{brightness}%</p>
                     </span>
                   </span>
+                  <Tippy content="When enabled will prevent your device from charging over 80%">
+                    <div>
+                      <span className="flex justify-between">
+                        <p className="font-bold">Battery Preservation</p>
+                        <span className="flex flex-row items-center justify-center">
+                          <input
+                            className="w-6 h-6 rounded-md"
+                            type="checkbox"
+                            checked={batteryPreservation != 100}
+                            onChange={({ target: { checked } }) =>
+                              setBatteryPreservation(checked ? 80 : 100)
+                            }
+                          />
+                        </span>
+                      </span>
+                    </div>
+                  </Tippy>
                 </span>
 
                 <button

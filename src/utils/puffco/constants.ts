@@ -78,6 +78,7 @@ export const Characteristic = {
   INPUT_CURRENT: `${BASE_CHARACTERISTIC}37`,
   BATTERY_CAPACITY: `${BASE_CHARACTERISTIC}38`,
   BATTERY_CURRENT: `${BASE_CHARACTERISTIC}39`,
+  BATTERY_SAVER: `${BASE_CHARACTERISTIC}54`,
   APPROX_DABS_REMAINING: `${BASE_CHARACTERISTIC}3a`,
   DABS_PER_DAY: `${BASE_CHARACTERISTIC}3b`,
   RAW_HEATER_TEMP: `${BASE_CHARACTERISTIC}3c`,
@@ -157,6 +158,7 @@ export const LoraxCharacteristicPathMap = {
   [Characteristic.MAGNETIC]: "/p/magm/bfld",
   [Characteristic.BATTERY_CAPACITY]: "/p/bat/cap",
   [Characteristic.BATTERY_CURRENT]: "/p/bat/curr",
+  [Characteristic.BATTERY_SAVER]: "/u/bat/msoc",
   [Characteristic.APPROX_DABS_REMAINING]: "/p/app/info/drem",
   [Characteristic.DABS_PER_DAY]: "/p/app/info/dpd",
   [Characteristic.RAW_HEATER_TEMP]: "/p/htr/temp",
@@ -185,6 +187,8 @@ export const LoraxCharacteristicPathMap = {
   [Characteristic.P_COEFF]: "/p/htr/tun/pco",
   [Characteristic.I_COEFF]: "/p/htr/tun/ico",
   [Characteristic.D_COEFF]: "/p/htr/tun/dco",
+
+  TEMP_PROFILE_COLOR: "/p/app/thc/colr", // Temp profile color?
 
   AUDIT_SELECTOR: "/p/logv/aud/sel", // Int32
   [Characteristic.AUDIT_POINTER]: "/p/logv/aud/curr", // Int32
