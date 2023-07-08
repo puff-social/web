@@ -19,22 +19,34 @@ export function automaticRelativeDifference(d: Date): {
 
 export function formatRelativeTime(fromDate: Date, toDate?: Date): string {
   if (!toDate) toDate = new Date();
-  const timeDifference = toDate.getTime() - fromDate.getTime();
+  const timeDifference = Math.abs(toDate.getTime() - fromDate.getTime());
   const seconds = Math.floor(timeDifference / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
   const months = Math.floor(days / 30);
 
-  if (months > 0) {
-    return `${months} month${months > 1 ? "s" : ""}`;
-  } else if (days > 0) {
-    return `${days} day${days > 1 ? "s" : ""}`;
-  } else if (hours > 0) {
-    return `${hours} hour${hours > 1 ? "s" : ""}`;
-  } else if (minutes > 0) {
-    return `${minutes} minute${minutes > 1 ? "s" : ""}`;
-  } else {
-    return `${seconds} second${seconds !== 1 ? "s" : ""}`;
-  }
+  if (months > 0) return `${months} month${months > 1 ? "s" : ""}`;
+  else if (days > 0) return `${days} day${days > 1 ? "s" : ""}`;
+  else if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""}`;
+  else if (minutes > 0) return `${minutes} minute${minutes > 1 ? "s" : ""}`;
+  else return `${seconds} second${seconds !== 1 ? "s" : ""}`;
+}
+
+export function convertRelativeTimestamp(
+  relativeTimestamp: Date,
+  deviceUtcTimestamp: number
+): number {
+  const deviceUtcTime = new Date(deviceUtcTimestamp * 1000);
+  const deviceTimeDifference =
+    deviceUtcTime.getTime() - relativeTimestamp.getTime();
+
+  const realTimeDifference = Math.abs(
+    new Date().getTime() - deviceUtcTime.getTime()
+  );
+
+  const convertedTimestamp =
+    new Date().getTime() - deviceTimeDifference + realTimeDifference;
+
+  return Math.abs(convertedTimestamp);
 }

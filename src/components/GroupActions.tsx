@@ -47,6 +47,7 @@ import {
   setProfileModalOpen,
 } from "../state/slices/ui";
 import { ProfileEditModal } from "./modals/ProfileEdit";
+import { Logs } from "./icons/Logs";
 
 interface ActionsProps {
   group?: GatewayGroup;
@@ -60,6 +61,7 @@ interface ActionsProps {
   connectToDevice?: Function;
   setGroupSettingsModalOpen?: Dispatch<SetStateAction<boolean>>;
   setDeviceSettingsModalOpen?: Dispatch<SetStateAction<boolean>>;
+  setDeviceLogsModalOpen?: Dispatch<SetStateAction<boolean>>;
   setUserSettingsModalOpen: Dispatch<SetStateAction<boolean>>;
   setFeedbackModalOpen: Dispatch<SetStateAction<boolean>>;
   setLeaderboardOpen: Dispatch<SetStateAction<boolean>>;
@@ -71,6 +73,7 @@ export function GroupActions({
   instance,
   setGroupSettingsModalOpen,
   setDeviceSettingsModalOpen,
+  setDeviceLogsModalOpen,
   setUserSettingsModalOpen,
   deviceConnected,
   connectDismissed,
@@ -305,6 +308,13 @@ export function GroupActions({
                           <ArrowSwitch />
                         </span>
                       </Tippy>
+                      <span
+                        className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
+                        onClick={() => setDeviceLogsModalOpen(true)}
+                      >
+                        <p>Device Logs</p>
+                        <Logs />
+                      </span>
                       <span
                         className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
                         onClick={() => setDeviceSettingsModalOpen(true)}

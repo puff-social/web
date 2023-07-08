@@ -57,6 +57,7 @@ import { DeviceModelColors } from "../utils/constants";
 import { PuffcoLogo } from "../components/icons/Puffco";
 import { isElectron } from "../utils/electron";
 import { DesktopBleConnectModal } from "../components/modals/DesktopBluetoothConnect";
+import { DeviceLogsModal } from "../components/modals/DeviceLogs";
 
 export const instance = new Device();
 if (typeof window != "undefined") window["instance"] = instance;
@@ -104,6 +105,7 @@ export default function Group({
   const [userSettingsModalOpen, setUserSettingsModalOpen] = useState(false);
   const [strainSetModalOpen, setStrainSetModalOpen] = useState(false);
   const [deviceSettingsModalOpen, setDeviceSettingsModalOpen] = useState(false);
+  const [deviceLogsModalOpen, setDeviceLogsModalOpen] = useState(false);
   const [groupSettingsModalOpen, setGroupSettingsModalOpen] = useState(false);
 
   const [firstVisit] = useState(() =>
@@ -699,15 +701,22 @@ export default function Group({
         strain={ourStrain}
       />
       {deviceConnected ? (
-        <DeviceSettingsModal
-          instance={instance}
-          device={myDevice}
-          info={deviceInfo}
-          setDeviceInfo={setDeviceInfo}
-          setMyDevice={setMyDevice}
-          modalOpen={deviceSettingsModalOpen}
-          setModalOpen={setDeviceSettingsModalOpen}
-        />
+        <>
+          <DeviceSettingsModal
+            instance={instance}
+            device={myDevice}
+            info={deviceInfo}
+            setDeviceInfo={setDeviceInfo}
+            setMyDevice={setMyDevice}
+            modalOpen={deviceSettingsModalOpen}
+            setModalOpen={setDeviceSettingsModalOpen}
+          />
+          <DeviceLogsModal
+            instance={instance}
+            modalOpen={deviceLogsModalOpen}
+            setModalOpen={setDeviceLogsModalOpen}
+          />
+        </>
       ) : (
         <></>
       )}
@@ -751,6 +760,7 @@ export default function Group({
                     disconnect={disconnect}
                     setGroupSettingsModalOpen={setGroupSettingsModalOpen}
                     setDeviceSettingsModalOpen={setDeviceSettingsModalOpen}
+                    setDeviceLogsModalOpen={setDeviceLogsModalOpen}
                     setUserSettingsModalOpen={setUserSettingsModalOpen}
                     setFeedbackModalOpen={setFeedbackModalOpen}
                     setLeaderboardOpen={setLeaderboardOpen}

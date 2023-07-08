@@ -343,6 +343,14 @@ export enum PuffLightMode {
   Default,
 }
 
+export enum HeatCycleOffset {
+  HEAT_CYCLE_NOMINAL_TEMP = 6,
+  PRESENT_COMMANDED_TEMP = 8,
+  PRESENT_ACTUAL_TEMP = 10,
+  TOTAL_TIME = 12,
+  TIME_ELAPSED = 14,
+}
+
 export const MiddlewareValue = {
   STRING: "string",
   FLOAT: "float",

@@ -55,6 +55,7 @@ import {
   PUP_GENERAL_COMMAND_CHAR,
   SILLABS_DATA_CHAR,
   PUP_SERIAL_NUMBER_CHAR,
+  HeatCycleOffset,
 } from "./constants";
 import { store } from "../../state/store";
 import { GroupState as GroupStateInterface } from "../../state/slices/group";
@@ -63,12 +64,14 @@ import {
   AuditLogCode,
   GatewayDeviceLastDab,
   DeviceState,
+  BaseAuditLogOffset,
 } from "@puff-social/commons/dist/puffco";
 import { Op } from "@puff-social/commons/dist/constants";
 import { setProgress } from "../../state/slices/updater";
 import { setBleConnectionModalOpen } from "../../state/slices/desktop";
 import { isElectron } from "../electron";
-import { HeatCycleOffset } from "./audit";
+import { parseAuditLog } from "./logs";
+import { appendAuditLog, setDeviceUTCTime } from "../../state/slices/device";
 
 const decoder = new TextDecoder("utf-8");
 
@@ -546,6 +549,7 @@ export class Device extends EventEmitter {
               if (conv) {
                 this.poller.emit("data", { utcTime: conv });
                 this.utcTime = conv;
+                store.dispatch(setDeviceUTCTime(conv));
               }
               break;
             }
@@ -1406,6 +1410,7 @@ export class Device extends EventEmitter {
     );
     this.utcTime = initDeviceUTCTime.readUInt32LE(0);
     initState.utcTime = this.utcTime;
+    store.dispatch(setDeviceUTCTime(this.utcTime));
 
     const initDeviceMac = await this.getValue(Characteristic.BT_MAC, true);
     deviceInfo.mac = intArrayToMacAddress(initDeviceMac);
@@ -1856,6 +1861,8 @@ export class Device extends EventEmitter {
         ].includes(characteristic)
           ? this.modelService
           : this.service;
+
+        if (!service || !service.device?.gatt?.connected) return resolve(null);
 
         const char = await service.getCharacteristic(characteristic);
         try {
@@ -2589,15 +2596,21 @@ export class Device extends EventEmitter {
         reverse ? currentOffset - currentIndex : currentOffset + currentIndex
       );
 
-      const timestamp = new Date(log.readUInt32LE(0) * 1000);
-      const logType = log[4];
+      const timestamp = new Date(
+        log.readUInt32LE(BaseAuditLogOffset.TIMESTAMP) * 1000
+      );
+      const logType = log[BaseAuditLogOffset.TYPE_CODE];
 
       const curr = reverse
         ? currentOffset - currentIndex
         : currentOffset + currentIndex;
+
+      const parsed = parseAuditLog(curr, this.utcTime, log);
+      store.dispatch(appendAuditLog(parsed));
+
       this.auditLogEntries.set(curr, {
         id: curr,
-        type: log[4],
+        type: logType,
         timestamp,
         data: log,
       });

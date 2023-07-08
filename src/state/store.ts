@@ -11,6 +11,7 @@ import { group } from "./slices/group";
 import { ui } from "./slices/ui";
 import { updater } from "./slices/updater";
 import { desktop } from "./slices/desktop";
+import { device } from "./slices/device";
 
 export let store: EnhancedStore;
 
@@ -22,6 +23,7 @@ const makeStore = () => {
       [updater.name]: updater.reducer,
       [ui.name]: ui.reducer,
       [desktop.name]: desktop.reducer,
+      [device.name]: device.reducer,
     },
     devTools: true,
   });
