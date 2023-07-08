@@ -75,14 +75,18 @@ function AuditData({ entry }: DeviceLogEntry) {
             Actual Temperature:{" "}
             {Math.floor((entry.data as HeatCycleLog).actualTemp * 1.8 + 32)}°F
           </p>
-          <p className="text-sm">
-            Total Time:{" "}
-            {(entry.data as HeatCycleLog).timeElapsed * 1000 < 0
-              ? "0:00"
-              : millisToMinutesAndSeconds(
-                  (entry.data as HeatCycleLog).timeElapsed * 1000
-                )}
-          </p>
+          {entry.type != AuditLogCode.HEAT_CYCLE_ENTER_PREHEAT ? (
+            <p className="text-sm">
+              Total Time:{" "}
+              {(entry.data as HeatCycleLog).timeElapsed * 1000 < 0
+                ? "0:00"
+                : millisToMinutesAndSeconds(
+                    (entry.data as HeatCycleLog).timeElapsed * 1000
+                  )}
+            </p>
+          ) : (
+            <></>
+          )}
         </div>
       );
     }
