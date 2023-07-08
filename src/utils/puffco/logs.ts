@@ -44,7 +44,7 @@ export function parseAuditLog(
           log.readInt8(ChargeStartOffset.BATTERY_TEMP).toFixed(1)
         ),
         voltage: Number(
-          log.readInt8(ChargeStartOffset.BATTERY_VOLTAGE).toFixed(3)
+          (log.readInt8(ChargeStartOffset.BATTERY_VOLTAGE) / 1000).toFixed(3)
         ),
       } as ChargeStartLog;
       break;

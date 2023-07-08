@@ -2,8 +2,10 @@ import {
   AuditLog,
   AuditLogCode,
   ChargeLog,
+  ChargeStartLog,
   ClockAdjustLog,
   HeatCycleLog,
+  SystemBootLog,
 } from "@puff-social/commons/dist/puffco";
 import { useSelector } from "react-redux";
 import { selectCurrentDeviceState } from "../state/slices/device";
@@ -18,6 +20,7 @@ import {
   formatFancyDuration,
   millisToMinutesAndSeconds,
 } from "../utils/functions";
+import { PowerIcon } from "./icons/Power";
 
 interface DeviceLogEntry {
   entry: AuditLog;
@@ -35,6 +38,7 @@ const IconMap = {
   [AuditLogCode.CHARGER_DISCONNECTED]: <PlugDisconnected />,
   [AuditLogCode.CHARGE_COMPLETE]: <BatteryCheck />,
   [AuditLogCode.CLOCK_ADJUST]: <ClockAdjust />,
+  [AuditLogCode.SYSTEM_BOOT]: <PowerIcon />,
 };
 
 const TitleMap = {
@@ -49,6 +53,7 @@ const TitleMap = {
   [AuditLogCode.CHARGER_DISCONNECTED]: "Charger Disconnected",
   [AuditLogCode.CHARGE_COMPLETE]: "Charging Complete",
   [AuditLogCode.CLOCK_ADJUST]: "Device Clock Adjusted",
+  [AuditLogCode.SYSTEM_BOOT]: "System Boot",
 };
 
 function AuditData({ entry }: DeviceLogEntry) {
@@ -58,6 +63,7 @@ function AuditData({ entry }: DeviceLogEntry) {
     case AuditLogCode.HEAT_CYCLE_ABORT_ACTIVE:
     case AuditLogCode.HEAT_CYCLE_ABORT_PREHEAT:
     case AuditLogCode.HEAT_CYCLE_ACTIVE:
+    case AuditLogCode.HEAT_CYCLE_FAULTED:
     case AuditLogCode.HEAT_CYCLE_BOOSTED: {
       return (
         <div>
@@ -100,6 +106,21 @@ function AuditData({ entry }: DeviceLogEntry) {
         </div>
       );
     }
+    case AuditLogCode.CHARGE_START: {
+      return (
+        <div>
+          <p className="text-sm">
+            Battery Temperature:{" "}
+            {Math.floor((entry.data as ChargeStartLog).temperature * 1.8 + 32)}
+            °F
+          </p>
+          <p className="text-sm">
+            Battery Voltage:{" "}
+            {Math.floor((entry.data as ChargeStartLog).voltage)} V
+          </p>
+        </div>
+      );
+    }
     case AuditLogCode.CLOCK_ADJUST: {
       return (
         <div>
@@ -116,6 +137,15 @@ function AuditData({ entry }: DeviceLogEntry) {
               : formatFancyDuration(
                   (entry.data as ClockAdjustLog).uptime * 1000
                 )}
+          </p>
+        </div>
+      );
+    }
+    case AuditLogCode.SYSTEM_BOOT: {
+      return (
+        <div>
+          <p className="text-sm">
+            Cause: {(entry.data as SystemBootLog).cause}
           </p>
         </div>
       );
