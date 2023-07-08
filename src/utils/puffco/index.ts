@@ -563,6 +563,7 @@ export class Device extends EventEmitter {
       this.loraxEvent.startNotifications();
 
       this.setupWatchers();
+      this.updateDeviceTime(new Date());
     } else {
       let currentOperatingState: number;
       const operatingState = await this.pollValue(
@@ -1983,6 +1984,22 @@ export class Device extends EventEmitter {
         buf
       );
       this.deviceInfo.batteryPreservation = percentage;
+    } else {
+      throw { code: "impement_this" };
+    }
+  }
+
+  async updateDeviceTime(date: Date) {
+    if (this.isLorax) {
+      const time = Math.floor(date.getTime() / 1000);
+      const buf = Buffer.alloc(4);
+      buf.writeUInt32LE(time);
+      await this.sendLoraxValueShort(
+        LoraxCharacteristicPathMap[Characteristic.UTC_TIME],
+        buf
+      );
+      this.utcTime = time;
+      this.deviceInfo.utcTime = time;
     } else {
       throw { code: "impement_this" };
     }
