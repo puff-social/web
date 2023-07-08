@@ -189,6 +189,7 @@ export function DeviceLogEntry({ entry }: DeviceLogEntry) {
         AuditLogCode.CHARGER_DISCONNECTED,
         AuditLogCode.CHARGE_COMPLETE,
         AuditLogCode.CLOCK_ADJUST,
+        AuditLogCode.SYSTEM_BOOT,
       ].includes(entry.type) && entry.data ? (
         <>
           <div className="space-y-1 mt-2">
