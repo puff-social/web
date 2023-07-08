@@ -1999,7 +1999,7 @@ export class Device extends EventEmitter {
         buf
       );
       this.utcTime = time;
-      this.deviceInfo.utcTime = time;
+      if (this.deviceInfo) this.deviceInfo.utcTime = time;
     } else {
       throw { code: "impement_this" };
     }
