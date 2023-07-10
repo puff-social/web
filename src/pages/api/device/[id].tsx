@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { getLeaderboardDevice } from "../../../utils/hash";
 import { Counter } from "../../../components/icons/Counter";
 import { ProductModelMap } from "@puff-social/commons/dist/puffco/constants";
+import { formatRelativeTime } from "../../../utils/time";
 
 export const config = {
   runtime: "edge",
@@ -24,9 +25,9 @@ export default async function handler(req: NextRequest) {
   const boldFontData = await fontBold;
 
   try {
-    const device = await getLeaderboardDevice(
-      req.nextUrl.searchParams.get("id")
-    );
+    const {
+      data: { device, position },
+    } = await getLeaderboardDevice(req.nextUrl.searchParams.get("id"));
 
     return new ImageResponse(
       (
@@ -41,37 +42,35 @@ export default async function handler(req: NextRequest) {
             padding: "10px",
           }}
         >
+          <img
+            style={{ marginLeft: "20px", marginTop: "20px" }}
+            src={`https://puff.social/${ProductModelMap[
+              device.model
+            ].toLowerCase()}/device.png`}
+            width={200}
+          />
           <div
             style={{
               display: "flex",
-              justifyContent: "space-between",
+              position: "absolute",
+              top: "1",
+              right: "1",
               width: "100%",
             }}
           >
-            <span />
             <p
               style={{
                 fontSize: 25,
                 opacity: 0.6,
-                position: "absolute",
-                right: "0",
                 fontFamily: "RobotoMono",
                 display: "flex",
                 justifyContent: "flex-end",
                 margin: "0px",
-                marginTop: "0px",
-                marginRight: "10px",
               }}
             >
-              #{device.data.position}
+              #{position}
             </p>
           </div>
-          <img
-            src={`https://puff.social/${ProductModelMap[
-              device.data.device.devices.model
-            ].toLowerCase()}/device.png`}
-            width={200}
-          />
           <div
             style={{
               fontSize: 30,
@@ -87,30 +86,38 @@ export default async function handler(req: NextRequest) {
                 fontFamily: "RobotoMono",
               }}
             >
-              {device.data.device.devices.name}
+              {device.name}
             </span>
 
             <span
               style={{
+                display: "flex",
+                alignItems: "center",
                 fontFamily: "RobotoMono",
+                fontSize: "18px",
               }}
             >
-              <Counter style={{ marginRight: "10px" }} />{" "}
-              {device.data.device.devices.dabs.toLocaleString()}
+              <Counter style={{ marginRight: "8px" }} />{" "}
+              {device.dabs.toLocaleString()} dabs - {device.avg_dabs} avg
             </span>
             <span
               style={{
                 fontFamily: "RobotoMono",
+                fontSize: "16px",
               }}
             >
-              🎂 {new Date(device.data.device.devices.dob).toLocaleDateString()}
+              🎂 {new Date(device.dob).toLocaleDateString()} - ⏰{" "}
+              {formatRelativeTime(
+                new Date(),
+                device.last_dab && new Date(device.last_dab)
+              )}
             </span>
           </div>
         </div>
       ),
       {
-        width: 325,
-        height: 600,
+        width: 500,
+        height: 500,
         fonts: [
           {
             name: "RobotoMono",
@@ -155,8 +162,8 @@ export default async function handler(req: NextRequest) {
         </div>
       ),
       {
-        width: 325,
-        height: 600,
+        width: 500,
+        height: 500,
         fonts: [
           {
             name: "RobotoMono",
