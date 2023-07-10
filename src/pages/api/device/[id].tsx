@@ -29,11 +29,13 @@ export default async function handler(req: NextRequest) {
       data: { device, position },
     } = await getLeaderboardDevice(req.nextUrl.searchParams.get("id"));
 
+    const background = req.nextUrl.searchParams.get("background");
+
     return new ImageResponse(
       (
         <div
           style={{
-            backgroundColor: "#fff",
+            backgroundColor: background ? "#ffffff00" : "#fff",
             height: "100%",
             width: "100%",
             justifyContent: "space-between",
