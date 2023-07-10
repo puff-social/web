@@ -89,6 +89,23 @@ export interface Connection {
 
 export interface LeaderboardEntry {
   id: string;
+  position: number;
+  devices: {
+    name: string;
+    dabs: number;
+    avg_dabs: number;
+    model: string;
+    firmware: string;
+    hardware: string;
+    last_active: string;
+    dob: string;
+    user_id?: string;
+    users?: User;
+  };
+}
+
+export interface GetDeviceEntry {
+  id: string;
   name: string;
   dabs: number;
   avg_dabs: number;

@@ -6,6 +6,7 @@ import {
   User,
   DeviceInformation,
   Connection,
+  GetDeviceEntry,
 } from "../types/api";
 
 export const API_URL =
@@ -85,7 +86,7 @@ export async function getLeaderboardDevice(id: string) {
   );
   if (req.status != 200) throw { code: "device_not_found" };
   return (await req.json()) as APIResponse<{
-    device: LeaderboardEntry;
+    device: GetDeviceEntry;
     position: number;
   }>;
 }
