@@ -35,8 +35,8 @@ import { PuffcoProfile } from "../types/puffco";
 import { DeviceSettingsModal } from "../components/modals/Device";
 import { Kick } from "../components/icons/Kick";
 import Link from "next/link";
-import { ChatBox } from "../components/Chat";
-import { ChatIcon } from "../components/icons/Chat";
+// import { ChatBox } from "../components/Chat";
+// import { ChatIcon } from "../components/icons/Chat";
 import { GroupHeader } from "../components/group/Header";
 import { GroupMembersModal } from "../components/modals/GroupMembers";
 import { GroupStrainModal } from "../components/modals/GroupStrain";
@@ -847,7 +847,7 @@ export default function Group({
             </>
           </div>
 
-          {!headless ? (
+          {/* {!headless ? (
             <div className="absolute right-0 bottom-0 m-4">
               <Tippy
                 interactive
@@ -881,7 +881,7 @@ export default function Group({
             </div>
           ) : (
             <></>
-          )}
+          )} */}
 
           <div />
         </NoSSR>

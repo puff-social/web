@@ -299,15 +299,19 @@ export class Device extends EventEmitter {
         this.sendLoraxCommand(LoraxCommands.GET_LIMITS, null, null, true);
       });
 
-      const modelRaw = await this.getValue(Characteristic.HARDWARE_MODEL);
+      const modelRaw = await this.getValue(Characteristic.HARDWARE_MODEL, true);
       this.deviceModel = modelRaw.readUInt32LE(0).toString();
 
       const hardwareVersion = await this.getValue(
-        Characteristic.HARDWARE_VERSION
+        Characteristic.HARDWARE_VERSION,
+        true
       );
       this.hardwareVersion = hardwareVersion.readUInt8(0);
 
-      const firmwareRaw = await this.getValue(Characteristic.FIRMWARE_VERSION);
+      const firmwareRaw = await this.getValue(
+        Characteristic.FIRMWARE_VERSION,
+        true
+      );
       this.deviceFirmware = numbersToLetters(firmwareRaw.readUInt8(0) + 5);
 
       await this.loraxProfiles(false);
@@ -1053,16 +1057,21 @@ export class Device extends EventEmitter {
           this.pupService = await this.server.getPrimaryService(PUP_SERVICE);
 
         if (!this.isLorax) {
-          const modelRaw = await this.getValue(Characteristic.HARDWARE_MODEL);
+          const modelRaw = await this.getValue(
+            Characteristic.HARDWARE_MODEL,
+            true
+          );
           this.deviceModel = modelRaw.toString();
 
           const firmwareRaw = await this.getValue(
-            Characteristic.FIRMWARE_VERSION
+            Characteristic.FIRMWARE_VERSION,
+            true
           );
           this.deviceFirmware = decoder.decode(firmwareRaw);
 
           const hardwareVersion = await this.getValue(
-            Characteristic.HARDWARE_VERSION
+            Characteristic.HARDWARE_VERSION,
+            true
           );
           this.hardwareVersion = hardwareVersion.readUInt8(0);
 
@@ -1104,27 +1113,36 @@ export class Device extends EventEmitter {
         await this.handleAuthentication();
 
         try {
-          const gitHashRaw = await this.getValue(Characteristic.GIT_HASH);
+          const gitHashRaw = await this.getValue(Characteristic.GIT_HASH, true);
           this.gitHash = gitHashRaw.toString();
 
-          const deviceUptimeRaw = await this.getValue(Characteristic.UPTIME);
+          const deviceUptimeRaw = await this.getValue(
+            Characteristic.UPTIME,
+            true
+          );
           const deviceUptime = deviceUptimeRaw.readUInt32LE(0);
 
-          const deviceUtcTimeRaw = await this.getValue(Characteristic.UTC_TIME);
+          const deviceUtcTimeRaw = await this.getValue(
+            Characteristic.UTC_TIME,
+            true
+          );
           const deviceUtcTime = deviceUtcTimeRaw.readUInt32LE(0);
 
           const deviceDobRaw = await this.getValue(
-            Characteristic.DEVICE_BIRTHDAY
+            Characteristic.DEVICE_BIRTHDAY,
+            true
           );
           const deviceDob = deviceDobRaw.readUInt32LE(0);
 
           const batteryCapacityRaw = await this.getValue(
-            Characteristic.BATTERY_CAPACITY
+            Characteristic.BATTERY_CAPACITY,
+            true
           );
           const batteryCapacity = batteryCapacityRaw.readUInt16LE(0);
 
           const deviceMacAddressRaw = await this.getValue(
-            Characteristic.BT_MAC
+            Characteristic.BT_MAC,
+            true
           );
           this.deviceMacAddress = intArrayToMacAddress(deviceMacAddressRaw);
 
@@ -1137,7 +1155,8 @@ export class Device extends EventEmitter {
           }
 
           const chamberTypeRaw = await this.getValue(
-            Characteristic.CHAMBER_TYPE
+            Characteristic.CHAMBER_TYPE,
+            true
           );
           const chamberType = chamberTypeRaw.readUInt8(0);
           this.chamberType = chamberType;
@@ -1256,6 +1275,7 @@ export class Device extends EventEmitter {
     deviceInfo.firmware = this.deviceFirmware;
     deviceInfo.hardware = this.hardwareVersion;
     deviceInfo.gitHash = this.gitHash;
+    deviceInfo.serial = this.deviceSerialNumber;
 
     const initTemperature = await this.getValue(
       Characteristic.HEATER_TEMP,
@@ -1393,7 +1413,8 @@ export class Device extends EventEmitter {
             await this.getValue(
               DynamicLoraxCharacteristics.PROFILE_INTENSITY(
                 this.currentProfileId
-              )
+              ),
+              true
             )
           ).readFloatLE(0)
         : 0,
@@ -2154,7 +2175,8 @@ export class Device extends EventEmitter {
 
   async loraxProfiles(emit = true) {
     const profileCurrentRaw = await this.getValue(
-      Characteristic.PROFILE_CURRENT
+      Characteristic.PROFILE_CURRENT,
+      true
     );
     const profileCurrent = profileCurrentRaw.readUInt8(0);
     this.currentProfileId = profileCurrent;
@@ -2588,9 +2610,10 @@ export class Device extends EventEmitter {
     if (!this.service || !this.server || !this.server.connected) return;
 
     const auditBegin =
-      (await this.getValue(Characteristic.AUDIT_BEGIN)).readUInt32LE() + 1;
+      (await this.getValue(Characteristic.AUDIT_BEGIN, true)).readUInt32LE() +
+      1;
     const auditEnd =
-      (await this.getValue(Characteristic.AUDIT_END)).readUInt32LE() - 1;
+      (await this.getValue(Characteristic.AUDIT_END, true)).readUInt32LE() - 1;
 
     let currentIndex = 0;
 
