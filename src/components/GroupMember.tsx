@@ -75,6 +75,7 @@ interface GroupMemberProps {
   connectToDevice?: Function;
   instance?: Device;
   headless?: boolean;
+  overlay?: boolean;
   removeBackground?: boolean;
   useDeviceName?: boolean;
   connectDismissed?: boolean;
@@ -114,8 +115,10 @@ export function GroupMember(props: GroupMemberProps) {
   }, [props.leaderboardPosition]);
 
   useEffect(() => {
-    const int = setInterval(() => setCurrentDate(new Date()), 1000);
-    return () => clearInterval(int);
+    if (props.overlay) {
+      const int = setInterval(() => setCurrentDate(new Date()), 1000);
+      return () => clearInterval(int);
+    }
   }, []);
 
   if ((props.nobodyelse && props.headless) || (props.headless && props.us)) {
