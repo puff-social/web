@@ -385,7 +385,7 @@ export function GroupMember(props: GroupMemberProps) {
                       ].toLowerCase()
                     : ProductModelMap[0].toLowerCase()
                 }
-                device={props.device}
+                device={props.device || { activeColor: { r: 0, g: 0, b: 0 } }}
               />
               <span className="flex flex-col p-4 w-full min-w-[60%]">
                 <p style={{ visibility: "hidden", display: "none" }}>

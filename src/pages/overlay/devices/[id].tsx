@@ -1,8 +1,11 @@
 import { GetServerSidePropsContext } from "next/types";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { GetDeviceEntry } from "../../../types/api";
 import { GroupMember } from "../../../components/GroupMember";
 import { getLeaderboardDevice } from "../../../utils/hash";
+import { GatewayWatchedDeviceUpdate } from "../../../types/gateway";
+import { gateway } from "../../../utils/gateway";
+import { Op } from "@puff-social/commons";
 
 interface Props {
   id: string;
@@ -14,9 +17,43 @@ interface Props {
 export default function DeviceOverlay(props: Props) {
   const [device, setDevice] = useState<GetDeviceEntry>(props.initDevice);
 
+  const watchedUpdate = useCallback(
+    (data: GatewayWatchedDeviceUpdate) => {
+      if (data.id == props.id) {
+        setDevice((device) => ({
+          ...device,
+          ...(data.lastDab
+            ? { last_dab: new Date(data.lastDab.timestamp).toISOString() }
+            : {}),
+          ...(data.dabs ? { dabs: data.dabs } : {}),
+          ...(data.dabsPerDay ? { avg_dabs: data.dabsPerDay } : {}),
+        }));
+      }
+    },
+    [device]
+  );
+
+  async function watchDevice(id: string) {
+    if (gateway.ws.readyState == gateway.ws.OPEN) {
+      gateway.send(Op.WatchDevice, { id });
+    } else {
+      new Promise((resolve) => setTimeout(() => resolve(1), 100)).then(() =>
+        watchDevice(id)
+      );
+    }
+  }
+
   useEffect(() => {
-    console.log(props.initDevice, device);
+    watchDevice(props.id);
   }, []);
+
+  useEffect(() => {
+    gateway.addListener("watched_device_update", watchedUpdate);
+
+    return () => {
+      gateway.removeListener("watched_device_update", watchedUpdate);
+    };
+  }, [watchedUpdate]);
 
   return device ? (
     <>
@@ -26,9 +63,9 @@ export default function DeviceOverlay(props: Props) {
           "utf8"
         )}
         user={device.users}
-        headless
         removeBackground={props.removeBackground}
         useDeviceName={props.useDeviceName}
+        headless
       />
     </>
   ) : (
