@@ -35,7 +35,7 @@ import { Away, UnAway } from "./icons/Away";
 import { millisToMinutesAndSeconds } from "../utils/functions";
 import { Leaf } from "./icons/Leaf";
 import { PlugDisconnected } from "./icons/Plug";
-import { User } from "../types/api";
+import { GetDeviceEntry, User } from "../types/api";
 import { Mobile } from "./icons/Mobile";
 import { Money } from "./icons/Money";
 import { Op, UserFlags } from "@puff-social/commons";
@@ -53,11 +53,15 @@ import { selectSessionState } from "../state/slices/session";
 import { Device } from "../utils/puffco";
 
 interface GroupMemberProps {
+  device?: DeviceState;
+  lbDevice?: GetDeviceEntry;
+  lbDeviceMac?: string;
+  member?: GatewayGroupMember;
+  user?: User;
+
   strain?: string;
   group?: GatewayGroup;
   connectingDevice?: BluetoothDevice;
-  device?: DeviceState;
-  member?: GatewayGroupMember;
   leaderboardPosition?: number;
   ready?: boolean;
   away?: boolean;
@@ -69,10 +73,9 @@ interface GroupMemberProps {
   nobodyelse?: boolean;
   nobody?: boolean;
   connectToDevice?: Function;
-  user?: User;
   instance?: Device;
   headless?: boolean;
-  connectDismissed: boolean;
+  connectDismissed?: boolean;
   setConnectDismissed?: Dispatch<SetStateAction<boolean>>;
   setStrainModalOpen?: Dispatch<SetStateAction<boolean>>;
 }
@@ -158,6 +161,7 @@ export function GroupMember(props: GroupMemberProps) {
     );
   else if (!bluetooth && props.us) return <></>;
   if (props.us && !props.connected && props.connectDismissed) return <></>;
+  if (props.headless && !props.lbDevice) return <></>;
 
   return (
     <div
@@ -179,162 +183,182 @@ export function GroupMember(props: GroupMemberProps) {
         onMouseEnter={() => setHoveringCard(true)}
         onMouseLeave={() => setHoveringCard(false)}
       >
-        {(props.us && !!props.device && props.connected) ||
-        (!props.us && !!props.device) ? (
+        {(props.us && !!(props.device || props.lbDevice) && props.connected) ||
+        (!props.us && !!(props.device || props.lbDevice)) ? (
           <div className="flex flex-col justify-center w-full overflow-hidden">
-            <div className="flex flex-row-reverse absolute right-0 bottom-0 m-4">
-              <Tippy
-                placement="right-start"
-                trigger="click"
-                disabled={hoveringCard ? false : true}
-                arrow={false}
-                content={
-                  <div className="flex flex-col bg-neutral-300 dark:bg-neutral-900 rounded-lg drop-shadow-xl p-4 space-y-2 w-72">
-                    {props.us ? (
-                      <>
-                        <span
-                          className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between"
-                          onClick={() => {
-                            props.setStrainModalOpen(true);
-                          }}
-                        >
-                          <p>Set strain</p>
-                          <Leaf />
-                        </span>
-                        <span
-                          className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between"
-                          onClick={() => {
-                            toast(
-                              `Marked you as ${
-                                props.member?.away ? "no longer away" : "away"
-                              }`,
-                              {
-                                position: "top-right",
-                                duration: 2500,
-                                icon: props.member?.away ? (
-                                  <UnAway />
-                                ) : (
-                                  <Away />
-                                ),
+            {!props.headless ? (
+              <div className="flex flex-row-reverse absolute right-0 bottom-0 m-4">
+                <Tippy
+                  placement="right-start"
+                  trigger="click"
+                  disabled={hoveringCard ? false : true}
+                  arrow={false}
+                  content={
+                    <div className="flex flex-col bg-neutral-300 dark:bg-neutral-900 rounded-lg drop-shadow-xl p-4 space-y-2 w-72">
+                      {props.us ? (
+                        <>
+                          <span
+                            className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between"
+                            onClick={() => {
+                              props.setStrainModalOpen(true);
+                            }}
+                          >
+                            <p>Set strain</p>
+                            <Leaf />
+                          </span>
+                          <span
+                            className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between"
+                            onClick={() => {
+                              toast(
+                                `Marked you as ${
+                                  props.member?.away ? "no longer away" : "away"
+                                }`,
+                                {
+                                  position: "top-right",
+                                  duration: 2500,
+                                  icon: props.member?.away ? (
+                                    <UnAway />
+                                  ) : (
+                                    <Away />
+                                  ),
+                                }
+                              );
+                              gateway.send(Op.UpdateUser, {
+                                away: !props.member?.away,
+                              });
+                            }}
+                          >
+                            {props.member?.away ? (
+                              <>
+                                <p>Unset away state</p>
+                                <UnAway />
+                              </>
+                            ) : (
+                              <>
+                                <p>Set away state</p>
+                                <Away />
+                              </>
+                            )}
+                          </span>
+                        </>
+                      ) : (
+                        <></>
+                      )}
+                      <span
+                        className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
+                        onClick={() => {
+                          toast(
+                            `Copied share card for ${props.device.deviceName}`,
+                            {
+                              position: "top-right",
+                              duration: 2500,
+                              icon: "📋",
+                            }
+                          );
+                          navigator.clipboard.writeText(
+                            `https://puff.social/api/device/device_${Buffer.from(
+                              props.device.deviceMac
+                            ).toString("base64")}`
+                          );
+                        }}
+                      >
+                        <p>Copy share card</p>
+                        <ShareIcon />
+                      </span>
+                      {gateway.session_id == props.group?.owner_session_id ||
+                      session.user?.flags & UserFlags.admin ? (
+                        <>
+                          {props.member?.session_id !=
+                          props.group?.owner_session_id ? (
+                            <span
+                              className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
+                              onClick={() =>
+                                gateway.send(Op.TransferOwnership, {
+                                  session_id: props.member?.session_id,
+                                })
                               }
-                            );
-                            gateway.send(Op.UpdateUser, {
-                              away: !props.member?.away,
-                            });
-                          }}
-                        >
-                          {props.member?.away ? (
-                            <>
-                              <p>Unset away state</p>
-                              <UnAway />
-                            </>
+                            >
+                              <p>Make owner</p>
+                              <Crown className="text-green-700" />
+                            </span>
                           ) : (
-                            <>
-                              <p>Set away state</p>
-                              <Away />
-                            </>
+                            <></>
                           )}
-                        </span>
-                      </>
-                    ) : (
-                      <></>
-                    )}
-                    <span
-                      className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
-                      onClick={() => {
-                        toast(
-                          `Copied share card for ${props.device.deviceName}`,
-                          {
-                            position: "top-right",
-                            duration: 2500,
-                            icon: "📋",
-                          }
-                        );
-                        navigator.clipboard.writeText(
-                          `https://puff.social/api/device/device_${Buffer.from(
-                            props.device.deviceMac
-                          ).toString("base64")}`
-                        );
-                      }}
+                          {props.member?.session_id != gateway.session_id ? (
+                            <span
+                              className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
+                              onClick={() =>
+                                gateway.send(Op.KickFromGroup, {
+                                  session_id: props.member?.session_id,
+                                })
+                              }
+                            >
+                              <p>Kick from group</p>
+                              <Kick className="text-red-600 dark:text-red-300" />
+                            </span>
+                          ) : (
+                            <></>
+                          )}
+                        </>
+                      ) : (
+                        <></>
+                      )}
+                    </div>
+                  }
+                  interactive
+                >
+                  <div>
+                    <Tippy
+                      content="Actions"
+                      placement="top-end"
+                      animation="fade"
                     >
-                      <p>Copy share card</p>
-                      <ShareIcon />
-                    </span>
-                    {gateway.session_id == props.group?.owner_session_id ||
-                    session.user?.flags & UserFlags.admin ? (
-                      <>
-                        {props.member?.session_id !=
-                        props.group?.owner_session_id ? (
-                          <span
-                            className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
-                            onClick={() =>
-                              gateway.send(Op.TransferOwnership, {
-                                session_id: props.member?.session_id,
-                              })
-                            }
-                          >
-                            <p>Make owner</p>
-                            <Crown className="text-green-700" />
-                          </span>
-                        ) : (
-                          <></>
-                        )}
-                        {props.member?.session_id != gateway.session_id ? (
-                          <span
-                            className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
-                            onClick={() =>
-                              gateway.send(Op.KickFromGroup, {
-                                session_id: props.member?.session_id,
-                              })
-                            }
-                          >
-                            <p>Kick from group</p>
-                            <Kick className="text-red-600 dark:text-red-300" />
-                          </span>
-                        ) : (
-                          <></>
-                        )}
-                      </>
-                    ) : (
-                      <></>
-                    )}
+                      <span
+                        className="opacity-20 group-hover:opacity-100 transition-all"
+                        ref={userActionsButton}
+                      >
+                        <Dots />
+                      </span>
+                    </Tippy>
                   </div>
-                }
-                interactive
-              >
-                <div>
-                  <Tippy content="Actions" placement="top-end" animation="fade">
-                    <span
-                      className="opacity-20 group-hover:opacity-100 transition-all"
-                      ref={userActionsButton}
-                    >
-                      <Dots />
-                    </span>
-                  </Tippy>
-                </div>
-              </Tippy>
-            </div>
+                </Tippy>
+              </div>
+            ) : (
+              <></>
+            )}
             <div className="flex flex-row w-full h-full items-center justify-center">
               <PuffcoContainer
                 id={
                   props.us
                     ? "self"
-                    : `${props.member?.session_id}-${props.device.deviceMac}`
+                    : `${props.member?.session_id}-${
+                        props.device
+                          ? props.device.deviceMac
+                          : props.lbDeviceMac
+                      }`
                 }
                 svgClassName="w-40 h-full"
                 className="-z-50 min-w-[40%]"
                 model={
-                  ProductModelMap[props.device.deviceModel]
-                    ? ProductModelMap[props.device.deviceModel].toLowerCase()
+                  ProductModelMap[
+                    props.device
+                      ? props.device.deviceModel
+                      : props.lbDevice.model
+                  ]
+                    ? ProductModelMap[
+                        props.device
+                          ? props.device.deviceModel
+                          : props.lbDevice.model
+                      ].toLowerCase()
                     : ProductModelMap[0].toLowerCase()
                 }
                 device={props.device}
               />
               <span className="flex flex-col p-4 w-full min-w-[60%]">
                 <p style={{ visibility: "hidden", display: "none" }}>
-                  {props.device.activeColor.r +
-                    props.device.activeColor.g +
-                    props.device.activeColor.b}
+                  {props.device?.activeColor.r +
+                    props.device?.activeColor.g +
+                    props.device?.activeColor.b}
                 </p>
                 <span className="flex flex-row space-x-2 items-center">
                   {props.member?.user ? (
@@ -401,7 +425,8 @@ export function GroupMember(props: GroupMemberProps) {
                   ) : (
                     <></>
                   )}
-                  {props.member?.session_id == props.group?.owner_session_id ? (
+                  {props.member &&
+                  props.member?.session_id == props.group?.owner_session_id ? (
                     <Tippy content="Group owner" placement="top-start">
                       <div className="flex items-center">
                         <Crown className="text-green-700" />
@@ -427,14 +452,35 @@ export function GroupMember(props: GroupMemberProps) {
                     <></>
                   )}
                   <Tippy
-                    content={props.device.deviceName}
+                    content={
+                      props.device
+                        ? props.device.deviceName
+                        : props.lbDevice.name
+                    }
                     placement="bottom-start"
                   >
-                    <h1 className="m-0 text-xl font-bold truncate">
-                      {props.member?.user?.display_name ||
-                        props.member?.device_state?.deviceName ||
-                        "Unknown"}
-                    </h1>
+                    {props.lbDevice ? (
+                      <div className="flex flex-col">
+                        <h1 className="m-0 text-xl font-bold truncate">
+                          {props.member?.user?.display_name ||
+                            props.member?.device_state?.deviceName ||
+                            props.user?.display_name ||
+                            props.user?.name ||
+                            "Unknown"}
+                        </h1>
+                        <p className="m-0 text-md truncate">
+                          {props.lbDevice.name || "Unknown"}
+                        </p>
+                      </div>
+                    ) : (
+                      <h1 className="m-0 text-xl font-bold truncate">
+                        {props.member?.user?.display_name ||
+                          props.member?.device_state?.deviceName ||
+                          props.user?.display_name ||
+                          props.user?.name ||
+                          "Unknown"}
+                      </h1>
+                    )}
                   </Tippy>
                   {props.member?.user?.flags & UserFlags.supporter ? (
                     <Tippy content="Supporter" placement="bottom">
@@ -446,155 +492,211 @@ export function GroupMember(props: GroupMemberProps) {
                     <></>
                   )}
                 </span>
-                {props.device && (
+                {props.device || props.lbDevice ? (
                   <div className="flex space-x-2">
                     <span className="flex flex-row justify-center items-center">
-                      <Tippy
-                        content={`${
-                          props.device.dabsPerDay || `0.0`
-                        } avg per day`}
-                        placement="right"
-                      >
+                      {props.device ? (
+                        <Tippy
+                          content={`${
+                            props.device?.dabsPerDay ||
+                            props.lbDevice.avg_dabs ||
+                            `0.0`
+                          } avg per day`}
+                          placement="right"
+                        >
+                          <div
+                            className={`flex justify-center ${
+                              EASTER_EGG_CYCLE_COUNTS.includes(
+                                props.device?.totalDabs || props.lbDevice.dabs
+                              )
+                                ? "rainbow"
+                                : ""
+                            }`}
+                          >
+                            <Counter className="m-1 ml-0" />
+                            <p className="m-0 p-1 text-lg">
+                              {(
+                                props.device?.totalDabs || props.lbDevice.dabs
+                              ).toLocaleString()}
+                            </p>
+                          </div>
+                        </Tippy>
+                      ) : (
                         <div
-                          className={`flex justify-center ${
+                          className={`flex justify-center items-center ${
                             EASTER_EGG_CYCLE_COUNTS.includes(
-                              props.device.totalDabs
+                              props.device?.totalDabs || props.lbDevice.dabs
                             )
                               ? "rainbow"
                               : ""
                           }`}
                         >
-                          <Counter className="m-1 ml-0" />
-                          <p className="m-0 p-1 text-lg">
-                            {props.device.totalDabs.toLocaleString()}
+                          <Counter className="m-1 ml-0 w-6" />
+                          <p className="m-0 p-1 text-md">
+                            {(
+                              props.device?.totalDabs || props.lbDevice.dabs
+                            ).toLocaleString()}
+                          </p>
+                          <p className="m-0 p-1 text-md">-</p>
+                          <p className="m-0 p-1 text-md">
+                            {(
+                              props.device?.dabsPerDay ||
+                              props.lbDevice.avg_dabs
+                            ).toLocaleString()}{" "}
+                            avg
                           </p>
                         </div>
-                      </Tippy>
-                    </span>
-                    <span className="flex flex-row justify-center items-center">
-                      {props.device.chargeSource == ChargeSource.None ? (
-                        <Battery className="m-1" />
-                      ) : (
-                        <BatteryBolt className="m-1" />
                       )}
-                      <p className="m-0 p-1 text-lg">{props.device.battery}%</p>
                     </span>
-                  </div>
-                )}
-
-                <span className="mt-4">
-                  {props.device.chamberType == ChamberType.None ? (
-                    "No Chamber"
-                  ) : props.device.temperature &&
-                    props.device.temperature >= TEMPERATURE_MIN &&
-                    props.device.temperature <= TEMPERATURE_MAX ? (
-                    <h2 className="text-2xl">
-                      {Math.floor(props.device.temperature * 1.8 + 32)}°
-                    </h2>
-                  ) : (
-                    <h2 className="text-2xl">--</h2>
-                  )}
-                  <span className="flex flex-row">
-                    <h3 className="text-lg m-0">
-                      {props.ready &&
-                      props.device.state !=
-                        PuffcoOperatingState.HEAT_CYCLE_ACTIVE
-                        ? "Ready"
-                        : PuffcoOperatingMap[props.device.state]}
-                      {[
-                        PuffcoOperatingState.HEAT_CYCLE_PREHEAT,
-                        PuffcoOperatingState.HEAT_CYCLE_ACTIVE,
-                      ].includes(props.device.state)
-                        ? ` - ${millisToMinutesAndSeconds(
-                            props.device.stateTime * 1000
-                          )}`
-                        : ""}
-                    </h3>
-                    {props.ready ? (
-                      <Checkmark className="ml-2 text-green-700 w-[20px] h-[20px]" />
-                    ) : (
-                      <></>
-                    )}
-                  </span>
-                  <Tippy
-                    bg
-                    content={
-                      props.device.lastDab ? (
-                        <div className="">
-                          <p>
-                            Last Dab :{" "}
-                            {formatRelativeTime(
-                              new Date(props.device.lastDab.timestamp),
-                              props.device.utcTime &&
-                                new Date(props.device.utcTime * 1000)
-                            )}{" "}
-                            ago
-                          </p>
-                          <span className="flex flex-row items-center space-x-2">
-                            <p className="opacity-40">
-                              (
-                              {props.device.lastDab.timeElapsed * 1000 < 1
-                                ? "now"
-                                : millisToMinutesAndSeconds(
-                                    props.device.lastDab.timeElapsed * 1000
-                                  )}
-                            </p>
-                            <p className="opacity-40">@</p>
-                            <p className="opacity-40">
-                              {Math.floor(
-                                props.device.lastDab.nominalTemp * 1.8 + 32
-                              )}
-                              °)
-                            </p>
-                          </span>
-                        </div>
-                      ) : (
-                        `Current Profile`
-                      )
-                    }
-                    placement="bottom"
-                  >
-                    <span className="flex space-x-2">
-                      <p className="text-sm truncate max-w-[8rem]">
-                        {props.device.profile.name}
-                      </p>
-                      <span className="flex space-x-2 text-sm">
-                        <p>({props.device.profile.time}</p>
-                        <p className="opacity-40">@</p>
-                        <p>
-                          {Math.floor(props.device.profile.temp * 1.8 + 32)}°)
+                    {props.device && (
+                      <span className="flex flex-row justify-center items-center">
+                        {props.device.chargeSource == ChargeSource.None ? (
+                          <Battery className="m-1" />
+                        ) : (
+                          <BatteryBolt className="m-1" />
+                        )}
+                        <p className="m-0 p-1 text-lg">
+                          {props.device.battery}%
                         </p>
                       </span>
-                    </span>
-                  </Tippy>
-
-                  <div className="flex flex-row space-x-4">
-                    {props.device.chamberType == ChamberType["3D"] ? (
-                      <>
-                        <Tippy content="3D Chamber" placement="auto">
-                          <span className="flex mt-2 px-1 border border-black dark:border-white text-black dark:text-white items-center justify-center w-fit">
-                            <Icon3D />
-                          </span>
-                        </Tippy>
-                        {props.device.profile.intensity &&
-                        props.device.profile.intensity > 0 ? (
-                          <Tippy content="Profile Intensity" placement="auto">
-                            <span className="flex">
-                              <IntensityIcon
-                                intensity={props.device.profile.intensity}
-                                card
-                              />
-                            </span>
-                          </Tippy>
-                        ) : (
-                          <></>
-                        )}
-                      </>
-                    ) : (
-                      <></>
                     )}
                   </div>
-                </span>
+                ) : (
+                  <></>
+                )}
+
+                {props.lbDevice ? (
+                  <span className="flex flex-row items-center space-x-2">
+                    <p className="text-sm">
+                      Last Dab :{" "}
+                      {formatRelativeTime(
+                        new Date(props.lbDevice.last_dab),
+                        new Date()
+                      )}{" "}
+                      ago
+                    </p>
+                  </span>
+                ) : (
+                  <></>
+                )}
+
+                {props.device ? (
+                  <span className="mt-4">
+                    {props.device.chamberType == ChamberType.None ? (
+                      "No Chamber"
+                    ) : props.device.temperature &&
+                      props.device.temperature >= TEMPERATURE_MIN &&
+                      props.device.temperature <= TEMPERATURE_MAX ? (
+                      <h2 className="text-2xl">
+                        {Math.floor(props.device.temperature * 1.8 + 32)}°
+                      </h2>
+                    ) : (
+                      <h2 className="text-2xl">--</h2>
+                    )}
+                    <span className="flex flex-row">
+                      <h3 className="text-lg m-0">
+                        {props.ready &&
+                        props.device.state !=
+                          PuffcoOperatingState.HEAT_CYCLE_ACTIVE
+                          ? "Ready"
+                          : PuffcoOperatingMap[props.device.state]}
+                        {[
+                          PuffcoOperatingState.HEAT_CYCLE_PREHEAT,
+                          PuffcoOperatingState.HEAT_CYCLE_ACTIVE,
+                        ].includes(props.device.state)
+                          ? ` - ${millisToMinutesAndSeconds(
+                              props.device.stateTime * 1000
+                            )}`
+                          : ""}
+                      </h3>
+                      {props.ready ? (
+                        <Checkmark className="ml-2 text-green-700 w-[20px] h-[20px]" />
+                      ) : (
+                        <></>
+                      )}
+                    </span>
+                    <Tippy
+                      bg
+                      content={
+                        props.device.lastDab ? (
+                          <div className="">
+                            <p>
+                              Last Dab :{" "}
+                              {formatRelativeTime(
+                                new Date(props.device.lastDab.timestamp),
+                                props.device.utcTime &&
+                                  new Date(props.device.utcTime * 1000)
+                              )}{" "}
+                              ago
+                            </p>
+                            <span className="flex flex-row items-center space-x-2">
+                              <p className="opacity-40">
+                                (
+                                {props.device.lastDab.timeElapsed * 1000 < 1
+                                  ? "now"
+                                  : millisToMinutesAndSeconds(
+                                      props.device.lastDab.timeElapsed * 1000
+                                    )}
+                              </p>
+                              <p className="opacity-40">@</p>
+                              <p className="opacity-40">
+                                {Math.floor(
+                                  props.device.lastDab.nominalTemp * 1.8 + 32
+                                )}
+                                °)
+                              </p>
+                            </span>
+                          </div>
+                        ) : (
+                          `Current Profile`
+                        )
+                      }
+                      placement="bottom"
+                    >
+                      <span className="flex space-x-2">
+                        <p className="text-sm truncate max-w-[8rem]">
+                          {props.device.profile.name}
+                        </p>
+                        <span className="flex space-x-2 text-sm">
+                          <p>({props.device.profile.time}</p>
+                          <p className="opacity-40">@</p>
+                          <p>
+                            {Math.floor(props.device.profile.temp * 1.8 + 32)}°)
+                          </p>
+                        </span>
+                      </span>
+                    </Tippy>
+
+                    <div className="flex flex-row space-x-4">
+                      {props.device.chamberType == ChamberType["3D"] ? (
+                        <>
+                          <Tippy content="3D Chamber" placement="auto">
+                            <span className="flex mt-2 px-1 border border-black dark:border-white text-black dark:text-white items-center justify-center w-fit">
+                              <Icon3D />
+                            </span>
+                          </Tippy>
+                          {props.device.profile.intensity &&
+                          props.device.profile.intensity > 0 ? (
+                            <Tippy content="Profile Intensity" placement="auto">
+                              <span className="flex">
+                                <IntensityIcon
+                                  intensity={props.device.profile.intensity}
+                                  card
+                                />
+                              </span>
+                            </Tippy>
+                          ) : (
+                            <></>
+                          )}
+                        </>
+                      ) : (
+                        <></>
+                      )}
+                    </div>
+                  </span>
+                ) : (
+                  <></>
+                )}
               </span>
             </div>
             <div />

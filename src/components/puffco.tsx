@@ -77,8 +77,8 @@ export function PuffcoContainer({
 
   useEffect(() => {
     setBrightness(100);
-    setRgb(device.activeColor.r, device.activeColor.g, device.activeColor.b);
-  }, [device.activeColor]);
+    setRgb(device?.activeColor.r, device?.activeColor.g, device?.activeColor.b);
+  }, [device?.activeColor]);
 
   useEffect(() => {
     let interval: NodeJS.Timer;
