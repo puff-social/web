@@ -1,6 +1,9 @@
 import { VoiceChannelState } from "@puff-social/commons";
 import { User } from "./api";
-import { DeviceState } from "@puff-social/commons/dist/puffco/constants";
+import {
+  DeviceState,
+  GatewayDeviceLastDab,
+} from "@puff-social/commons/dist/puffco/constants";
 
 export const PuffcoOperatingMap = [
   "Memory",
@@ -127,4 +130,11 @@ export interface GroupChatMessage {
 export interface GatewayGroupUserAwayState {
   session_id: string;
   state: boolean;
+}
+
+export interface GatewayWatchedDeviceUpdate {
+  id: string;
+  dabs: number;
+  dabsPerDay: number;
+  lastDab: GatewayDeviceLastDab;
 }

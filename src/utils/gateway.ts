@@ -20,6 +20,7 @@ import {
   GroupHeatBegin,
   GroupHeatInquire,
   GroupState,
+  GatewayWatchedDeviceUpdate,
 } from "../types/gateway";
 import { Event, Op } from "@puff-social/commons";
 import {
@@ -143,6 +144,10 @@ export interface Gateway {
   on(event: "resume_failed", listener: (code: string) => void): this;
   on(event: "op_deprecated", listener: () => void): this;
   on(event: "user_update_error", listener: (error: GatewayError) => void): this;
+  on(
+    event: "watched_device_update",
+    listener: (data: GatewayWatchedDeviceUpdate) => void
+  ): this;
 }
 export class Gateway extends EventEmitter {
   constructor(
@@ -418,6 +423,10 @@ export class Gateway extends EventEmitter {
           }
           case Event.InvalidSyntax: {
             this.emit("syntax_error", data.d);
+            break;
+          }
+          case Event.WatchedDeviceUpdate: {
+            this.emit("watched_device_update", data.d);
             break;
           }
         }
