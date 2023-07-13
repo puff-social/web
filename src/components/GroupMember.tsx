@@ -165,7 +165,9 @@ export function GroupMember(props: GroupMemberProps) {
 
   return (
     <div
-      className={`flex justify-center items-center m-1 h-72 w-[440px] ${
+      className={`flex justify-center items-center m-1 ${
+        props.lbDevice ? "h-48" : "h-72"
+      } w-[440px] ${
         props.device
           ? props.member?.user?.flags & UserFlags.admin
             ? "rounded-md bg-gradient-to-r from-blue-500/60 to-purple-700/60 p-px"
@@ -265,6 +267,31 @@ export function GroupMember(props: GroupMemberProps) {
                         <p>Copy share card</p>
                         <ShareIcon />
                       </span>
+                      {gateway.session_id == props.member.session_id ? (
+                        <span
+                          className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
+                          onClick={() => {
+                            toast(
+                              `Copied share card for ${props.device.deviceName}`,
+                              {
+                                position: "top-right",
+                                duration: 2500,
+                                icon: "📋",
+                              }
+                            );
+                            navigator.clipboard.writeText(
+                              `https://puff.social/overlay/devices/device_${Buffer.from(
+                                props.device.deviceMac
+                              ).toString("base64")}`
+                            );
+                          }}
+                        >
+                          <p>Copy device overlay</p>
+                          <ShareIcon />
+                        </span>
+                      ) : (
+                        <></>
+                      )}
                       {gateway.session_id == props.group?.owner_session_id ||
                       session.user?.flags & UserFlags.admin ? (
                         <>
@@ -337,8 +364,10 @@ export function GroupMember(props: GroupMemberProps) {
                           : props.lbDeviceMac
                       }`
                 }
-                svgClassName="w-40 h-full"
-                className="-z-50 min-w-[40%]"
+                svgClassName={props.lbDevice ? "" : "w-40 h-full"}
+                className={`-z-50 min-w-[${props.lbDevice ? "10%" : "40%"}] ${
+                  props.lbDevice ? "w-[100px]" : ""
+                }`}
                 model={
                   ProductModelMap[
                     props.device
