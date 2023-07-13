@@ -597,7 +597,7 @@ export function GroupMember(props: GroupMemberProps) {
                   <></>
                 )}
 
-                {props.lbDevice ? (
+                {props.lbDevice && props.lbDevice.last_dab ? (
                   <span className="flex flex-row items-center space-x-2">
                     <p className="text-sm">
                       Last Dab :{" "}
