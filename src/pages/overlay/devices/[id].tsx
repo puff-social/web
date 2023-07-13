@@ -7,6 +7,7 @@ import { getLeaderboardDevice } from "../../../utils/hash";
 interface Props {
   id: string;
   initDevice: GetDeviceEntry;
+  removeBackground: boolean;
 }
 
 export default function DeviceOverlay(props: Props) {
@@ -25,6 +26,7 @@ export default function DeviceOverlay(props: Props) {
         )}
         user={device.users}
         headless
+        removeBackground={props.removeBackground}
       />
     </>
   ) : (
@@ -34,12 +36,17 @@ export default function DeviceOverlay(props: Props) {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { id } = context.params;
+  const { removeBackground } = context.query;
 
   const {
     data: { device: lbDevice },
   } = await getLeaderboardDevice(id as string);
 
   return {
-    props: { id: id as string, initDevice: lbDevice },
+    props: {
+      id: id as string,
+      initDevice: lbDevice,
+      removeBackground: typeof removeBackground != "undefined",
+    },
   };
 }

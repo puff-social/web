@@ -75,6 +75,7 @@ interface GroupMemberProps {
   connectToDevice?: Function;
   instance?: Device;
   headless?: boolean;
+  removeBackground?: boolean;
   connectDismissed?: boolean;
   setConnectDismissed?: Dispatch<SetStateAction<boolean>>;
   setStrainModalOpen?: Dispatch<SetStateAction<boolean>>;
@@ -179,7 +180,9 @@ export function GroupMember(props: GroupMemberProps) {
       id={props.us ? gateway.session_id : props.member?.session_id}
     >
       <div
-        className={`group flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md px-4 h-full w-[440px] justify-center items-center overflow-hidden ${
+        className={`group flex flex-col text-black ${
+          props.removeBackground ? `` : `bg-neutral-100 dark:bg-neutral-800`
+        } dark:text-white drop-shadow-xl rounded-md px-4 h-full w-[440px] justify-center items-center overflow-hidden ${
           props.member?.away ? "brightness-75" : ""
         }`}
         onMouseEnter={() => setHoveringCard(true)}
