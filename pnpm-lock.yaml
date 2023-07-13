@@ -3,7 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@headlessui/react': ^1.7.13
   '@headlessui/tailwindcss': ^0.1.3
-  '@puff-social/commons': ^1.0.24
+  '@puff-social/commons': ^1.0.25
   '@reduxjs/toolkit': ^1.9.3
   '@sentry/nextjs': ^7.40.0
   '@tippyjs/react': ^4.2.6
@@ -23,6 +23,7 @@ specifiers:
   emojisplosion: ^2.6.1
   next: ^13.2.0
   next-plausible: ^3.7.2
+  next-redux-cookie-wrapper: ^2.2.1
   next-redux-wrapper: ^8.1.0
   pako: ^2.1.0
   postcss: ^8.4.21
@@ -34,6 +35,7 @@ specifiers:
   react-modal: ^3.16.1
   react-redux: ^8.0.5
   react-virtualized: ^9.22.5
+  redux-persist: ^6.0.0
   tailwindcss: ^3.2.7
   tippy.js: ^6.3.7
   typescript: ^4.9.4
@@ -42,7 +44,7 @@ specifiers:
 dependencies:
   '@headlessui/react': 1.7.13_biqbaboplfbrettd7655fr4n2y
   '@headlessui/tailwindcss': 0.1.3_tailwindcss@3.2.7
-  '@puff-social/commons': 1.0.24
+  '@puff-social/commons': 1.0.25
   '@reduxjs/toolkit': 1.9.3_k4ae6lp43ej6mezo3ztvx6pykq
   '@sentry/nextjs': 7.40.0_next@13.2.0+react@18.2.0
   '@tippyjs/react': 4.2.6_biqbaboplfbrettd7655fr4n2y
@@ -55,6 +57,7 @@ dependencies:
   emojisplosion: 2.6.1
   next: 13.2.0_biqbaboplfbrettd7655fr4n2y
   next-plausible: 3.7.2_f4d7icgk4i3oippbo5yzyh5rhq
+  next-redux-cookie-wrapper: 2.2.1_next-redux-wrapper@8.1.0
   next-redux-wrapper: 8.1.0_x3m7nriu62ksufhrvxwsqlnpum
   pako: 2.1.0
   postcss: 8.4.21
@@ -66,6 +69,7 @@ dependencies:
   react-modal: 3.16.1_biqbaboplfbrettd7655fr4n2y
   react-redux: 8.0.5_ib3m5ricvtkl2cll7qpr2f6lvq
   react-virtualized: 9.22.5_biqbaboplfbrettd7655fr4n2y
+  redux-persist: 6.0.0_react@18.2.0
   tailwindcss: 3.2.7_postcss@8.4.21
   tippy.js: 6.3.7
   use-prefers-color-scheme: 1.1.3_react@18.2.0
@@ -297,8 +301,8 @@ packages:
     resolution: {integrity: sha512-3jum8/YSudeSN0zGW5qkpz+wAN2V/NYCQ+BPjvHYDfWatLWlQkqy99toX0GysDeaUoBIJg1vaz2yKqiA3CFcQw==}
     dev: false
 
-  /@puff-social/commons/1.0.24:
-    resolution: {integrity: sha512-SgqjRH2SQ4kyIcfaEseSPs1jcqGkcsoQAvy5XqGm/uq3XwHw+kdn8x3VdX81Rab2jRBseKAHrgvxNxo1Nfrxfw==, tarball: download/@puff-social/commons/1.0.24/98e931375331334de47fe48c8dcac7a8757d3af9}
+  /@puff-social/commons/1.0.25:
+    resolution: {integrity: sha512-UZk8LxzETCohgp2xV3Z1HiF2PphU89n/1qBwLqINB8qIdkUY0olVIruopOgIG5sgXNg6v4v1OckqpDjiQ2dAiQ==, tarball: download/@puff-social/commons/1.0.25/333a69fecaa2a8562187b7521ee2f98a541a42a3}
     dependencies:
       '@prisma/client': 4.14.0
       envsafe: 2.0.3
@@ -561,6 +565,10 @@ packages:
       '@types/keyv': 3.1.4
       '@types/node': 18.11.18
       '@types/responselike': 1.0.0
+    dev: false
+
+  /@types/cookie/0.4.1:
+    resolution: {integrity: sha512-XW/Aa8APYr6jSVVA1y/DEIZX0/GMKLEVekNG727R8cs56ahETkRAy/3DR7+fJyh7oUgGwNQaRfXCun0+KbWY7Q==}
     dev: false
 
   /@types/estree/1.0.0:
@@ -1064,6 +1072,10 @@ packages:
       - supports-color
     dev: false
 
+  /fast-deep-equal/3.1.3:
+    resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
+    dev: false
+
   /fast-glob/3.2.12:
     resolution: {integrity: sha512-DVj4CQIYYow0BlaelwK1pHl5n5cRSJfM60UA0zK891sVInoPri2Ekj7+e1CT3/3qxXenpI+nBBmQAcJPJgaj4w==}
     engines: {node: '>=8.6.0'}
@@ -1396,12 +1408,20 @@ packages:
       lie: 3.1.1
     dev: false
 
+  /lodash-es/4.17.21:
+    resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
+    dev: false
+
   /lodash.defaults/4.2.0:
     resolution: {integrity: sha512-qjxPLHd3r5DnsdGacqOMU6pb/avJzdh9tFX2ymgoZE27BmjXrNy/y4LoaiTeAb+O3gL8AfpJGtqfX/ae2leYYQ==}
     dev: false
 
   /lodash.isarguments/3.1.0:
     resolution: {integrity: sha512-chi4NHZlZqZD18a0imDHnZPrDeBbTtVN7GXMwuGdRH9qotxAjYs3aVLKc7zNOG9eddR5Ksd8rvFEBc9SsggPpg==}
+    dev: false
+
+  /lodash/4.17.21:
+    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
     dev: false
 
   /loose-envify/1.4.0:
@@ -1425,6 +1445,11 @@ packages:
 
   /lru_map/0.3.3:
     resolution: {integrity: sha512-Pn9cox5CsMYngeDbmChANltQl+5pi6XmTrraMSzhPmMBbmgcxmqWry0U3PGapCU1yB4/LqCcom7qhHZiF/jGfQ==}
+    dev: false
+
+  /lz-string/1.5.0:
+    resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
+    hasBin: true
     dev: false
 
   /magic-string/0.27.0:
@@ -1505,6 +1530,22 @@ packages:
       react-dom: 18.2.0_react@18.2.0
     dev: false
 
+  /next-redux-cookie-wrapper/2.2.1_next-redux-wrapper@8.1.0:
+    resolution: {integrity: sha512-d2CHkV9Y9vxBtibqPrM8R9WAtPdpmyCZUAUgOZIxcbKKjONtwwpJ/ZpkF5xzsoE1ieq5bcJoP1nQbBtBJtEjzg==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      next-redux-wrapper: '>=6'
+    dependencies:
+      '@types/cookie': 0.4.1
+      fast-deep-equal: 3.1.3
+      immer: 9.0.21
+      lodash: 4.17.21
+      lodash-es: 4.17.21
+      lz-string: 1.5.0
+      next-redux-wrapper: 8.1.0_x3m7nriu62ksufhrvxwsqlnpum
+      nookies: 2.5.2
+    dev: false
+
   /next-redux-wrapper/8.1.0_x3m7nriu62ksufhrvxwsqlnpum:
     resolution: {integrity: sha512-2hIau0hcI6uQszOtrvAFqgc0NkZegKYhBB7ZAKiG3jk7zfuQb4E7OV9jfxViqqojh3SEHdnFfPkN9KErttUKuw==}
     peerDependencies:
@@ -1583,6 +1624,13 @@ packages:
   /nofilter/3.1.0:
     resolution: {integrity: sha512-l2NNj07e9afPnhAhvgVrCD/oy2Ai1yfLpuo3EpiO1jFTsB4sFz6oIfAfSZyQzVpkZQ9xS8ZS5g1jCBgq4Hwo0g==}
     engines: {node: '>=12.19'}
+    dev: false
+
+  /nookies/2.5.2:
+    resolution: {integrity: sha512-x0TRSaosAEonNKyCrShoUaJ5rrT5KHRNZ5DwPCuizjgrnkpE5DRf3VL7AyyQin4htict92X1EQ7ejDbaHDVdYA==}
+    dependencies:
+      cookie: 0.4.2
+      set-cookie-parser: 2.6.0
     dev: false
 
   /normalize-path/3.0.0:
@@ -1940,6 +1988,18 @@ packages:
       redis-errors: 1.2.0
     dev: false
 
+  /redux-persist/6.0.0_react@18.2.0:
+    resolution: {integrity: sha512-71LLMbUq2r02ng2We9S215LtPu3fY0KgaGE0k8WRgl6RkqxtGfl7HUozz1Dftwsb0D/5mZ8dwAaPbtnzfvbEwQ==}
+    peerDependencies:
+      react: '>=16'
+      redux: '>4.0.0'
+    peerDependenciesMeta:
+      react:
+        optional: true
+    dependencies:
+      react: 18.2.0
+    dev: false
+
   /redux-thunk/2.4.2_redux@4.2.1:
     resolution: {integrity: sha512-+P3TjtnP0k/FEjcBL5FZpoovtvrTNT/UXd4/sluaSyrURlSlhLSzEdfsTBW7WsKB6yPvgd7q/iZPICFjW4o57Q==}
     peerDependencies:
@@ -2057,6 +2117,10 @@ packages:
       type-fest: 0.13.1
     dev: false
     optional: true
+
+  /set-cookie-parser/2.6.0:
+    resolution: {integrity: sha512-RVnVQxTXuerk653XfuliOxBP81Sf0+qfQE73LIYKcyMYHG94AuH0kgrQpRDuTZnSmjpysHmzxJXKNfa6PjFhyQ==}
+    dev: false
 
   /source-map-js/1.0.2:
     resolution: {integrity: sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==}
