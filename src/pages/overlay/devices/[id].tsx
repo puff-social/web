@@ -8,6 +8,7 @@ interface Props {
   id: string;
   initDevice: GetDeviceEntry;
   removeBackground: boolean;
+  useDeviceName: boolean;
 }
 
 export default function DeviceOverlay(props: Props) {
@@ -27,6 +28,7 @@ export default function DeviceOverlay(props: Props) {
         user={device.users}
         headless
         removeBackground={props.removeBackground}
+        useDeviceName={props.useDeviceName}
       />
     </>
   ) : (
@@ -36,7 +38,7 @@ export default function DeviceOverlay(props: Props) {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { id } = context.params;
-  const { removeBackground } = context.query;
+  const { removeBackground, useDeviceName } = context.query;
 
   const {
     data: { device: lbDevice },
@@ -47,6 +49,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       id: id as string,
       initDevice: lbDevice,
       removeBackground: typeof removeBackground != "undefined",
+      useDeviceName: typeof useDeviceName != "undefined",
     },
   };
 }

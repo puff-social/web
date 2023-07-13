@@ -76,6 +76,7 @@ interface GroupMemberProps {
   instance?: Device;
   headless?: boolean;
   removeBackground?: boolean;
+  useDeviceName?: boolean;
   connectDismissed?: boolean;
   setConnectDismissed?: Dispatch<SetStateAction<boolean>>;
   setStrainModalOpen?: Dispatch<SetStateAction<boolean>>;
@@ -483,15 +484,12 @@ export function GroupMember(props: GroupMemberProps) {
                   ) : (
                     <></>
                   )}
-                  <Tippy
-                    content={
-                      props.device
-                        ? props.device.deviceName
-                        : props.lbDevice.name
-                    }
-                    placement="bottom-start"
-                  >
-                    {props.lbDevice ? (
+                  {props.lbDevice ? (
+                    props.useDeviceName ? (
+                      <h1 className="m-0 text-xl font-bold truncate">
+                        {props.lbDevice.name || "Unknown"}
+                      </h1>
+                    ) : (
                       <div className="flex flex-col">
                         <h1 className="m-0 text-xl font-bold truncate">
                           {props.member?.user?.display_name ||
@@ -504,7 +502,16 @@ export function GroupMember(props: GroupMemberProps) {
                           {props.lbDevice.name || "Unknown"}
                         </p>
                       </div>
-                    ) : (
+                    )
+                  ) : (
+                    <Tippy
+                      content={
+                        props.device
+                          ? props.device.deviceName
+                          : props.lbDevice.name
+                      }
+                      placement="bottom-start"
+                    >
                       <h1 className="m-0 text-xl font-bold truncate">
                         {props.member?.user?.display_name ||
                           props.member?.device_state?.deviceName ||
@@ -512,8 +519,8 @@ export function GroupMember(props: GroupMemberProps) {
                           props.user?.name ||
                           "Unknown"}
                       </h1>
-                    )}
-                  </Tippy>
+                    </Tippy>
+                  )}
                   {props.member?.user?.flags & UserFlags.supporter ? (
                     <Tippy content="Supporter" placement="bottom">
                       <div>
