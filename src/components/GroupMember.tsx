@@ -83,6 +83,7 @@ interface GroupMemberProps {
 }
 
 export function GroupMember(props: GroupMemberProps) {
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const userActionsButton = useRef<HTMLSpanElement>();
   const [hoveringCard, setHoveringCard] = useState(false);
   const [leaderboardPos, setLeaderboardPos] = useState<number>(
@@ -111,6 +112,11 @@ export function GroupMember(props: GroupMemberProps) {
   useEffect(() => {
     setLeaderboardPos(props.leaderboardPosition);
   }, [props.leaderboardPosition]);
+
+  useEffect(() => {
+    const int = setInterval(() => setCurrentDate(new Date()), 1000);
+    return () => clearInterval(int);
+  }, []);
 
   if ((props.nobodyelse && props.headless) || (props.headless && props.us)) {
     return <></>;
@@ -610,7 +616,7 @@ export function GroupMember(props: GroupMemberProps) {
                       Last Dab :{" "}
                       {formatRelativeTime(
                         new Date(props.lbDevice.last_dab),
-                        new Date()
+                        currentDate
                       )}{" "}
                       ago
                     </p>

@@ -65,6 +65,7 @@ export default function DeviceOverlay(props: Props) {
         user={device.users}
         removeBackground={props.removeBackground}
         useDeviceName={props.useDeviceName}
+        overlay
         headless
       />
     </>
