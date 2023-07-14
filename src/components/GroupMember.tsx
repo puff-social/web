@@ -1,11 +1,4 @@
-import {
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import {
   GatewayGroup,
@@ -385,12 +378,12 @@ export function GroupMember(props: GroupMemberProps) {
                   ProductModelMap[
                     props.device
                       ? props.device.deviceModel
-                      : props.lbDevice.model
+                      : props.lbDevice?.model
                   ]
                     ? ProductModelMap[
                         props.device
                           ? props.device.deviceModel
-                          : props.lbDevice.model
+                          : props.lbDevice?.model
                       ].toLowerCase()
                     : ProductModelMap[0].toLowerCase()
                 }
@@ -496,7 +489,7 @@ export function GroupMember(props: GroupMemberProps) {
                   {props.lbDevice ? (
                     props.useDeviceName ? (
                       <h1 className="m-0 text-xl font-bold truncate">
-                        {props.lbDevice.name || "Unknown"}
+                        {props.lbDevice?.name || "Unknown"}
                       </h1>
                     ) : (
                       <div className="flex flex-col">
@@ -508,7 +501,7 @@ export function GroupMember(props: GroupMemberProps) {
                             "Unknown"}
                         </h1>
                         <p className="m-0 text-md truncate">
-                          {props.lbDevice.name || "Unknown"}
+                          {props.lbDevice?.name || "Unknown"}
                         </p>
                       </div>
                     )
@@ -517,7 +510,7 @@ export function GroupMember(props: GroupMemberProps) {
                       content={
                         props.device
                           ? props.device.deviceName
-                          : props.lbDevice.name
+                          : props.lbDevice?.name
                       }
                       placement="bottom-start"
                     >
@@ -547,7 +540,7 @@ export function GroupMember(props: GroupMemberProps) {
                         <Tippy
                           content={`${
                             props.device?.dabsPerDay ||
-                            props.lbDevice.avg_dabs ||
+                            props.lbDevice?.avg_dabs ||
                             `0.0`
                           } avg per day`}
                           placement="right"
@@ -555,7 +548,7 @@ export function GroupMember(props: GroupMemberProps) {
                           <div
                             className={`flex justify-center ${
                               EASTER_EGG_CYCLE_COUNTS.includes(
-                                props.device?.totalDabs || props.lbDevice.dabs
+                                props.device?.totalDabs || props.lbDevice?.dabs
                               )
                                 ? "rainbow"
                                 : ""
@@ -564,7 +557,9 @@ export function GroupMember(props: GroupMemberProps) {
                             <Counter className="m-1 ml-0" />
                             <p className="m-0 p-1 text-lg">
                               {(
-                                props.device?.totalDabs || props.lbDevice.dabs
+                                props.device?.totalDabs ||
+                                props.lbDevice?.dabs ||
+                                0
                               ).toLocaleString()}
                             </p>
                           </div>
@@ -573,7 +568,7 @@ export function GroupMember(props: GroupMemberProps) {
                         <div
                           className={`flex justify-center items-center ${
                             EASTER_EGG_CYCLE_COUNTS.includes(
-                              props.device?.totalDabs || props.lbDevice.dabs
+                              props.device?.totalDabs || props.lbDevice?.dabs
                             )
                               ? "rainbow"
                               : ""
@@ -582,14 +577,17 @@ export function GroupMember(props: GroupMemberProps) {
                           <Counter className="m-1 ml-0 w-6" />
                           <p className="m-0 p-1 text-md">
                             {(
-                              props.device?.totalDabs || props.lbDevice.dabs
+                              props.device?.totalDabs ||
+                              props.lbDevice?.dabs ||
+                              0
                             ).toLocaleString()}
                           </p>
                           <p className="m-0 p-1 text-md">-</p>
                           <p className="m-0 p-1 text-md">
                             {(
                               props.device?.dabsPerDay ||
-                              props.lbDevice.avg_dabs
+                              props.lbDevice?.avg_dabs ||
+                              0.0
                             ).toLocaleString()}{" "}
                             avg
                           </p>
@@ -613,12 +611,12 @@ export function GroupMember(props: GroupMemberProps) {
                   <></>
                 )}
 
-                {props.lbDevice && props.lbDevice.last_dab ? (
+                {props.lbDevice && props.lbDevice?.last_dab ? (
                   <span className="flex flex-row items-center space-x-2">
                     <p className="text-sm">
                       Last Dab :{" "}
                       {formatRelativeTime(
-                        new Date(props.lbDevice.last_dab),
+                        new Date(props.lbDevice?.last_dab),
                         currentDate
                       )}{" "}
                       ago
