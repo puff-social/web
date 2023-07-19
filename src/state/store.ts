@@ -33,6 +33,7 @@ const makeStore = wrapMakeStore(() => {
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().prepend(
         nextReduxCookieMiddleware({
+          maxAge: 2147483647,
           subtrees: [
             {
               subtree: `${ui.name}.dismissedBadges`,
