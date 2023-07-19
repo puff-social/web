@@ -2,7 +2,6 @@ import { emojisplosion } from "emojisplosion";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Tippy } from "../components/Tippy";
 
 import {
   GatewayError,

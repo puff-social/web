@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { Transition } from "@headlessui/react";
 import PlausibleProvider from "next-plausible";
-import Application, { AppInitialProps } from "next/app";
+import Application from "next/app";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { useCallback, useEffect, useMemo } from "react";
 import { Toaster, ToastIcon, toast, resolveValue } from "react-hot-toast";
