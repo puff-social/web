@@ -294,6 +294,7 @@ export const DeviceProfileReverse = [
 export const ChamberTypeMap = {
   0: "None",
   1: "Normal",
+  2: "3DXL",
   3: "3D",
 };
 

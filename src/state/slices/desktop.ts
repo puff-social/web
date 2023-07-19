@@ -36,13 +36,11 @@ export const desktop = createSlice({
     },
   },
 
-  extraReducers: {
-    [HYDRATE]: (state, action) => {
-      return {
-        ...state,
-        ...action.payload,
-      };
-    },
+  extraReducers(builder) {
+    builder.addCase<typeof HYDRATE, PayloadAction<AppState, typeof HYDRATE>>(
+      HYDRATE,
+      (state, { payload }) => ({ ...state, ...payload.desktop })
+    );
   },
 });
 

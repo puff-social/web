@@ -1,7 +1,8 @@
 import { useRouter } from "next/router";
 import { Transition } from "@headlessui/react";
 import PlausibleProvider from "next-plausible";
-import { useDispatch, useSelector } from "react-redux";
+import Application, { AppInitialProps } from "next/app";
+import { Provider, useDispatch, useSelector } from "react-redux";
 import { useCallback, useEffect, useMemo } from "react";
 import { Toaster, ToastIcon, toast, resolveValue } from "react-hot-toast";
 
@@ -19,12 +20,22 @@ import { UserFlags } from "@puff-social/commons";
 import { isElectron } from "../utils/electron";
 import { Electron } from "../components/Electron";
 
+function AppWrapper({ Component, ...appProps }) {
+  const { store, props } = wrapper.useWrappedStore(appProps);
+
+  return (
+    <Provider store={store}>
+      <App Component={Component} {...props} />
+    </Provider>
+  );
+}
+
 function App({ Component, pageProps }) {
   const router = useRouter();
-  const dispatch = useDispatch();
+  const { store, props } = wrapper.useWrappedStore(pageProps);
 
   const session = useSelector(selectSessionState);
-
+  const dispatch = useDispatch();
   const headless = useMemo(() => {
     return router.query.headless == "true";
   }, [router]);
@@ -94,7 +105,8 @@ function App({ Component, pageProps }) {
       icon: "❌",
     });
 
-    if (!headless) router.push("/");
+    if (!headless && !router.pathname.startsWith("/overlay/devices"))
+      router.push("/");
     else router.reload();
   }, []);
 
@@ -126,55 +138,66 @@ function App({ Component, pageProps }) {
   }
 
   return (
-    <PlausibleProvider
-      domain="puff.social"
-      enabled={
-        typeof window != "undefined" &&
-        window.location.hostname == "puff.social"
-      }
-      selfHosted
-    >
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link
-        rel="preconnect"
-        href="https://fonts.gstatic.com"
-        crossOrigin="yes"
-      />
-      <link
-        href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Noto+Color+Emoji&family=Coda&display=swap"
-        rel="stylesheet"
-      />
+    <Provider store={store}>
+      <PlausibleProvider
+        domain="puff.social"
+        enabled={
+          typeof window != "undefined" &&
+          window.location.hostname == "puff.social"
+        }
+        selfHosted
+      >
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="yes"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Noto+Color+Emoji&family=Coda&display=swap"
+          rel="stylesheet"
+        />
 
-      {isElectron() ? <Electron /> : <></>}
-      {session?.suspended ? <SuspendedModal /> : <></>}
+        {isElectron() ? <Electron /> : <></>}
+        {session?.suspended ? <SuspendedModal /> : <></>}
 
-      {!headless ? (
-        <>
-          <Toaster>
-            {(t) => (
-              <Transition
-                appear
-                show={t.visible}
-                className="transform flex justify-center items-center rounded-md p-2 bg-white text-black dark:bg-neutral-800 dark:text-white drop-shadow-xl max-w-96"
-                enter="transition-all duration-150"
-                enterFrom="opacity-0 scale-50"
-                enterTo="opacity-100 scale-100"
-                leave="transition-all duration-150"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-75"
-              >
-                <ToastIcon toast={t} />
-                <p className="px-2">{resolveValue(t.message, t)}</p>
-              </Transition>
-            )}
-          </Toaster>
-        </>
-      ) : (
-        <></>
-      )}
-      <Component {...pageProps} />
-    </PlausibleProvider>
+        {!headless ? (
+          <>
+            <Toaster>
+              {(t) => (
+                <Transition
+                  appear
+                  show={t.visible}
+                  className="transform flex justify-center items-center rounded-md p-2 bg-white text-black dark:bg-neutral-800 dark:text-white drop-shadow-xl max-w-96"
+                  enter="transition-all duration-150"
+                  enterFrom="opacity-0 scale-50"
+                  enterTo="opacity-100 scale-100"
+                  leave="transition-all duration-150"
+                  leaveFrom="opacity-100 scale-100"
+                  leaveTo="opacity-0 scale-75"
+                >
+                  <ToastIcon toast={t} />
+                  <p className="px-2">{resolveValue(t.message, t)}</p>
+                </Transition>
+              )}
+            </Toaster>
+          </>
+        ) : (
+          <></>
+        )}
+        <Component {...props} />
+      </PlausibleProvider>
+    </Provider>
   );
 }
 
-export default wrapper.withRedux(App);
+export async function getInitialProps() {
+  wrapper.getInitialAppProps((store) => async (context) => {
+    return {
+      ...(await Application.getInitialProps(context)).pageProps,
+      pathname: context.ctx.pathname,
+    };
+  });
+}
+
+export default AppWrapper;

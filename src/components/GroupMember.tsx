@@ -18,7 +18,7 @@ import { PuffcoContainer } from "./puffco";
 import { Tippy } from "./Tippy";
 import { Bluetooth } from "./icons/Bluetooth";
 import { Crown } from "./icons/Crown";
-import { Icon3D } from "./icons/3DIcon";
+import { Icon3D, Icon3DXL } from "./icons/3DIcon";
 import { Dots } from "./icons/Dots";
 import { Kick } from "./icons/Kick";
 import { gateway } from "../utils/gateway";
@@ -716,9 +716,21 @@ export function GroupMember(props: GroupMemberProps) {
                     <div className="flex flex-row space-x-4">
                       {props.device.chamberType == ChamberType["3D"] ? (
                         <>
-                          <Tippy content="3D Chamber" placement="auto">
+                          <Tippy
+                            content={
+                              props.device.chamberType == ChamberType["3DXL"]
+                                ? "3DXL Chamber"
+                                : "3D Chamber"
+                            }
+                            placement="auto"
+                          >
                             <span className="flex mt-2 px-1 border border-black dark:border-white text-black dark:text-white items-center justify-center w-fit">
-                              <Icon3D />
+                              {props.device.chamberType ==
+                              ChamberType["3DXL"] ? (
+                                <Icon3DXL />
+                              ) : (
+                                <Icon3D />
+                              )}
                             </span>
                           </Tippy>
                           {props.device.profile.intensity &&

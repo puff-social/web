@@ -11,10 +11,14 @@ export interface UIState {
   profileEditModalOpen: boolean;
   editingProfile: PuffcoProfile | null;
   editingProfileIndex: string | null;
+
+  dismissedBadges: string[];
 }
 
 const initialState: UIState = {
   modal: null,
+
+  dismissedBadges: [],
 
   profileEditModalOpen: false,
   editingProfile: null,
@@ -37,15 +41,16 @@ export const ui = createSlice({
     setEditingProfileIndex(state, action: PayloadAction<string>) {
       state.editingProfileIndex = action.payload;
     },
+    dismissBadge(state, action: PayloadAction<string>) {
+      state.dismissedBadges.push(action.payload);
+    },
   },
 
-  extraReducers: {
-    [HYDRATE]: (state, action) => {
-      return {
-        ...state,
-        ...action.payload,
-      };
-    },
+  extraReducers(builder) {
+    builder.addCase<typeof HYDRATE, PayloadAction<AppState, typeof HYDRATE>>(
+      HYDRATE,
+      (state, { payload }) => ({ ...state, ...payload.ui })
+    );
   },
 });
 
@@ -54,6 +59,7 @@ export const {
   setProfileModalOpen,
   setEditingProfile,
   setEditingProfileIndex,
+  dismissBadge,
 } = ui.actions;
 
 export const selectUIState = (state: AppState) => state.ui;

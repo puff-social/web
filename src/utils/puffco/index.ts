@@ -567,7 +567,7 @@ export class Device extends EventEmitter {
       this.loraxEvent.startNotifications();
 
       this.setupWatchers();
-      this.updateDeviceTime(new Date());
+      // this.updateDeviceTime(new Date()); TODO: Only do this if deviation is greater than 1 minute?
     } else {
       let currentOperatingState: number;
       const operatingState = await this.pollValue(

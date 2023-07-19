@@ -18,7 +18,13 @@ import {
   DynamicLoraxCharacteristics,
 } from "../../utils/puffco/constants";
 import toast from "react-hot-toast";
-import { ProfileIntensity } from "@puff-social/commons/dist/puffco";
+import {
+  MAX_INTENSITY,
+  MinimumFirmwareMap,
+  ProfileIntensityMap,
+  XL_INTENSITY,
+  meetsMinimumFirmware,
+} from "@puff-social/commons/dist/puffco";
 
 interface Props {
   instance: Device;
@@ -156,48 +162,44 @@ export function ProfileEditModal({ instance }: Props) {
                     </span>
                   </span>
 
-                  <span className="flex justify-between items-center">
-                    <p className="font-bold">Vapor Control</p>
+                  {meetsMinimumFirmware(
+                    instance.deviceFirmware,
+                    MinimumFirmwareMap.VAPOR_SETTING
+                  ) ? (
+                    <span className="flex justify-between items-center">
+                      <p className="font-bold">Vapor Control</p>
 
-                    <span className="flex flex-row items-center justify-center">
-                      <p
-                        className={`${
-                          profileIntensity == ProfileIntensity.Standard
-                            ? "bg-neutral-400 dark:bg-neutral-800"
-                            : "bg-neutral-300 dark:bg-black"
-                        } hover:bg-neutral-400 hover:dark:bg-neutral-800 select-none cursor-pointer p-1 px-2 border border-0.5 border-white/30 rounded-l-md`}
-                        onClick={() =>
-                          setProfileIntensity(ProfileIntensity.Standard)
-                        }
-                      >
-                        Standard
-                      </p>
-                      <p
-                        className={`${
-                          profileIntensity == ProfileIntensity.High
-                            ? "bg-neutral-400 dark:bg-neutral-800"
-                            : "bg-neutral-300 dark:bg-black"
-                        } hover:bg-neutral-400 hover:dark:bg-neutral-800 select-none cursor-pointer p-1 px-2 border border-0.5 border-x-0 border-white/30 `}
-                        onClick={() =>
-                          setProfileIntensity(ProfileIntensity.High)
-                        }
-                      >
-                        High
-                      </p>
-                      <p
-                        className={`${
-                          profileIntensity == ProfileIntensity.Max
-                            ? "bg-neutral-400 dark:bg-neutral-800"
-                            : "bg-neutral-300 dark:bg-black"
-                        } hover:bg-neutral-400 hover:dark:bg-neutral-800 select-none cursor-pointer p-1 px-2 border border-0.5 border-white/30 rounded-r-md`}
-                        onClick={() =>
-                          setProfileIntensity(ProfileIntensity.Max)
-                        }
-                      >
-                        Max
-                      </p>
+                      <span className="flex flex-row items-center justify-center">
+                        {Object.keys(ProfileIntensityMap)
+                          .filter(
+                            (key) =>
+                              Number(key) <=
+                              (meetsMinimumFirmware(
+                                instance.deviceFirmware,
+                                MinimumFirmwareMap.XL_CHAMBER
+                              )
+                                ? XL_INTENSITY
+                                : MAX_INTENSITY)
+                          )
+                          .sort((a, b) => Number(a) - Number(b))
+                          .map((key) => (
+                            <p
+                              key={key}
+                              className={`${
+                                profileIntensity == Number(key)
+                                  ? "bg-neutral-400 dark:bg-neutral-800"
+                                  : "bg-neutral-300 dark:bg-black"
+                              } hover:bg-neutral-400 hover:dark:bg-neutral-800 select-none cursor-pointer p-1 px-2 border border-0.5 border-white/30 first:rounded-l-md last:rounded-r-md`}
+                              onClick={() => setProfileIntensity(Number(key))}
+                            >
+                              {ProfileIntensityMap[key]}
+                            </p>
+                          ))}
+                      </span>
                     </span>
-                  </span>
+                  ) : (
+                    <></>
+                  )}
                 </span>
 
                 <button

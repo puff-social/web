@@ -1,13 +1,13 @@
 import { AuditLog } from "@puff-social/commons/dist/puffco";
 import { Dialog, Transition } from "@headlessui/react";
-import { Fragment, useCallback } from "react";
-import { useSelector } from "react-redux";
-import { AutoSizer, List } from "react-virtualized";
+import { Fragment, useCallback, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 import { Device } from "../../utils/puffco";
 import { Cross } from "../icons/Cross";
 import { selectCurrentDeviceState } from "../../state/slices/device";
 import { DeviceLogEntry } from "../DeviceLogEntry";
+import { dismissBadge, selectUIState } from "../../state/slices/ui";
 
 interface Props {
   instance: Device;
@@ -17,6 +17,13 @@ interface Props {
 
 export function DeviceLogsModal({ instance, modalOpen, setModalOpen }: Props) {
   const currentDevice = useSelector(selectCurrentDeviceState);
+  const ui = useSelector(selectUIState);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (!ui.dismissedBadges.includes("deviceLogDisplay") && modalOpen)
+      dispatch(dismissBadge("deviceLogDisplay"));
+  }, [modalOpen]);
 
   const closeModal = useCallback(() => {
     setModalOpen(false);
@@ -24,11 +31,7 @@ export function DeviceLogsModal({ instance, modalOpen, setModalOpen }: Props) {
 
   return (
     <Transition appear show={modalOpen} as={Fragment}>
-      <Dialog
-        as="div"
-        className="relative z-10"
-        onClose={() => setModalOpen(false)}
-      >
+      <Dialog as="div" className="relative z-10" onClose={() => closeModal()}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"

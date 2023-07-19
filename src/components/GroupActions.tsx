@@ -309,9 +309,16 @@ export function GroupActions({
                         </span>
                       </Tippy>
                       <span
-                        className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
+                        className="flex p-2 relative rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
                         onClick={() => setDeviceLogsModalOpen(true)}
                       >
+                        {!ui.dismissedBadges.includes("deviceLogDisplay") ? (
+                          <div className="absolute top-0 -right-4 -m-1 bg-red-600 rounded-full px-1">
+                            New
+                          </div>
+                        ) : (
+                          <></>
+                        )}
                         <p>Device Logs</p>
                         <Logs />
                       </span>
@@ -334,6 +341,11 @@ export function GroupActions({
                   placement="bottom-start"
                 >
                   <div className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl">
+                    {!ui.dismissedBadges.includes("deviceLogDisplay") ? (
+                      <span className="absolute top-0 right-0 -m-1 bg-red-600 rounded-full w-3 h-3" />
+                    ) : (
+                      <></>
+                    )}
                     <PuffcoLogo
                       style={{
                         color:

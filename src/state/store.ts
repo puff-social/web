@@ -5,6 +5,10 @@ import {
   EnhancedStore,
 } from "@reduxjs/toolkit";
 import { createWrapper } from "next-redux-wrapper";
+import {
+  nextReduxCookieMiddleware,
+  wrapMakeStore,
+} from "next-redux-cookie-wrapper";
 
 import { session } from "./slices/session";
 import { group } from "./slices/group";
@@ -12,11 +16,12 @@ import { ui } from "./slices/ui";
 import { updater } from "./slices/updater";
 import { desktop } from "./slices/desktop";
 import { device } from "./slices/device";
+import { useDispatch } from "react-redux";
 
 export let store: EnhancedStore;
 
-const makeStore = () => {
-  store = configureStore({
+const makeStore = wrapMakeStore(() => {
+  const configuredStore = configureStore({
     reducer: {
       [session.name]: session.reducer,
       [group.name]: group.reducer,
@@ -25,13 +30,25 @@ const makeStore = () => {
       [desktop.name]: desktop.reducer,
       [device.name]: device.reducer,
     },
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware().prepend(
+        nextReduxCookieMiddleware({
+          subtrees: [
+            {
+              subtree: `${ui.name}.dismissedBadges`,
+            },
+          ],
+        })
+      ),
     devTools: true,
   });
-  return store;
-};
+  store = configuredStore;
+  return configuredStore;
+});
 
 export type AppStore = ReturnType<typeof makeStore>;
 export type AppState = ReturnType<AppStore["getState"]>;
+export type AppDispatch = AppStore["dispatch"];
 export type AppThunk<ReturnType = void> = ThunkAction<
   ReturnType,
   AppState,
@@ -39,7 +56,8 @@ export type AppThunk<ReturnType = void> = ThunkAction<
   Action
 >;
 
-export const wrapper = createWrapper<AppStore>(makeStore);
+export const wrapper = createWrapper<AppStore>(makeStore, { debug: true });
+export const useAppDispatch = () => useDispatch<AppDispatch>();
 
 if (typeof window != "undefined") {
   window["wrapper"] = wrapper;
