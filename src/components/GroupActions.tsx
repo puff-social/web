@@ -230,8 +230,9 @@ export function GroupActions({
                                   <div
                                     className="hidden group-hover:flex rounded-full p-2 w-8 h-8 justify-center items-center bg-black dark:bg-white text-white opacity-50 group-hover:opacity-100 cursor-pointer dark:text-black fixed z-10 right-0"
                                     onClick={() => {
-                                      toast(`clicked ${key}`);
-                                      dispatch(setEditingProfileIndex(key));
+                                      dispatch(
+                                        setEditingProfileIndex(Number(key))
+                                      );
                                       dispatch(
                                         setEditingProfile(deviceProfiles[key])
                                       );

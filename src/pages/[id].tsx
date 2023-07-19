@@ -597,7 +597,7 @@ export default function Group({
 
       dispatch(
         updateGroupMemberDevice({
-          group_id: group.id,
+          group_id: group.group_id,
           session_id: gateway.session_id,
           device_state: initState as DeviceState,
         })
@@ -621,7 +621,7 @@ export default function Group({
 
         dispatch(
           updateGroupMemberDevice({
-            group_id: group.id,
+            group_id: group.group_id,
             session_id: gateway.session_id,
             device_state: data,
           })

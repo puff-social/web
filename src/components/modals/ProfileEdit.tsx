@@ -37,7 +37,7 @@ export function ProfileEditModal({ instance }: Props) {
   const [profileName, setProfileName] = useState<string>();
   const [profileIntensity, setProfileIntensity] = useState<number>();
   const [profileTemperature, setProfileTemperature] = useState<number>();
-  const [profileTime, setProfileTime] = useState<number>();
+  const [profileTime, setProfileTime] = useState<string>();
 
   const updateProfile = useCallback(async () => {
     if (!ui.editingProfile) return;

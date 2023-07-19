@@ -10,7 +10,7 @@ export interface UIState {
 
   profileEditModalOpen: boolean;
   editingProfile: PuffcoProfile | null;
-  editingProfileIndex: string | null;
+  editingProfileIndex: number | null;
 
   dismissedBadges: string[];
 }
@@ -38,7 +38,7 @@ export const ui = createSlice({
     setEditingProfile(state, action: PayloadAction<PuffcoProfile>) {
       state.editingProfile = action.payload;
     },
-    setEditingProfileIndex(state, action: PayloadAction<string>) {
+    setEditingProfileIndex(state, action: PayloadAction<number>) {
       state.editingProfileIndex = action.payload;
     },
     dismissBadge(state, action: PayloadAction<string>) {
