@@ -273,7 +273,7 @@ export function GroupMember(props: GroupMemberProps) {
                         <p>Copy share card</p>
                         <ShareIcon />
                       </span>
-                      {gateway.session_id == props.member.session_id ? (
+                      {gateway.session_id == props.member?.session_id ? (
                         <span
                           className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
                           onClick={() => {
