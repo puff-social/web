@@ -13,6 +13,7 @@ import { FeedbackModal } from "../components/modals/Feedback";
 import { LeaderboardModal } from "../components/modals/Leaderboard";
 import { UserSettingsModal } from "../components/modals/UserSettings";
 import { Op } from "@puff-social/commons";
+import { PuffLogo } from "../assets/Logo";
 
 export default function Home() {
   const router = useRouter();
@@ -85,15 +86,15 @@ export default function Home() {
       <MainMeta />
 
       <div className="flex flex-col m-4 z-10">
-        <div onClick={() => router.push("/")} className="cursor-pointer">
-          <h1 className="text-4xl font-bold">puff.social</h1>
-          <h3 className="text font-bold">
-            by&nbsp;
-            <a href="https://dstn.to" target="_blank">
-              dstn.to
-            </a>
-            &nbsp;(idea by Roberto)
-          </h3>
+        <div
+          onClick={() => router.push("/")}
+          className="cursor-pointer flex flex-row space-x-2 items-center"
+        >
+          <PuffLogo className="h-14 w-14 text-black dark:text-white transition-all" />
+          <div>
+            <h1 className="text-4xl font-bold">puff.social</h1>
+            <h3 className="text font-bold">puff. socially.</h3>
+          </div>
         </div>
         <GroupActions
           setUserSettingsModalOpen={setSettingsModalOpen}

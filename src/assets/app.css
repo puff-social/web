@@ -10,8 +10,12 @@ body {
 }
 
 @layer base {
+  * {
+    @apply transition-colors;
+  }
+
   body {
-    @apply text-black bg-white dark:text-white dark:bg-neutral-900;
+    @apply text-black bg-white dark:text-white dark:bg-neutral-900 transition-all;
   }
 
   .tippy-box-tip .tippy-arrow {
