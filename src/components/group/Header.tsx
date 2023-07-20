@@ -23,7 +23,7 @@ export function GroupHeader({ setGroupMembersModalOpen }: Props) {
 
   return (
     <div className="flex flex-row space-x-3">
-      <PuffLogo className="h-24 w-24 opacity-30 hover:opacity-100 text-black dark:text-white transition-all" />
+      <PuffLogo className="h-16 w-16 opacity-30 hover:opacity-100 text-black dark:text-white transition-all" />
       <div className="flex flex-col">
         <h1 className="flex flex-row text-4xl text-black dark:text-white font-bold items-center">
           {group.name}
@@ -49,42 +49,48 @@ export function GroupHeader({ setGroupMembersModalOpen }: Props) {
             </span>
           </Tippy>
         </h1>
-        <p
-          className={`text-black dark:text-white font-bold ${
-            EASTER_EGG_CYCLE_COUNTS.includes(group.sesh_counter)
-              ? "rainbow"
-              : ""
-          }`}
-        >
-          {group.sesh_counter == 0
-            ? "No seshes yet!"
-            : `${group.sesh_counter.toLocaleString()} seshes this group`}
-        </p>
-        <Tippy content="Seshers / Watchers (Click for list)" placement="right">
-          <span
-            className="flex flex-row items-center space-x-2 w-fit opacity-60 cursor-pointer"
-            onClick={() => setGroupMembersModalOpen(true)}
+        <div className="flex flex-row space-x-4">
+          <p
+            className={`text-black dark:text-white font-bold ${
+              EASTER_EGG_CYCLE_COUNTS.includes(group.sesh_counter)
+                ? "rainbow"
+                : ""
+            }`}
           >
-            <span className="flex flex-row items-center text-black dark:text-white font-bold space-x-1">
-              <p>
-                {
-                  group.members.filter((mem) => validState(mem.device_state))
-                    .length
-                }
-              </p>
-              <AltSmoke />
-            </span>
-            <span className="flex flex-row items-center text-black dark:text-white font-bold space-x-1">
-              <p>
-                {
-                  group.members.filter((mem) => !validState(mem.device_state))
-                    .length
-                }
-              </p>
-              <Eye />
-            </span>
-          </span>
-        </Tippy>
+            {group.sesh_counter == 0
+              ? "No seshes yet!"
+              : `${group.sesh_counter.toLocaleString()} seshes this group`}
+          </p>
+          <hr className="bg-white/20 border-transparent w-0.5 h-1/2 self-center opacity-40 rounded-full mx-3" />
+          <Tippy
+            content="Seshers / Watchers (Click for list)"
+            placement="right"
+          >
+            <div
+              className="flex flex-row items-center space-x-2 w-fit opacity-60 cursor-pointer"
+              onClick={() => setGroupMembersModalOpen(true)}
+            >
+              <div className="flex flex-row items-center text-black dark:text-white font-bold space-x-1">
+                <p className="text-base">
+                  {
+                    group.members.filter((mem) => validState(mem.device_state))
+                      .length
+                  }
+                </p>
+                <AltSmoke />
+              </div>
+              <div className="flex flex-row items-center text-black dark:text-white font-bold space-x-1">
+                <p className="text-base">
+                  {
+                    group.members.filter((mem) => !validState(mem.device_state))
+                      .length
+                  }
+                </p>
+                <Eye />
+              </div>
+            </div>
+          </Tippy>
+        </div>
       </div>
     </div>
   );
