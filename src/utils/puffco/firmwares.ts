@@ -73,4 +73,23 @@ export const Firmwares = [
       },
     ],
   },
+  {
+    name: "AG",
+    files: [
+      {
+        id: 7,
+        type: "puff",
+        hash: "c156817",
+        date: new Date("2023-07-20T00:43:09.000Z"),
+        file: "https://cdn.puff.social/fw/peak/AG-peach-bootloader-reloader-c156817-release.puff",
+      },
+      {
+        id: 8,
+        type: "gbl",
+        hash: "8e07d16",
+        date: new Date("2023-07-20T00:36:33.000Z"),
+        file: "https://cdn.puff.social/fw/peak/AG-pikachu-application-8e07d16-release.gbl",
+      },
+    ],
+  },
 ];
