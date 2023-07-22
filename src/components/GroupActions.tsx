@@ -273,8 +273,10 @@ export function GroupActions({
                                     </span>
                                     <div className="flex flex-col justify-end items-end">
                                       <div className="flex flex-col">
-                                        {instance.chamberType ==
-                                          ChamberType["3D"] &&
+                                        {[
+                                          ChamberType["3D"],
+                                          ChamberType.XL,
+                                        ].includes(instance.chamberType) &&
                                         deviceProfiles[key] ? (
                                           <div className="flex flex-row space-x-2">
                                             <IntensityIcon
