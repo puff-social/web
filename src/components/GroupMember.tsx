@@ -714,19 +714,20 @@ export function GroupMember(props: GroupMemberProps) {
                     </Tippy>
 
                     <div className="flex flex-row space-x-4">
-                      {props.device.chamberType == ChamberType["3D"] ? (
+                      {[ChamberType["3D"], ChamberType.XL].includes(
+                        props.device.chamberType
+                      ) ? (
                         <>
                           <Tippy
                             content={
-                              props.device.chamberType == ChamberType["3DXL"]
+                              props.device.chamberType == ChamberType.XL
                                 ? "3DXL Chamber"
                                 : "3D Chamber"
                             }
                             placement="auto"
                           >
                             <span className="flex mt-2 px-1 border border-black dark:border-white text-black dark:text-white items-center justify-center w-fit">
-                              {props.device.chamberType ==
-                              ChamberType["3DXL"] ? (
+                              {props.device.chamberType == ChamberType.XL ? (
                                 <Icon3DXL />
                               ) : (
                                 <Icon3D />
