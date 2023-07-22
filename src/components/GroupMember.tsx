@@ -165,7 +165,7 @@ export function GroupMember(props: GroupMemberProps) {
     );
   else if (!bluetooth && props.us) return <></>;
   if (props.us && !props.connected && props.connectDismissed) return <></>;
-  if (props.headless && !props.lbDevice) return <></>;
+  if (props.headless && !props.lbDevice && !props.device) return <></>;
 
   return (
     <div
