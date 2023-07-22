@@ -28,12 +28,12 @@ import { Instagram } from "./icons/Instagram";
 import { LoginModal } from "./modals/Login";
 import { Account } from "./icons/Account";
 import { AccountSettingsModal } from "./modals/AccountSettings";
-import { DeviceModelColors } from "../utils/constants";
 import { InfoModal } from "./modals/Info";
 import { Hamburger } from "./icons/Hamburger";
 import { PuffcoLogo } from "./icons/Puffco";
 import {
   ChamberType,
+  DeviceModelColors,
   ProductModelMap,
 } from "@puff-social/commons/dist/puffco/constants";
 import { Op, UserFlags } from "@puff-social/commons";

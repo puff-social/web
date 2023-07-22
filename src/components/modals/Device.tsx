@@ -11,7 +11,6 @@ import { DeviceInformation } from "../../types/api";
 import { Device } from "../../utils/puffco";
 import toast from "react-hot-toast";
 import { trackDevice } from "../../utils/hash";
-import { ChamberTypeMap } from "../../utils/puffco/constants";
 import { Info } from "../icons/Info";
 import {
   DeviceState,
@@ -19,6 +18,7 @@ import {
 } from "@puff-social/commons/dist/puffco/constants";
 import { Tippy } from "../Tippy";
 import { formatRelativeTime } from "../../utils/time";
+import { ChamberTypeMap } from "@puff-social/commons/dist/puffco";
 
 interface Props {
   instance: Device;

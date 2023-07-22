@@ -34,7 +34,7 @@ import {
   updateGroupState,
 } from "../state/slices/group";
 import { instance } from "../pages/[id]";
-import { PuffLightMode } from "./puffco/constants";
+import { PuffLightMode } from "@puff-social/commons/dist/puffco";
 
 interface SocketData {
   session_id?: string;

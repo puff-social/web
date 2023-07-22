@@ -8,20 +8,16 @@ import {
   setEditingProfileIndex,
   setProfileModalOpen,
 } from "../../state/slices/ui";
-import {
-  PROFILE_TEMPERATURE_MIN,
-  TEMPERATURE_MAX,
-} from "../../utils/constants";
 import { Device } from "../../utils/puffco";
+import toast from "react-hot-toast";
 import {
   Characteristic,
   DynamicLoraxCharacteristics,
-} from "../../utils/puffco/constants";
-import toast from "react-hot-toast";
-import {
   MAX_INTENSITY,
   MinimumFirmwareMap,
+  PROFILE_TEMPERATURE_MIN,
   ProfileIntensityMap,
+  TEMPERATURE_MAX,
   XL_INTENSITY,
   meetsMinimumFirmware,
 } from "@puff-social/commons/dist/puffco";

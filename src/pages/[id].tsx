@@ -15,7 +15,6 @@ import {
   GroupUserLeft,
 } from "../types/gateway";
 import { Device } from "../utils/puffco";
-import { DeviceCommand, PuffLightMode } from "../utils/puffco/constants";
 import { gateway } from "../utils/gateway";
 import { UserSettingsModal } from "../components/modals/UserSettings";
 import { trackDevice } from "../utils/hash";
@@ -41,6 +40,7 @@ import { GroupMembersModal } from "../components/modals/GroupMembers";
 import { GroupStrainModal } from "../components/modals/GroupStrain";
 import { PlugConnected, PlugDisconnected } from "../components/icons/Plug";
 import {
+  DeviceModelColors,
   DeviceState,
   ProductModelMap,
 } from "@puff-social/commons/dist/puffco/constants";
@@ -51,8 +51,11 @@ import {
   setGroupState,
   updateGroupMemberDevice,
 } from "../state/slices/group";
-import { validState } from "@puff-social/commons/dist/puffco";
-import { DeviceModelColors } from "../utils/constants";
+import {
+  DeviceCommand,
+  PuffLightMode,
+  validState,
+} from "@puff-social/commons/dist/puffco";
 import { PuffcoLogo } from "../components/icons/Puffco";
 import { isElectron } from "../utils/electron";
 import { DesktopBleConnectModal } from "../components/modals/DesktopBluetoothConnect";

@@ -16,11 +16,11 @@ import { Rocket } from "./icons/Rocket";
 import { PlugConnected, PlugDisconnected } from "./icons/Plug";
 import { BatteryCheck } from "./icons/Battery";
 import { ClockAdjust } from "./icons/Clock";
+import { PowerIcon } from "./icons/Power";
 import {
   formatFancyDuration,
   millisToMinutesAndSeconds,
-} from "../utils/functions";
-import { PowerIcon } from "./icons/Power";
+} from "@puff-social/commons";
 
 interface DeviceLogEntry {
   entry: AuditLog;

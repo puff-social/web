@@ -9,8 +9,10 @@ import { GatewayGroup, GroupState } from "../../types/gateway";
 import { Lock } from "../icons/Lock";
 import { useSelector } from "react-redux";
 import { selectGroupState } from "../../state/slices/group";
-import { validState } from "@puff-social/commons/dist/puffco";
-import { EASTER_EGG_CYCLE_COUNTS } from "../../utils/constants";
+import {
+  EASTER_EGG_CYCLE_COUNTS,
+  validState,
+} from "@puff-social/commons/dist/puffco";
 import { PuffLogo } from "../../assets/Logo";
 
 interface Props {

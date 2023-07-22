@@ -1,7 +1,6 @@
 import { Dialog, Transition } from "@headlessui/react";
-import { Fragment } from "react";
 import toast from "react-hot-toast";
-import { useCallback, useState } from "react";
+import { useCallback, useState, Fragment } from "react";
 
 import { gateway } from "../../utils/gateway";
 import { Checkmark } from "../icons/Checkmark";

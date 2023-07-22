@@ -5,11 +5,6 @@ import {
   GatewayGroupMember,
   PuffcoOperatingMap,
 } from "../types/gateway";
-import {
-  EASTER_EGG_CYCLE_COUNTS,
-  TEMPERATURE_MAX,
-  TEMPERATURE_MIN,
-} from "../utils/constants";
 import { formatRelativeTime } from "../utils/time";
 import { Battery, BatteryBolt } from "./icons/Battery";
 import { Checkmark } from "./icons/Checkmark";
@@ -25,19 +20,21 @@ import { gateway } from "../utils/gateway";
 import { getLeaderboardDevice } from "../utils/hash";
 import { ShareIcon } from "./icons/Share";
 import { Away, UnAway } from "./icons/Away";
-import { millisToMinutesAndSeconds } from "../utils/functions";
 import { Leaf } from "./icons/Leaf";
 import { PlugDisconnected } from "./icons/Plug";
 import { GetDeviceEntry, User } from "../types/api";
 import { Mobile } from "./icons/Mobile";
 import { Money } from "./icons/Money";
-import { Op, UserFlags } from "@puff-social/commons";
+import { Op, UserFlags, millisToMinutesAndSeconds } from "@puff-social/commons";
 import {
   ChamberType,
   ChargeSource,
   DeviceState,
+  EASTER_EGG_CYCLE_COUNTS,
   ProductModelMap,
   PuffcoOperatingState,
+  TEMPERATURE_MAX,
+  TEMPERATURE_MIN,
 } from "@puff-social/commons/dist/puffco/constants";
 import { VoiceWaves } from "./icons/Voice";
 import { IntensityIcon } from "./IntensityIcon";

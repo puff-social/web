@@ -2,61 +2,12 @@ import { createHash } from "crypto";
 import { EventEmitter } from "events";
 import { pack } from "byte-data";
 import { GroupState } from "../../types/gateway";
-import {
-  convertFromHex,
-  convertHexStringToNumArray,
-  millisToMinutesAndSeconds,
-  constructLoraxCommand,
-  processLoraxReply,
-  intArrayToMacAddress,
-  readShortCmd,
-  writeShortCmd,
-  numbersToLetters,
-  openCmd,
-  watchCmd,
-  processLoraxEvent,
-  unwatchCmd,
-  closeCmd,
-  isOtaValid,
-} from "../functions";
+import { convertFromHex, convertHexStringToNumArray } from "../functions";
 import { DeviceInformation, DiagData } from "../../types/api";
 import { trackDiags } from "../hash";
-import {
-  AuditLogEntry,
-  LoraxLimits,
-  LoraxMessage,
-  PuffcoProfile,
-} from "../../types/puffco";
+import { AuditLogEntry, LoraxMessage, PuffcoProfile } from "../../types/puffco";
 import { gateway } from "../gateway";
-import {
-  Characteristic,
-  LoraxCommands,
-  LoraxCharacteristic,
-  DynamicLoraxCharacteristics,
-  LoraxCharacteristicPathMap,
-  DeviceProfile,
-  LightCommands,
-  PuffLightMode,
-  DeviceProfileReverse,
-  LORAX_SERVICE,
-  HANDSHAKE_KEY,
-  LORAX_HANDSHAKE_KEY,
-  PUP_SERVICE,
-  PUP_APP_VERSION,
-  SERVICE,
-  SILLABS_OTA_SERVICE,
-  SILLABS_VERISON,
-  DeviceCommand,
-  intMap,
-  PUP_TRIGGER_CHAR,
-  SILLABS_CONTROL,
-  PUP_COMMAND_RESPONSE_CHAR,
-  PUP_DEVICE_INFO,
-  PUP_GENERAL_COMMAND_CHAR,
-  SILLABS_DATA_CHAR,
-  PUP_SERIAL_NUMBER_CHAR,
-  HeatCycleOffset,
-} from "./constants";
+import { intMap } from "./constants";
 import { store } from "../../state/store";
 import { GroupState as GroupStateInterface } from "../../state/slices/group";
 import {
@@ -65,6 +16,44 @@ import {
   GatewayDeviceLastDab,
   DeviceState,
   BaseAuditLogOffset,
+  SILLABS_VERISON,
+  Characteristic,
+  DeviceCommand,
+  DeviceProfile,
+  DeviceProfileReverse,
+  DynamicLoraxCharacteristics,
+  HANDSHAKE_KEY,
+  HeatCycleOffset,
+  LORAX_HANDSHAKE_KEY,
+  LORAX_SERVICE,
+  LightCommands,
+  LoraxCharacteristic,
+  LoraxCharacteristicPathMap,
+  LoraxCommands,
+  PUP_APP_VERSION,
+  PUP_COMMAND_RESPONSE_CHAR,
+  PUP_DEVICE_INFO,
+  PUP_GENERAL_COMMAND_CHAR,
+  PUP_SERIAL_NUMBER_CHAR,
+  PUP_SERVICE,
+  PUP_TRIGGER_CHAR,
+  PuffLightMode,
+  SERVICE,
+  SILLABS_CONTROL,
+  SILLABS_DATA_CHAR,
+  SILLABS_OTA_SERVICE,
+  closeCmd,
+  constructLoraxCommand,
+  intArrayToMacAddress,
+  isOtaValid,
+  numbersToLetters,
+  openCmd,
+  processLoraxEvent,
+  processLoraxReply,
+  readShortCmd,
+  unwatchCmd,
+  watchCmd,
+  writeShortCmd,
 } from "@puff-social/commons/dist/puffco";
 import { Op } from "@puff-social/commons/dist/constants";
 import { setProgress } from "../../state/slices/updater";
@@ -72,6 +61,8 @@ import { setBleConnectionModalOpen } from "../../state/slices/desktop";
 import { isElectron } from "../electron";
 import { parseAuditLog } from "./logs";
 import { appendAuditLog, setDeviceUTCTime } from "../../state/slices/device";
+import { millisToMinutesAndSeconds } from "@puff-social/commons";
+import { LoraxLimits } from "@puff-social/commons/dist/types/puffco";
 
 const decoder = new TextDecoder("utf-8");
 
