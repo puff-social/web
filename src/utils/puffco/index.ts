@@ -2,7 +2,6 @@ import { createHash } from "crypto";
 import { EventEmitter } from "events";
 import { pack } from "byte-data";
 import { GroupState } from "../../types/gateway";
-import { convertFromHex, convertHexStringToNumArray } from "../functions";
 import { DeviceInformation, DiagData } from "../../types/api";
 import { trackDiags } from "../hash";
 import { AuditLogEntry, LoraxMessage, PuffcoProfile } from "../../types/puffco";
@@ -54,6 +53,8 @@ import {
   unwatchCmd,
   watchCmd,
   writeShortCmd,
+  convertFromHex,
+  convertHexStringToNumArray,
 } from "@puff-social/commons/dist/puffco";
 import { Op } from "@puff-social/commons/dist/constants";
 import { setProgress } from "../../state/slices/updater";
@@ -2626,6 +2627,8 @@ export class Device extends EventEmitter {
       const log = await this.readDeviceAuditLog(
         reverse ? currentOffset - currentIndex : currentOffset + currentIndex
       );
+
+      if (!log) return;
 
       const timestamp = new Date(
         log.readUInt32LE(BaseAuditLogOffset.TIMESTAMP) * 1000

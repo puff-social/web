@@ -3,7 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@headlessui/react': ^1.7.13
   '@headlessui/tailwindcss': ^0.1.3
-  '@puff-social/commons': ^1.0.27
+  '@puff-social/commons': ^1.0.28
   '@reduxjs/toolkit': ^1.9.3
   '@sentry/nextjs': ^7.40.0
   '@tippyjs/react': ^4.2.6
@@ -44,7 +44,7 @@ specifiers:
 dependencies:
   '@headlessui/react': 1.7.13_biqbaboplfbrettd7655fr4n2y
   '@headlessui/tailwindcss': 0.1.3_tailwindcss@3.2.7
-  '@puff-social/commons': 1.0.27
+  '@puff-social/commons': 1.0.28
   '@reduxjs/toolkit': 1.9.3_k4ae6lp43ej6mezo3ztvx6pykq
   '@sentry/nextjs': 7.40.0_next@13.2.0+react@18.2.0
   '@tippyjs/react': 4.2.6_biqbaboplfbrettd7655fr4n2y
@@ -301,8 +301,8 @@ packages:
     resolution: {integrity: sha512-3jum8/YSudeSN0zGW5qkpz+wAN2V/NYCQ+BPjvHYDfWatLWlQkqy99toX0GysDeaUoBIJg1vaz2yKqiA3CFcQw==}
     dev: false
 
-  /@puff-social/commons/1.0.27:
-    resolution: {integrity: sha512-QaIt4aQhtPsamT6rFIE27AChASFo/UAe6kx8DpDwi0K8awuA15/Ff/q+1Sax2QeSJn92dY5X6g33q+UoaJj5sA==, tarball: download/@puff-social/commons/1.0.27/8e59fb9756d289e4d151c36ea8bb74ed71d27111}
+  /@puff-social/commons/1.0.28:
+    resolution: {integrity: sha512-N/XUC6JFsEppFgZGc7fk9brgaVmwpVquSMV/qi4MmSIWY1/R5WHXmIgdbpBdGB91/7EUFOJzca6sJXseIr0QkA==, tarball: download/@puff-social/commons/1.0.28/a11a54fd85c03540b33b7f4ef200f72199d5a258}
     dependencies:
       '@prisma/client': 4.14.0
       envsafe: 2.0.3
