@@ -1,4 +1,5 @@
 import {
+  ChamberType,
   ChargeSource,
   PuffcoOperatingState,
 } from "@puff-social/commons/dist/puffco/constants";
@@ -13,6 +14,7 @@ export interface DeviceProps {
   battery?: number;
   temperature?: number;
   state?: PuffcoOperatingState;
+  chamberType?: ChamberType;
   chargeSource?: ChargeSource;
 }
 
@@ -20,6 +22,7 @@ export function PuffcoContainer({
   id,
   device,
   model = "peak",
+  chamberType = ChamberType.Normal,
   className,
   svgClassName,
 }: {
@@ -190,6 +193,15 @@ export function PuffcoContainer({
                   href={`/${img}.png`}
                 />
               ))}
+          {chamberType == ChamberType.XL ? (
+            <image
+              className="flex justify-center items-center self-center"
+              height="100%"
+              href="/shared/device-xl.png"
+            />
+          ) : (
+            <></>
+          )}
         </svg>
       </div>
     </div>

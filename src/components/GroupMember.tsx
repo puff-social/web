@@ -371,6 +371,7 @@ export function GroupMember(props: GroupMemberProps) {
                 className={`-z-50 min-w-[${props.lbDevice ? "10%" : "40%"}] ${
                   props.lbDevice ? "w-[100px]" : ""
                 }`}
+                chamberType={props.device.chamberType}
                 model={
                   ProductModelMap[
                     props.device
@@ -539,7 +540,7 @@ export function GroupMember(props: GroupMemberProps) {
                             props.device?.dabsPerDay ||
                             props.lbDevice?.avg_dabs ||
                             `0.0`
-                          } avg per day`}
+                          } dabs per day`}
                           placement="right"
                         >
                           <div
