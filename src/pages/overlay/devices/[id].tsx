@@ -8,6 +8,7 @@ import { gateway } from "../../../utils/gateway";
 import { Op } from "@puff-social/commons";
 import { useRouter } from "next/router";
 import { MainMeta } from "../../../components/MainMeta";
+import { toast } from "react-hot-toast";
 
 interface Props {
   id: string;
@@ -52,17 +53,23 @@ export default function DeviceOverlay(props: Props) {
     watchDevice(props.id);
   }, []);
 
+  const listener = useCallback((e: KeyboardEvent) => {
+    switch (e.key.toLowerCase()) {
+      case "escape":
+      case "m":
+      case "enter":
+        toast("Doing the thing");
+        setTimeout(() => {
+          router.reload();
+        }, 500);
+        break;
+    }
+  }, []);
+
   useEffect(() => {
     if (thing) {
-      document.addEventListener("keypress", (e) => {
-        switch (e.key.toLowerCase()) {
-          case "escape":
-          case "m":
-          case "enter":
-            router.reload();
-            break;
-        }
-      });
+      document.addEventListener("keyup", listener);
+      return () => document.removeEventListener("keyup", listener);
     }
   }, [thing]);
 

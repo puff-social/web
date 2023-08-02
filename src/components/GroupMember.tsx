@@ -499,7 +499,7 @@ export function GroupMember(props: GroupMemberProps) {
                     props.useDeviceName ? (
                       <h1
                         className={`m-0 ${
-                          props.thing ? "text-3xl" : "text-xl"
+                          props.thing ? "text-4xl" : "text-xl"
                         } font-bold truncate`}
                       >
                         {props.lbDevice?.name || "Unknown"}
@@ -508,7 +508,7 @@ export function GroupMember(props: GroupMemberProps) {
                       <div className="flex flex-col">
                         <h1
                           className={`m-0 ${
-                            props.thing ? "text-3xl" : "text-xl"
+                            props.thing ? "text-4xl" : "text-xl"
                           } font-bold truncate`}
                         >
                           {props.member?.user?.display_name ||
@@ -519,7 +519,7 @@ export function GroupMember(props: GroupMemberProps) {
                         </h1>
                         <p
                           className={`m-0 ${
-                            props.thing ? "text-xl" : "text-md"
+                            props.thing ? "text-2xl" : "text-md"
                           } truncate`}
                         >
                           {props.lbDevice?.name || "Unknown"}
@@ -596,13 +596,13 @@ export function GroupMember(props: GroupMemberProps) {
                           }`}
                         >
                           <Counter
-                            className={`m-1 ml-0 ${
-                              props.thing ? "w-8" : "w-6"
+                            className={`m-1 ml-0 h-auto ${
+                              props.thing ? "w-10" : "w-6"
                             }`}
                           />
                           <p
                             className={`m-0 p-1 ${
-                              props.thing ? "text-lg" : "text-md"
+                              props.thing ? "text-2xl" : "text-md"
                             }`}
                           >
                             {(
@@ -613,14 +613,14 @@ export function GroupMember(props: GroupMemberProps) {
                           </p>
                           <p
                             className={`m-0 p-1 ${
-                              props.thing ? "text-lg" : "text-md"
+                              props.thing ? "text-2xl" : "text-md"
                             }`}
                           >
                             -
                           </p>
                           <p
                             className={`m-0 p-1 ${
-                              props.thing ? "text-lg" : "text-md"
+                              props.thing ? "text-2xl" : "text-md"
                             }`}
                           >
                             {(
@@ -652,7 +652,7 @@ export function GroupMember(props: GroupMemberProps) {
 
                 {props.lbDevice && props.lbDevice?.last_dab ? (
                   <span className="flex flex-row items-center space-x-2">
-                    <p className={`${props.thing ? "text-md" : "text-sm"}`}>
+                    <p className={`${props.thing ? "text-lg" : "text-sm"}`}>
                       Last Dab :{" "}
                       {formatRelativeTime(
                         new Date(props.lbDevice?.last_dab),
