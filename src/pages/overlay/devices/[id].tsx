@@ -1,11 +1,13 @@
 import { GetServerSidePropsContext } from "next/types";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { GetDeviceEntry } from "../../../types/api";
 import { GroupMember } from "../../../components/GroupMember";
 import { getLeaderboardDevice } from "../../../utils/hash";
 import { GatewayWatchedDeviceUpdate } from "../../../types/gateway";
 import { gateway } from "../../../utils/gateway";
 import { Op } from "@puff-social/commons";
+import { useRouter } from "next/router";
+import { MainMeta } from "../../../components/MainMeta";
 
 interface Props {
   id: string;
@@ -15,6 +17,9 @@ interface Props {
 }
 
 export default function DeviceOverlay(props: Props) {
+  const router = useRouter();
+
+  const thing = useMemo(() => router.query?.thing == "true", [router]);
   const [device, setDevice] = useState<GetDeviceEntry>(props.initDevice);
 
   const watchedUpdate = useCallback(
@@ -48,6 +53,20 @@ export default function DeviceOverlay(props: Props) {
   }, []);
 
   useEffect(() => {
+    if (thing) {
+      document.addEventListener("keypress", (e) => {
+        switch (e.key.toLowerCase()) {
+          case "escape":
+          case "m":
+          case "enter":
+            router.reload();
+            break;
+        }
+      });
+    }
+  }, [thing]);
+
+  useEffect(() => {
     gateway.addListener("watched_device_update", watchedUpdate);
 
     return () => {
@@ -57,6 +76,8 @@ export default function DeviceOverlay(props: Props) {
 
   return device ? (
     <>
+      <MainMeta />
+
       <GroupMember
         lbDevice={device}
         lbDeviceMac={Buffer.from(props.id.split("_")[1], "base64").toString(
@@ -67,6 +88,7 @@ export default function DeviceOverlay(props: Props) {
         useDeviceName={props.useDeviceName}
         overlay
         headless
+        thing={thing}
       />
     </>
   ) : (

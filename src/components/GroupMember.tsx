@@ -66,6 +66,7 @@ interface GroupMemberProps {
   instance?: Device;
   headless?: boolean;
   overlay?: boolean;
+  thing?: boolean;
   removeBackground?: boolean;
   useDeviceName?: boolean;
   connectDismissed?: boolean;
@@ -166,9 +167,9 @@ export function GroupMember(props: GroupMemberProps) {
 
   return (
     <div
-      className={`flex justify-center items-center m-1 ${
-        props.lbDevice ? "h-48" : "h-72"
-      } w-[440px] ${
+      className={`flex justify-center items-center ${
+        props.lbDevice ? (props.thing ? "h-screen" : "h-48") : "h-72"
+      } ${props.thing ? "w-full" : "w-[440px] m-1"} ${
         props.device
           ? props.member?.user?.flags & UserFlags.admin
             ? "rounded-md bg-gradient-to-r from-blue-500/60 to-purple-700/60 p-px"
@@ -180,9 +181,15 @@ export function GroupMember(props: GroupMemberProps) {
       id={props.us ? gateway.session_id : props.member?.session_id}
     >
       <div
-        className={`group flex flex-col text-black ${
-          props.removeBackground ? `` : `bg-neutral-100 dark:bg-neutral-800`
-        } dark:text-white drop-shadow-xl rounded-md px-4 h-full w-[440px] justify-center items-center overflow-hidden ${
+        className={`group flex flex-col  ${
+          props.removeBackground
+            ? ``
+            : props.thing
+            ? "bg-neutral-800 text-white"
+            : `bg-neutral-100 dark:bg-neutral-800 rounded-md text-black dark:text-white`
+        } drop-shadow-xl px-4 h-full ${
+          props.thing ? "w-full" : "w-[440px]"
+        } justify-center items-center overflow-hidden ${
           props.member?.away ? "brightness-75" : ""
         }`}
         onMouseEnter={() => setHoveringCard(true)}
@@ -369,7 +376,11 @@ export function GroupMember(props: GroupMemberProps) {
                 }
                 svgClassName={props.lbDevice ? "" : "w-40 h-full"}
                 className={`-z-50 min-w-[${props.lbDevice ? "10%" : "40%"}] ${
-                  props.lbDevice ? "w-[100px]" : ""
+                  props.lbDevice
+                    ? props.thing
+                      ? "w-[200px]"
+                      : "w-[100px]"
+                    : ""
                 }`}
                 chamberType={props.device?.chamberType}
                 model={
@@ -486,19 +497,31 @@ export function GroupMember(props: GroupMemberProps) {
                   )}
                   {props.lbDevice ? (
                     props.useDeviceName ? (
-                      <h1 className="m-0 text-xl font-bold truncate">
+                      <h1
+                        className={`m-0 ${
+                          props.thing ? "text-3xl" : "text-xl"
+                        } font-bold truncate`}
+                      >
                         {props.lbDevice?.name || "Unknown"}
                       </h1>
                     ) : (
                       <div className="flex flex-col">
-                        <h1 className="m-0 text-xl font-bold truncate">
+                        <h1
+                          className={`m-0 ${
+                            props.thing ? "text-3xl" : "text-xl"
+                          } font-bold truncate`}
+                        >
                           {props.member?.user?.display_name ||
                             props.member?.device_state?.deviceName ||
                             props.user?.display_name ||
                             props.user?.name ||
                             "Unknown"}
                         </h1>
-                        <p className="m-0 text-md truncate">
+                        <p
+                          className={`m-0 ${
+                            props.thing ? "text-xl" : "text-md"
+                          } truncate`}
+                        >
                           {props.lbDevice?.name || "Unknown"}
                         </p>
                       </div>
@@ -572,16 +595,34 @@ export function GroupMember(props: GroupMemberProps) {
                               : ""
                           }`}
                         >
-                          <Counter className="m-1 ml-0 w-6" />
-                          <p className="m-0 p-1 text-md">
+                          <Counter
+                            className={`m-1 ml-0 ${
+                              props.thing ? "w-8" : "w-6"
+                            }`}
+                          />
+                          <p
+                            className={`m-0 p-1 ${
+                              props.thing ? "text-lg" : "text-md"
+                            }`}
+                          >
                             {(
                               props.device?.totalDabs ||
                               props.lbDevice?.dabs ||
                               0
                             ).toLocaleString()}
                           </p>
-                          <p className="m-0 p-1 text-md">-</p>
-                          <p className="m-0 p-1 text-md">
+                          <p
+                            className={`m-0 p-1 ${
+                              props.thing ? "text-lg" : "text-md"
+                            }`}
+                          >
+                            -
+                          </p>
+                          <p
+                            className={`m-0 p-1 ${
+                              props.thing ? "text-lg" : "text-md"
+                            }`}
+                          >
                             {(
                               props.device?.dabsPerDay ||
                               props.lbDevice?.avg_dabs ||
@@ -611,7 +652,7 @@ export function GroupMember(props: GroupMemberProps) {
 
                 {props.lbDevice && props.lbDevice?.last_dab ? (
                   <span className="flex flex-row items-center space-x-2">
-                    <p className="text-sm">
+                    <p className={`${props.thing ? "text-md" : "text-sm"}`}>
                       Last Dab :{" "}
                       {formatRelativeTime(
                         new Date(props.lbDevice?.last_dab),
