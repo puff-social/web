@@ -268,6 +268,7 @@ export function LoginModal({ modalOpen, setModalOpen }: Props) {
         }
 
         if (search.get("code")) {
+          clearInterval(int);
           const authed = await callbackDiscordOAuth(
             search.get("code"),
             search.get("state")
@@ -294,7 +295,6 @@ export function LoginModal({ modalOpen, setModalOpen }: Props) {
             })
           );
 
-          clearInterval(int);
           if (!child.closed) child.close();
         }
       } catch (error) {}
