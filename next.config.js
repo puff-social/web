@@ -5,6 +5,11 @@ const moduleExports = {
   async redirects() {
     return [
       {
+        source: "/fix-path",
+        destination: "path-web-fullscreen://https://puffco.app",
+        permanent: false,
+      },
+      {
         source: "/discord",
         destination: "https://discord.gg/M4uYMyU7bC",
         permanent: false,
