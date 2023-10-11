@@ -157,7 +157,7 @@ export function PuffcoContainer({
                         } 0`}
             ></feColorMatrix>
           </filter>
-          {["onyx", "pearl"].includes(model)
+          {["onyx", "pearl", "desert"].includes(model)
             ? [
                 "peach/peak-peach-lights-glass-mid-left",
                 "peach/peak-peach-lights-glass-mid-right",
