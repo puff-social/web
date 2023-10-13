@@ -18,8 +18,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Vercel CLI
-        run: npm install --global pnpm
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 7
+          run_install: false
 
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
