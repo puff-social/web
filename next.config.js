@@ -26,8 +26,12 @@ const moduleExports = {
       },
       {
         source: "/support",
-        destination:
-          "https://discord.com/servers/puff-social-479769841763483658",
+        destination: "https://patreon.com/puffsocial",
+        permanent: false,
+      },
+      {
+        source: "/patreon",
+        destination: "https://patreon.com/puffsocial",
         permanent: false,
       },
     ];

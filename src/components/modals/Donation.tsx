@@ -63,10 +63,10 @@ export function DonationModal({ modalOpen, setModalOpen }: Props) {
                     Sponsor on Github
                   </button>
                   <button
-                    className="bg-[#7289DA] p-4 rounded-md w-full text-black dark:text-white"
-                    onClick={() => window.open("/support")}
+                    className="bg-[#f96854] p-4 rounded-md w-full text-black dark:text-white"
+                    onClick={() => window.open("/patreon")}
                   >
-                    Subscribe on Discord
+                    Subscribe on Patreon
                   </button>
                 </span>
               </Dialog.Panel>
