@@ -44,40 +44,18 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                     <div className="flex flex-col bg-neutral-200 dark:bg-neutral-700 rounded-md p-2">
                       <p className="font-bold">Device Firmware Note:</p>
                       <p>
-                        This has been proven to work with any device running
-                        firmware X or later, and has been personally validated
-                        to work with firmwares{" "}
+                        This has been tested to work with any device running
+                        firmware{" "}
                         <span className="font-bold text-teal-100 bg-gray-600 px-1 rounded-md">
                           X
-                        </span>
-                        ,{" "}
-                        <span className="font-bold text-teal-100 bg-gray-600 px-1 rounded-md">
-                          Y
-                        </span>
-                        ,{" "}
-                        <span className="font-bold text-teal-100 bg-gray-600 px-1 rounded-md">
-                          Z
-                        </span>
-                        ,{" "}
-                        <span className="font-bold text-teal-100 bg-gray-600 px-1 rounded-md">
-                          AA
-                        </span>
-                        ,{" "}
-                        <span className="font-bold text-teal-100 bg-gray-600 px-1 rounded-md">
-                          AC
-                        </span>
-                        ,{" "}
-                        <span className="font-bold text-teal-100 bg-gray-600 px-1 rounded-md">
-                          AE
-                        </span>
-                        ,{" "}
-                        <span className="font-bold text-teal-100 bg-gray-600 px-1 rounded-md">
-                          AD
                         </span>{" "}
-                        and{" "}
+                        or later.
+                      </p>
+                      <p className="italic text-sm mt-1">
+                        Latest firmware seen:{" "}
                         <span className="font-bold text-teal-100 bg-gray-600 px-1 rounded-md">
-                          AF
-                        </span>{" "}
+                          AH
+                        </span>
                       </p>
                     </div>
                     <div className="flex flex-col bg-neutral-200 dark:bg-neutral-700 rounded-md p-2">
@@ -100,35 +78,28 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                     </span>
                     <span className="flex flex-col rounded-md space-y-4">
                       <p>
-                        So I built this because a couple of friends and I would
-                        count down starting our puffcos over discord, and after
-                        some time we wanted an easier solution. I've dug into
-                        applications and recreated logic before so I started
-                        digging through the react native web bundles for the
-                        puffco app and got familiar with the bluetooth
-                        functionality.
+                        So, a friend and I came up with this idea because we
+                        used to gather with homies on Discord to take our dabs,
+                        over time, we thought, "There's gotta be a simpler way
+                        to do this." and since I have a background in software
+                        and have reverse engineered applications before, I
+                        decided to dive into the react native web bundles of the
+                        puffco app and get to know the Bluetooth magic behind
+                        it.
                       </p>
 
                       <p>
-                        After getting the essential device functions and data
-                        fetching working from my code, I put together a realtime
-                        socket server to handle synchronization and then I put
-                        together this very basic react web app (using Next.js,
-                        Tailwind, and a few other tools. See the source below
-                        for more)
+                        After I got the essential device features and data
+                        retrieval to work smoothly in a test environment, I set
+                        up a real-time socket server to keep everything in sync.
+                        That's when I whipped up this pretty basic web app using
+                        Next.js, Tailwind, and a bunch of other cool tools (you
+                        can check out the source below for the nerdy details).
                       </p>
 
                       <p>
-                        If you encounter any issues, let us know in the discord
-                        below or you can DM me on Twitter (
-                        <a
-                          className="text-blue-700 dark:text-blue-400"
-                          href="https://twitter.com/dustinrouillard"
-                          target="_blank"
-                        >
-                          @dustinrouillard
-                        </a>
-                        ) or Instagram (
+                        If you ever run into any hiccups, just give us a shout
+                        on Discord or slide into my DMs on Instagram (
                         <a
                           className="text-blue-700 dark:text-blue-400"
                           href="https://dstn.pics"
@@ -136,24 +107,25 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                         >
                           @dstn.pics
                         </a>
-                        )
+                        ).
                       </p>
 
                       <p>
-                        Join our{" "}
+                        We'd love for you to join our{" "}
                         <a
                           className="text-blue-700 dark:text-blue-400"
                           target="_blank"
                           href="/discord"
                         >
-                          Discord
+                          Discord gang
                         </a>{" "}
-                        and become a part of our growing community, maybe we can
-                        sesh up sometime :)
+                        and be a part of our growing community. We're in there
+                        seshin every day, so feel free to jump in and join the
+                        fun with us!
                       </p>
 
                       <p>
-                        Follow our{" "}
+                        You should also follow our{" "}
                         <a
                           className="text-blue-700 dark:text-blue-400"
                           target="_blank"
@@ -179,14 +151,10 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                         <a
                           className="text-blue-700 dark:text-blue-400"
                           target="_blank"
-                          href="https://github.com/dustinrouillard/puffsocial-web"
+                          href="https://github.com/puff-social/web"
                         >
-                          dustinrouillard/puffsocial-web
+                          puff-social/web
                         </a>{" "}
-                      </span>
-                      <span className="italic opacity-50 mb-1">
-                        (Moving this to the org later on, don't want to pay for
-                        vercel)
                       </span>
                     </span>
                     <span>
@@ -217,6 +185,16 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                         href="https://github.com/puff-social/commons"
                       >
                         puff-social/commons
+                      </a>
+                    </span>
+                    <span>
+                      Follow our Github for our other open source repos{" "}
+                      <a
+                        className="text-blue-700 dark:text-blue-400"
+                        target="_blank"
+                        href="https://github.com/puff-social"
+                      >
+                        @puff-social
                       </a>
                     </span>
                   </p>
