@@ -19,6 +19,9 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install Vercel CLI
+        run: npm install --global pnpm
+
+      - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
