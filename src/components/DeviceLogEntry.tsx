@@ -22,8 +22,9 @@ import {
   millisToMinutesAndSeconds,
 } from "@puff-social/commons";
 
-interface DeviceLogEntry {
+interface EntryProps {
   entry: AuditLog;
+  type: "audit" | "fault";
 }
 
 const IconMap = {
@@ -56,7 +57,7 @@ const TitleMap = {
   [AuditLogCode.SYSTEM_BOOT]: "System Boot",
 };
 
-function AuditData({ entry }: DeviceLogEntry) {
+function AuditData({ entry, type }: EntryProps) {
   switch (entry.type) {
     case AuditLogCode.HEAT_CYCLE_ENTER_PREHEAT:
     case AuditLogCode.HEAT_CYCLE_COMPLETE:
@@ -157,7 +158,7 @@ function AuditData({ entry }: DeviceLogEntry) {
   }
 }
 
-export function DeviceLogEntry({ entry }: DeviceLogEntry) {
+export function DeviceLogEntry({ entry, type }: EntryProps) {
   const currentDevice = useSelector(selectCurrentDeviceState);
 
   return TitleMap[entry.type] ? (
@@ -195,7 +196,7 @@ export function DeviceLogEntry({ entry }: DeviceLogEntry) {
           <div className="space-y-1 mt-2">
             <hr className="w-full rounded-md opacity-20 border-neutral-500 dark:border-neutral-400" />
             <div className="ml-1">
-              <AuditData entry={entry} />
+              <AuditData entry={entry} type={type} />
             </div>
           </div>
         </>

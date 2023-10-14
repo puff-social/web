@@ -18,11 +18,28 @@ import {
 } from "@puff-social/commons/dist/puffco";
 import { convertRelativeTimestamp } from "../time";
 
+export function parseFaultLog(cursor: number, utc: number, log: Buffer) {
+  console.log(log);
+  const timestamp = new Date(
+    log.readUInt32LE(BaseAuditLogOffset.TIMESTAMP) * 1000
+  );
+  const logType = log[BaseAuditLogOffset.TYPE_CODE];
+
+  return {
+    id: cursor,
+    type: logType,
+    timestamp: timestamp.getTime(),
+    realTimestamp: convertRelativeTimestamp(timestamp, utc),
+    data: {},
+  };
+}
+
 export function parseAuditLog(
   cursor: number,
   utc: number,
   log: Buffer
 ): AuditLog {
+  console.log(log, "audit");
   const timestamp = new Date(
     log.readUInt32LE(BaseAuditLogOffset.TIMESTAMP) * 1000
   );

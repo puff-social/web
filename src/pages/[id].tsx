@@ -108,6 +108,8 @@ export default function Group({
   const [strainSetModalOpen, setStrainSetModalOpen] = useState(false);
   const [deviceSettingsModalOpen, setDeviceSettingsModalOpen] = useState(false);
   const [deviceLogsModalOpen, setDeviceLogsModalOpen] = useState(false);
+  const [deviceFaultLogsModalOpen, setDeviceFaultLogsModalOpen] =
+    useState(false);
   const [groupSettingsModalOpen, setGroupSettingsModalOpen] = useState(false);
 
   const [firstVisit] = useState(() =>
@@ -714,9 +716,16 @@ export default function Group({
             setModalOpen={setDeviceSettingsModalOpen}
           />
           <DeviceLogsModal
+            type="audit"
             instance={instance}
             modalOpen={deviceLogsModalOpen}
             setModalOpen={setDeviceLogsModalOpen}
+          />
+          <DeviceLogsModal
+            type="fault"
+            instance={instance}
+            modalOpen={deviceFaultLogsModalOpen}
+            setModalOpen={setDeviceFaultLogsModalOpen}
           />
         </>
       ) : (
@@ -763,6 +772,7 @@ export default function Group({
                     setGroupSettingsModalOpen={setGroupSettingsModalOpen}
                     setDeviceSettingsModalOpen={setDeviceSettingsModalOpen}
                     setDeviceLogsModalOpen={setDeviceLogsModalOpen}
+                    setDeviceFaultLogsModalOpen={setDeviceFaultLogsModalOpen}
                     setUserSettingsModalOpen={setUserSettingsModalOpen}
                     setFeedbackModalOpen={setFeedbackModalOpen}
                     setLeaderboardOpen={setLeaderboardOpen}

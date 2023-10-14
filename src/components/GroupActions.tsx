@@ -62,6 +62,7 @@ interface ActionsProps {
   setGroupSettingsModalOpen?: Dispatch<SetStateAction<boolean>>;
   setDeviceSettingsModalOpen?: Dispatch<SetStateAction<boolean>>;
   setDeviceLogsModalOpen?: Dispatch<SetStateAction<boolean>>;
+  setDeviceFaultLogsModalOpen?: Dispatch<SetStateAction<boolean>>;
   setUserSettingsModalOpen: Dispatch<SetStateAction<boolean>>;
   setFeedbackModalOpen: Dispatch<SetStateAction<boolean>>;
   setLeaderboardOpen: Dispatch<SetStateAction<boolean>>;
@@ -74,6 +75,7 @@ export function GroupActions({
   setGroupSettingsModalOpen,
   setDeviceSettingsModalOpen,
   setDeviceLogsModalOpen,
+  setDeviceFaultLogsModalOpen,
   setUserSettingsModalOpen,
   deviceConnected,
   connectDismissed,
@@ -323,6 +325,20 @@ export function GroupActions({
                           <></>
                         )}
                         <p>Device Logs</p>
+                        <Logs />
+                      </span>
+                      <span
+                        className="flex p-2 relative rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between"
+                        onClick={() => setDeviceFaultLogsModalOpen(true)}
+                      >
+                        {!ui.dismissedBadges.includes("deviceLogDisplay") ? (
+                          <div className="absolute top-0 -right-4 -m-1 bg-red-600 rounded-full px-1">
+                            New
+                          </div>
+                        ) : (
+                          <></>
+                        )}
+                        <p>Device Faults</p>
                         <Logs />
                       </span>
                       <span

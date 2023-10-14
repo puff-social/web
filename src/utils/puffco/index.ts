@@ -4,7 +4,12 @@ import { pack } from "byte-data";
 import { GroupState } from "../../types/gateway";
 import { DeviceInformation, DiagData } from "../../types/api";
 import { trackDiags } from "../hash";
-import { AuditLogEntry, LoraxMessage, PuffcoProfile } from "../../types/puffco";
+import {
+  AuditLogEntry,
+  FaultLogEntry,
+  LoraxMessage,
+  PuffcoProfile,
+} from "../../types/puffco";
 import { gateway } from "../gateway";
 import { intMap } from "./constants";
 import { store } from "../../state/store";
@@ -60,8 +65,12 @@ import { Op } from "@puff-social/commons/dist/constants";
 import { setProgress } from "../../state/slices/updater";
 import { setBleConnectionModalOpen } from "../../state/slices/desktop";
 import { isElectron } from "../electron";
-import { parseAuditLog } from "./logs";
-import { appendAuditLog, setDeviceUTCTime } from "../../state/slices/device";
+import { parseAuditLog, parseFaultLog } from "./logs";
+import {
+  appendAuditLog,
+  appendFaultLog,
+  setDeviceUTCTime,
+} from "../../state/slices/device";
 import { millisToMinutesAndSeconds } from "@puff-social/commons";
 import { LoraxLimits } from "@puff-social/commons/dist/types/puffco";
 
@@ -90,6 +99,7 @@ export interface Device {
 
   lastLoraxSequenceId: number;
   auditLogEntries: Map<number, AuditLogEntry>;
+  faultLogEntries: Map<number, FaultLogEntry>;
   loraxMessages: Map<number, LoraxMessage>;
   loraxLimits: LoraxLimits;
 
@@ -171,6 +181,7 @@ export class Device extends EventEmitter {
     this.lastLoraxSequenceId = 0;
     this.loraxLimits = { maxCommands: 0, maxFiles: 0, maxPayload: 0 };
     this.auditLogEntries = new Map();
+    this.faultLogEntries = new Map();
     this.loraxMessages = new Map();
     this.pollerMap = new Map();
     this.watchMap = new Map();
@@ -480,7 +491,11 @@ export class Device extends EventEmitter {
                     PuffcoOperatingState.HEAT_CYCLE_ACTIVE,
                   ].includes(currentOperatingState)
                 ) {
-                  await this.readDeviceAuditLogs({ limit: 3, reverse: true });
+                  await this.readDeviceLogs({
+                    limit: 3,
+                    reverse: true,
+                    type: "audit",
+                  });
                   this.watcherSuspendTimeout = setTimeout(async () => {
                     await this.unwatchPath(
                       LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]
@@ -646,6 +661,7 @@ export class Device extends EventEmitter {
         this.pollerSuspended = true;
         this.lastLoraxSequenceId = 0;
         this.auditLogEntries = new Map();
+        this.faultLogEntries = new Map();
         this.loraxMessages = new Map();
         this.watchMap = new Map();
         this.pathWatchers = new Map();
@@ -1440,8 +1456,10 @@ export class Device extends EventEmitter {
     this.setupDevice();
 
     (async () => {
-      await this.readDeviceAuditLogs({ reverse: true });
+      await this.readDeviceLogs({ reverse: true, type: "audit", limit: 5 });
+      await this.readDeviceLogs({ reverse: true, type: "fault", limit: 5 });
       console.log("Read device", this.auditLogEntries);
+      console.log("Read device", this.faultLogEntries);
     })();
 
     let currentBrightness: number;
@@ -2541,7 +2559,7 @@ export class Device extends EventEmitter {
     );
   }
 
-  async readDeviceAuditLog(index: number): Promise<Buffer> {
+  async readDeviceLog(index: number, type: "audit" | "fault"): Promise<Buffer> {
     try {
       if (
         !this.service ||
@@ -2551,25 +2569,17 @@ export class Device extends EventEmitter {
       )
         return;
 
+      const selector =
+        type == "audit"
+          ? LoraxCharacteristicPathMap.AUDIT_SELECTOR
+          : LoraxCharacteristicPathMap.FAULT_SELECTOR;
       const buf = Buffer.alloc(4);
       buf.writeUInt32LE(index);
       try {
-        await this.sendLoraxValueShort(
-          LoraxCharacteristicPathMap.AUDIT_SELECTOR,
-          buf
-        );
+        await this.sendLoraxValueShort(selector, buf);
       } catch (error) {
         await new Promise((resolve) =>
-          setTimeout(
-            () =>
-              resolve(
-                this.sendLoraxValueShort(
-                  LoraxCharacteristicPathMap.AUDIT_SELECTOR,
-                  buf
-                )
-              ),
-            10
-          )
+          setTimeout(() => resolve(this.sendLoraxValueShort(selector, buf)), 10)
         );
       }
 
@@ -2577,55 +2587,73 @@ export class Device extends EventEmitter {
       do {
         await new Promise((resolve) => setTimeout(() => resolve(1), 10));
         const auditCall = await this.getValue(
-          Characteristic.AUDIT_POINTER,
+          type == "audit"
+            ? Characteristic.AUDIT_POINTER
+            : Characteristic.FAULT_POINTER,
           true
         );
         currentIndex = auditCall.readUInt32LE(0);
       } while (currentIndex !== index);
 
-      const entryCall = await this.getValue(Characteristic.AUDIT_ENTRY, true);
+      const entryCall = await this.getValue(
+        type == "audit"
+          ? LoraxCharacteristicPathMap[Characteristic.AUDIT_ENTRY]
+          : LoraxCharacteristicPathMap[Characteristic.FAULT_ENTRY],
+        true
+      );
       return entryCall;
     } catch (error) {
       return new Promise((resolve) =>
-        setTimeout(() => resolve(this.readDeviceAuditLog(index)), 5)
+        setTimeout(() => resolve(this.readDeviceLog(index, type)), 5)
       );
     }
   }
 
-  async readDeviceAuditLogs({
+  async readDeviceLogs({
     limit,
     reverse,
+    type = "audit",
   }: {
     limit?: number;
     reverse?: boolean;
+    type: "audit" | "fault";
   }) {
     if (!this.service || !this.server || !this.server.connected) return;
 
-    const auditBegin =
-      (await this.getValue(Characteristic.AUDIT_BEGIN, true)).readUInt32LE() +
-      1;
-    const auditEnd =
-      (await this.getValue(Characteristic.AUDIT_END, true)).readUInt32LE() - 1;
+    const logsBegin =
+      (
+        await this.getValue(
+          type == "audit"
+            ? Characteristic.AUDIT_BEGIN
+            : Characteristic.FAULT_BEGIN,
+          true
+        )
+      ).readUInt32LE() + 1;
+    const logsEnd =
+      (
+        await this.getValue(
+          type == "audit" ? Characteristic.AUDIT_END : Characteristic.FAULT_END,
+          true
+        )
+      ).readUInt32LE() - 1;
 
     let currentIndex = 0;
 
+    const offset = type == "audit" ? this.auditOffset : this.faultOffset;
     const currentOffset = reverse
-      ? this.auditOffset &&
-        this.auditOffset <= auditBegin &&
-        this.auditOffset >= auditEnd
-        ? this.auditOffset
-        : auditEnd
-      : this.auditOffset &&
-        this.auditOffset > auditBegin &&
-        this.auditOffset <= auditEnd
-      ? this.auditOffset
-      : auditBegin;
+      ? offset && offset <= logsBegin && offset >= logsEnd
+        ? offset
+        : logsEnd
+      : offset && offset > logsBegin && offset <= logsEnd
+      ? offset
+      : logsBegin;
 
     while (
-      currentIndex < (limit ?? (reverse ? auditEnd - auditBegin : auditBegin))
+      currentIndex < (limit ?? (reverse ? logsEnd - logsBegin : logsBegin))
     ) {
-      const log = await this.readDeviceAuditLog(
-        reverse ? currentOffset - currentIndex : currentOffset + currentIndex
+      const log = await this.readDeviceLog(
+        reverse ? currentOffset - currentIndex : currentOffset + currentIndex,
+        type
       );
 
       if (!log) return;
@@ -2639,60 +2667,74 @@ export class Device extends EventEmitter {
         ? currentOffset - currentIndex
         : currentOffset + currentIndex;
 
-      const parsed = parseAuditLog(curr, this.utcTime, log);
-      store.dispatch(appendAuditLog(parsed));
-
-      this.auditLogEntries.set(curr, {
-        id: curr,
-        type: logType,
-        timestamp,
-        data: log,
-      });
-
-      switch (logType) {
-        case AuditLogCode.HEAT_CYCLE_ABORT_ACTIVE:
-        case AuditLogCode.HEAT_CYCLE_COMPLETE: {
-          if (
-            timestamp.getTime() <
-            new Date(this.lastHeatCycleCompleted?.timestamp).getTime()
-          )
-            break;
-
-          const timeElapsed =
-            log.readInt16LE(HeatCycleOffset.TIME_ELAPSED) / 100;
-          const totalTime = log.readInt16LE(HeatCycleOffset.TOTAL_TIME) / 100;
-          const nominalTemp =
-            log.readInt16LE(HeatCycleOffset.HEAT_CYCLE_NOMINAL_TEMP) / 10;
-          const actualTemp =
-            log.readInt16LE(HeatCycleOffset.PRESENT_ACTUAL_TEMP) / 10;
-
-          this.lastHeatCycleCompleted = {
-            timestamp: timestamp.getTime(),
-            timeElapsed,
-            totalTime,
-            actualTemp,
-            nominalTemp,
-          };
-          this.poller.emit("data", {
-            lastDab: this.lastHeatCycleCompleted,
-          });
-          this.emit("device_last_heat_completed", timestamp);
-
-          break;
-        }
-        case AuditLogCode.CHARGE_COMPLETE: {
-          if (
-            timestamp.getTime() < new Date(this.utcTime * 1000).getTime() &&
-            this.lastChargeCompleted
-          )
-            break;
-
-          this.lastChargeCompleted = timestamp;
-          this.emit("device_last_charge_completed", timestamp);
-
-          break;
-        }
+      if (type == "audit") {
+        const parsed = parseAuditLog(curr, this.utcTime, log);
+        store.dispatch(appendAuditLog(parsed));
+      } else {
+        const parsed = parseFaultLog(curr, this.utcTime, log);
+        store.dispatch(appendFaultLog(parsed));
       }
+
+      if (type == "audit")
+        this.auditLogEntries.set(curr, {
+          id: curr,
+          type: logType,
+          timestamp,
+          data: log,
+        });
+      else
+        this.faultLogEntries.set(curr, {
+          id: curr,
+          type: logType,
+          timestamp,
+          data: log,
+        });
+
+      if (type == "audit")
+        switch (logType) {
+          case AuditLogCode.HEAT_CYCLE_ABORT_ACTIVE:
+          case AuditLogCode.HEAT_CYCLE_COMPLETE: {
+            if (
+              timestamp.getTime() <
+              new Date(this.lastHeatCycleCompleted?.timestamp).getTime()
+            )
+              break;
+
+            const timeElapsed =
+              log.readInt16LE(HeatCycleOffset.TIME_ELAPSED) / 100;
+            const totalTime = log.readInt16LE(HeatCycleOffset.TOTAL_TIME) / 100;
+            const nominalTemp =
+              log.readInt16LE(HeatCycleOffset.HEAT_CYCLE_NOMINAL_TEMP) / 10;
+            const actualTemp =
+              log.readInt16LE(HeatCycleOffset.PRESENT_ACTUAL_TEMP) / 10;
+
+            this.lastHeatCycleCompleted = {
+              timestamp: timestamp.getTime(),
+              timeElapsed,
+              totalTime,
+              actualTemp,
+              nominalTemp,
+            };
+            this.poller.emit("data", {
+              lastDab: this.lastHeatCycleCompleted,
+            });
+            this.emit("device_last_heat_completed", timestamp);
+
+            break;
+          }
+          case AuditLogCode.CHARGE_COMPLETE: {
+            if (
+              timestamp.getTime() < new Date(this.utcTime * 1000).getTime() &&
+              this.lastChargeCompleted
+            )
+              break;
+
+            this.lastChargeCompleted = timestamp;
+            this.emit("device_last_charge_completed", timestamp);
+
+            break;
+          }
+        }
 
       currentIndex++;
 

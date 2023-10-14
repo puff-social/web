@@ -1,4 +1,4 @@
-import { AuditLog } from "@puff-social/commons/dist/puffco";
+import { AuditLog, FaultLog } from "@puff-social/commons/dist/puffco";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -6,16 +6,21 @@ import { useDispatch, useSelector } from "react-redux";
 import { Device } from "../../utils/puffco";
 import { Cross } from "../icons/Cross";
 import { selectCurrentDeviceState } from "../../state/slices/device";
-import { DeviceLogEntry } from "../DeviceLogEntry";
 import { dismissBadge, selectUIState } from "../../state/slices/ui";
 
 interface Props {
   instance: Device;
+  type: "audit" | "fault";
   modalOpen: boolean;
   setModalOpen: Function;
 }
 
-export function DeviceLogsModal({ instance, modalOpen, setModalOpen }: Props) {
+export function DeviceLogsModal({
+  instance,
+  type,
+  modalOpen,
+  setModalOpen,
+}: Props) {
   const currentDevice = useSelector(selectCurrentDeviceState);
   const ui = useSelector(selectUIState);
   const dispatch = useDispatch();
@@ -57,7 +62,7 @@ export function DeviceLogsModal({ instance, modalOpen, setModalOpen }: Props) {
             >
               <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white dark:bg-neutral-800 text-black dark:text-white p-6 text-left align-middle shadow-xl transition-all">
                 <div className="flex justify-between items-center mb-2">
-                  <h1 className="text-xl">Device Logs</h1>
+                  <h1 className="text-xl">Device {type} logs</h1>
 
                   <Cross
                     className="opacity-50 hover:opacity-100"
@@ -66,21 +71,37 @@ export function DeviceLogsModal({ instance, modalOpen, setModalOpen }: Props) {
                 </div>
 
                 <div className="flex flex-col space-y-2 rounded-md h-96 overflow-y-scroll">
-                  {currentDevice.auditLogs &&
-                  currentDevice.auditLogs.length > 0 ? (
-                    [...currentDevice.auditLogs]
-                      .sort((a: AuditLog, b: AuditLog) => b.id - a.id)
+                  {(type == "audit"
+                    ? currentDevice.auditLogs
+                    : currentDevice.faultLogs) &&
+                  (type == "audit"
+                    ? currentDevice.auditLogs
+                    : currentDevice.faultLogs
+                  ).length > 0 ? (
+                    [
+                      ...(type == "audit"
+                        ? currentDevice.auditLogs
+                        : currentDevice.faultLogs),
+                    ]
+                      .sort(
+                        (a: AuditLog | FaultLog, b: AuditLog | FaultLog) =>
+                          b.id - a.id
+                      )
                       .slice(0, 200)
-                      .map((item: AuditLog) => (
+                      .map((item: AuditLog | FaultLog) => (
                         <div className="pr-2" key={item.id}>
-                          <DeviceLogEntry entry={item} />
+                          {/* <DeviceLogEntry entry={item} type={type} /> */}
                         </div>
                       ))
-                  ) : currentDevice.auditLogs ? (
+                  ) : (
+                      type == "audit"
+                        ? currentDevice.auditLogs
+                        : currentDevice.faultLogs
+                    ) ? (
                     <div className="flex justify-center items-center h-48">
                       <h1 className="text-md font-bold">
-                        For some reason we failed to pull audit logs from your
-                        device, try again?
+                        For some reason we failed to pull logs from your device,
+                        try again?
                       </h1>
                     </div>
                   ) : (

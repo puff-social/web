@@ -1,4 +1,4 @@
-import { AuditLogCode } from "@puff-social/commons/dist/puffco";
+import { AuditLogCode, FaultLogCode } from "@puff-social/commons/dist/puffco";
 
 export interface PuffcoProfile {
   name: string;
@@ -11,6 +11,13 @@ export interface PuffcoProfile {
 export interface AuditLogEntry {
   id: number;
   type: AuditLogCode;
+  timestamp: Date;
+  data: Buffer;
+}
+
+export interface FaultLogEntry {
+  id: number;
+  type: FaultLogCode;
   timestamp: Date;
   data: Buffer;
 }
