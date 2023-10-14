@@ -12,7 +12,7 @@ import {
 export const API_URL =
   (typeof location != "undefined" &&
     ["localhost", "dev.puff.social"].includes(location.hostname)) ||
-  process.env.DEV == "1"
+  ["1", "2"].includes(process.env.DEV ?? process.env.NEXT_PUBLIC_DEV)
     ? typeof location != "undefined" && location.hostname == "beta.puff.social"
       ? "https://hash.puff.social"
       : "http://127.0.0.1:8000"
