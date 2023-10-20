@@ -421,25 +421,25 @@ export default function Group({
 
   useEffect(() => {
     if (initGroup && initGroup.group_id) {
-      if (firstVisit) {
-        if (typeof localStorage != "undefined")
-          localStorage.setItem("puff-social-first-visit", "false");
-        toast(
-          <span className="max-w-md">
-            We see this is your first visit, you should read our{" "}
-            <Link className="text-blue-700 dark:text-blue-400" href={"/info"}>
-              info page
-            </Link>{" "}
-            to learn more about what puff.social is :)
-          </span>,
-          {
-            position: "top-center",
-            icon: "👋",
-            style: { width: "300px" },
-            duration: 10000,
-          }
-        );
-      }
+      // if (firstVisit) {
+      //   if (typeof localStorage != "undefined")
+      //     localStorage.setItem("puff-social-first-visit", "false");
+      //   toast(
+      //     <span className="max-w-md">
+      //       We see this is your first visit, you should read our{" "}
+      //       <Link className="text-blue-700 dark:text-blue-400" href={"/info"}>
+      //         info page
+      //       </Link>{" "}
+      //       to learn more about what puff.social is :)
+      //     </span>,
+      //     {
+      //       position: "top-center",
+      //       icon: "👋",
+      //       style: { width: "300px" },
+      //       duration: 10000,
+      //     }
+      //   );
+      // }
       gateway.on("group_join_error", groupJoinError);
       gateway.on("group_user_device_update", groupMemberDeviceUpdated);
       gateway.on("group_heat_begin", startDab);

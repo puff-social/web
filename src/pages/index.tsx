@@ -53,11 +53,11 @@ export default function Home() {
   useEffect(() => {
     init();
 
-    if (firstVisit) {
-      if (typeof localStorage != "undefined")
-        localStorage.setItem("puff-social-first-visit", "false");
-      router.push("/info");
-    }
+    // if (firstVisit) {
+    //   if (typeof localStorage != "undefined")
+    //     localStorage.setItem("puff-social-first-visit", "false");
+    //   router.push("/info");
+    // }
 
     gateway.on("public_groups_update", groupsUpdated);
 

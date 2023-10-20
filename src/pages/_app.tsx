@@ -3,7 +3,7 @@ import { Transition } from "@headlessui/react";
 import PlausibleProvider from "next-plausible";
 import Application from "next/app";
 import { Provider, useDispatch, useSelector } from "react-redux";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Toaster, ToastIcon, toast, resolveValue } from "react-hot-toast";
 
 import "tippy.js/dist/tippy.css";
@@ -19,6 +19,8 @@ import { SuspendedModal } from "../components/modals/Suspended";
 import { UserFlags } from "@puff-social/commons";
 import { isElectron } from "../utils/electron";
 import { Electron } from "../components/Electron";
+import { IntroModal } from "../components/modals/Intro";
+import NoSSR from "../components/NoSSR";
 
 function AppWrapper({ Component, ...appProps }) {
   const { store, props } = wrapper.useWrappedStore(appProps);
@@ -39,6 +41,12 @@ function App({ Component, pageProps }) {
   const headless = useMemo(() => {
     return router.query.headless == "true";
   }, [router]);
+
+  const [firstVisit] = useState(() =>
+    typeof localStorage != "undefined"
+      ? localStorage.getItem("puff-social-first-visit") != "false"
+      : false
+  );
 
   function groupCreated(group: GatewayGroupCreate) {
     toast(`Group ${group.name} (${group.group_id}) created`, {
@@ -160,6 +168,14 @@ function App({ Component, pageProps }) {
 
         {isElectron() ? <Electron /> : <></>}
         {session?.suspended ? <SuspendedModal /> : <></>}
+
+        {firstVisit ? (
+          <NoSSR>
+            <IntroModal />
+          </NoSSR>
+        ) : (
+          <></>
+        )}
 
         {!headless ? (
           <>
