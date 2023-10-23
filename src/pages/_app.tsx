@@ -21,6 +21,7 @@ import { isElectron } from "../utils/electron";
 import { Electron } from "../components/Electron";
 import { IntroModal } from "../components/modals/Intro";
 import NoSSR from "../components/NoSSR";
+import { KevoModal } from "../components/modals/KevoModal";
 
 function AppWrapper({ Component, ...appProps }) {
   const { store, props } = wrapper.useWrappedStore(appProps);
@@ -45,6 +46,12 @@ function App({ Component, pageProps }) {
   const [firstVisit] = useState(() =>
     typeof localStorage != "undefined"
       ? localStorage.getItem("puff-social-first-visit") != "false"
+      : false
+  );
+
+  const [callKevo] = useState(() =>
+    typeof location != "undefined"
+      ? new URL(location.href).searchParams.get("ref") == "callkevo"
       : false
   );
 
@@ -145,6 +152,10 @@ function App({ Component, pageProps }) {
     router.push(`/${group.group_id}`);
   }
 
+  useEffect(() => {
+    if (callKevo) router.replace(router.pathname, undefined, { shallow: true });
+  }, [callKevo]);
+
   return (
     <Provider store={store}>
       <PlausibleProvider
@@ -166,16 +177,12 @@ function App({ Component, pageProps }) {
           rel="stylesheet"
         />
 
-        {isElectron() ? <Electron /> : <></>}
-        {session?.suspended ? <SuspendedModal /> : <></>}
-
-        {firstVisit ? (
-          <NoSSR>
-            <IntroModal />
-          </NoSSR>
-        ) : (
-          <></>
-        )}
+        <NoSSR>
+          {isElectron() ? <Electron /> : <></>}
+          {session?.suspended ? <SuspendedModal /> : <></>}
+          {callKevo ? <KevoModal /> : <></>}
+          {firstVisit ? <IntroModal /> : <></>}
+        </NoSSR>
 
         {!headless ? (
           <>
