@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
 import {
+  Op,
   RemoteAction,
   RemoteActionPayload,
   UserFlags,
@@ -142,6 +143,10 @@ function App({ Component, pageProps }) {
         }
         case RemoteAction.DISCONNECT: {
           instance.disconnect();
+          break;
+        }
+        case RemoteAction.INQUIRE_DAB: {
+          gateway.send(Op.InquireHeating);
           break;
         }
         case RemoteAction.BEGIN_HEAT: {
