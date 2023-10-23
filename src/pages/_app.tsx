@@ -1,4 +1,9 @@
 import { useRouter } from "next/router";
+import {
+  RemoteAction,
+  RemoteActionPayload,
+  UserFlags,
+} from "@puff-social/commons";
 import { Transition } from "@headlessui/react";
 import PlausibleProvider from "next-plausible";
 import Application from "next/app";
@@ -16,12 +21,14 @@ import { getCurrentUser } from "../utils/hash";
 import { GatewayError, GatewayGroupCreate } from "../types/gateway";
 import { selectSessionState, setSessionState } from "../state/slices/session";
 import { SuspendedModal } from "../components/modals/Suspended";
-import { UserFlags } from "@puff-social/commons";
 import { isElectron } from "../utils/electron";
 import { Electron } from "../components/Electron";
 import { IntroModal } from "../components/modals/Intro";
 import NoSSR from "../components/NoSSR";
 import { KevoModal } from "../components/modals/KevoModal";
+import { selectGroupState } from "../state/slices/group";
+import { instance } from "./[id]";
+import { DeviceCommand } from "@puff-social/commons/dist/puffco";
 
 function AppWrapper({ Component, ...appProps }) {
   const { store, props } = wrapper.useWrappedStore(appProps);
@@ -38,6 +45,7 @@ function App({ Component, pageProps }) {
   const { store, props } = wrapper.useWrappedStore(pageProps);
 
   const session = useSelector(selectSessionState);
+  const group = useSelector(selectGroupState);
   const dispatch = useDispatch();
   const headless = useMemo(() => {
     return router.query.headless == "true";
@@ -124,6 +132,41 @@ function App({ Component, pageProps }) {
       router.push("/");
     else router.reload();
   }, []);
+
+  const remoteGatewayAction = useCallback(
+    async (data: RemoteActionPayload) => {
+      switch (data.action) {
+        case RemoteAction.REFRESH: {
+          router.reload();
+          break;
+        }
+        case RemoteAction.DISCONNECT: {
+          instance.disconnect();
+          break;
+        }
+        case RemoteAction.BEGIN_HEAT: {
+          instance.sendCommand(DeviceCommand.HEAT_CYCLE_BEGIN);
+          break;
+        }
+        case RemoteAction.CANCEL_HEAT: {
+          instance.sendCommand(DeviceCommand.HEAT_CYCLE_STOP);
+          break;
+        }
+
+        default:
+          break;
+      }
+    },
+    [group.group]
+  );
+
+  useEffect(() => {
+    gateway.on("remote_action", remoteGatewayAction);
+
+    return () => {
+      gateway.removeListener("remote_action", remoteGatewayAction);
+    };
+  }, [remoteGatewayAction]);
 
   useEffect(() => {
     getAndCheckAuth();

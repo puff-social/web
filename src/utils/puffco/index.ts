@@ -493,6 +493,11 @@ export class Device extends EventEmitter {
                         Characteristic.STATE_ELAPSED_TIME
                       ]
                     );
+                    console.log(
+                      "resuming, again for some reason",
+                      val,
+                      currentOperatingState
+                    );
                     this.pollerMap.get("chamberTemp").emit("resume");
                   }, 15 * 1000);
                 }

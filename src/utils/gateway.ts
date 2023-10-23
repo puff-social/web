@@ -22,7 +22,7 @@ import {
   GroupState,
   GatewayWatchedDeviceUpdate,
 } from "../types/gateway";
-import { Event, Op } from "@puff-social/commons";
+import { Event, Op, RemoteActionPayload } from "@puff-social/commons";
 import {
   GroupState as GroupStateInterface,
   addGroupMember,
@@ -147,6 +147,10 @@ export interface Gateway {
   on(
     event: "watched_device_update",
     listener: (data: GatewayWatchedDeviceUpdate) => void
+  ): this;
+  on(
+    event: "remote_action",
+    listener: (data: RemoteActionPayload) => void
   ): this;
 }
 export class Gateway extends EventEmitter {
@@ -427,6 +431,10 @@ export class Gateway extends EventEmitter {
           }
           case Event.WatchedDeviceUpdate: {
             this.emit("watched_device_update", data.d);
+            break;
+          }
+          case Event.RemoteAction: {
+            this.emit("remote_action", data.d);
             break;
           }
         }
