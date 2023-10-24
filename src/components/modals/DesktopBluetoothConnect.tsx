@@ -1,6 +1,6 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useCallback, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import {
   selectDesktopState,
   setBleConnectionModalOpen,
@@ -10,12 +10,13 @@ import {
 } from "../../state/slices/desktop";
 import { ChevronRight } from "../icons/Chevron";
 import type { BluetoothDevice } from "electron";
+import { useAppDispatch } from "../../state/store";
 
 interface Props {}
 
 export function DesktopBleConnectModal() {
   const desktop = useSelector(selectDesktopState);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   function registerHandlers() {
     if (typeof window != "undefined" && desktop.bluetoothConnectionModalOpen) {

@@ -21,7 +21,7 @@ import toast from "react-hot-toast";
 import { GiftBox } from "./icons/GiftBox";
 import { DeviceSettings } from "./icons/DeviceSettings";
 import { Discord } from "./icons/Discord";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { selectSessionState, setSessionState } from "../state/slices/session";
 import { Device } from "../utils/puffco";
 import { Instagram } from "./icons/Instagram";
@@ -48,6 +48,7 @@ import {
 } from "../state/slices/ui";
 import { ProfileEditModal } from "./modals/ProfileEdit";
 import { Logs } from "./icons/Logs";
+import { useAppDispatch } from "../state/store";
 
 interface ActionsProps {
   group?: GatewayGroup;
@@ -87,7 +88,7 @@ export function GroupActions({
 
   const ui = useSelector(selectUIState);
   const session = useSelector(selectSessionState);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const router = useRouter();
 

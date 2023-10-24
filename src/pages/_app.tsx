@@ -36,14 +36,13 @@ function AppWrapper({ Component, ...appProps }) {
 
   return (
     <Provider store={store}>
-      <App Component={Component} {...props} />
+      <App Component={Component} store={store} props={props.pageProps} />
     </Provider>
   );
 }
 
-function App({ Component, pageProps }) {
+function App({ Component, store, props }) {
   const router = useRouter();
-  const { store, props } = wrapper.useWrappedStore(pageProps);
 
   const session = useSelector(selectSessionState);
   const group = useSelector(selectGroupState);

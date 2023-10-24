@@ -4,6 +4,7 @@ import {
   Action,
   EnhancedStore,
 } from "@reduxjs/toolkit";
+import { useDispatch } from "react-redux";
 import { createWrapper } from "next-redux-wrapper";
 import {
   nextReduxCookieMiddleware,
@@ -16,7 +17,6 @@ import { ui } from "./slices/ui";
 import { updater } from "./slices/updater";
 import { desktop } from "./slices/desktop";
 import { device } from "./slices/device";
-import { useDispatch } from "react-redux";
 
 export let store: EnhancedStore;
 
