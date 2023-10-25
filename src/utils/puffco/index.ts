@@ -551,6 +551,13 @@ export class Device extends EventEmitter {
                 this.poller.emit("data", { utcTime: conv });
                 this.utcTime = conv;
                 store.dispatch(setDeviceUTCTime(conv));
+
+                try {
+                  // If the time is off by more than 10 seconds update it to current.
+                  const current = Math.round(Date.now() / 1000);
+                  if (Math.abs(conv - current) > 10)
+                    this.updateDeviceTime(new Date());
+                } catch (error) {}
               }
               break;
             }
@@ -564,7 +571,6 @@ export class Device extends EventEmitter {
       this.loraxEvent.startNotifications();
 
       this.setupWatchers();
-      // this.updateDeviceTime(new Date()); TODO: Only do this if deviation is greater than 1 minute?
     } else {
       let currentOperatingState: number;
       const operatingState = await this.pollValue(
