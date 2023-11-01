@@ -9,6 +9,7 @@ import {
   setProfileModalOpen,
 } from "../../state/slices/ui";
 import { Device } from "../../utils/puffco";
+import "../../utils/functions";
 import toast from "react-hot-toast";
 import {
   Characteristic,
@@ -26,7 +27,7 @@ interface Props {
   instance: Device;
 }
 
-export function ProfileEditModal({ instance }: Props) {
+export function ProfileEditModal({ instance }: Readonly<Props>) {
   const ui = useSelector(selectUIState);
   const dispatch = useDispatch();
 
@@ -39,14 +40,16 @@ export function ProfileEditModal({ instance }: Props) {
     if (!ui.editingProfile) return;
 
     if (profileName != ui.editingProfile.name) {
-      const buf = Buffer.alloc(29);
+      const buf = Buffer.alloc(profileName.length);
+      console.log(buf, "buf");
       Buffer.from(profileName).copy(buf);
-      await instance.sendLoraxValueShort(
-        DynamicLoraxCharacteristics[Characteristic.PROFILE_NAME](
-          ui.editingProfileIndex - 1
-        ),
-        buf
-      );
+      console.log(buf, "buf");
+      // await instance.sendLoraxValueShort(
+      //   DynamicLoraxCharacteristics[Characteristic.PROFILE_NAME](
+      //     ui.editingProfileIndex - 1
+      //   ),
+      //   buf
+      // );
     }
 
     if (profileTemperature != Math.round(ui.editingProfile.temp * 1.8 + 32)) {
@@ -81,7 +84,10 @@ export function ProfileEditModal({ instance }: Props) {
 
   useEffect(() => {
     if (ui.editingProfile) {
-      setProfileName(ui.editingProfile.name);
+      console.log("edited editingProfile", ui.editingProfile);
+      console.log(ui.editingProfile.name.length);
+      console.log(ui.editingProfile.name.length);
+      setProfileName(ui.editingProfile.name.toString());
       setProfileIntensity(ui.editingProfile.intensity);
       setProfileTemperature(Math.round(ui.editingProfile.temp * 1.8 + 32));
       setProfileTime(ui.editingProfile.time);
