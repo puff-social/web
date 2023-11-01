@@ -48,9 +48,9 @@ export function ProfileEditModal({ instance }: Props) {
       );
     }
 
-    if (profileTemperature != ui.editingProfile.temp * 1.8 + 32) {
+    if (profileTemperature != Math.round(ui.editingProfile.temp * 1.8 + 32)) {
       const buf = Buffer.alloc(4);
-      buf.writeFloatLE((profileTemperature - 32) * (5 / 9));
+      buf.writeFloatLE(Math.round((profileTemperature - 32) * (5 / 9)));
       await instance.sendLoraxValueShort(
         DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TEMP](
           ui.editingProfileIndex - 1
@@ -82,7 +82,7 @@ export function ProfileEditModal({ instance }: Props) {
     if (ui.editingProfile) {
       setProfileName(ui.editingProfile.name);
       setProfileIntensity(ui.editingProfile.intensity);
-      setProfileTemperature(ui.editingProfile.temp * 1.8 + 32);
+      setProfileTemperature(Math.round(ui.editingProfile.temp * 1.8 + 32));
       setProfileTime(ui.editingProfile.time);
     }
   }, [ui.editingProfile]);
@@ -138,6 +138,13 @@ export function ProfileEditModal({ instance }: Props) {
                       }
                     />
                   </span>
+
+                  <span className="flex justify-between items-center">
+                    <p className="font-bold opacity-60 self-center">
+                      Color and Mood controls coming soon!
+                    </p>
+                  </span>
+
                   <span className="flex justify-between items-center">
                     <p className="font-bold">
                       Temperature

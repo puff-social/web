@@ -41,6 +41,7 @@ import { DonationModal } from "./modals/Donation";
 import { validState } from "@puff-social/commons/dist/puffco";
 import { IntensityIcon } from "./IntensityIcon";
 import {
+  dismissBadge,
   selectUIState,
   setEditingProfile,
   setEditingProfileIndex,
@@ -222,6 +223,12 @@ export function GroupActions({
                       <Tippy
                         trigger="click"
                         interactive
+                        onShown={() => {
+                          if (
+                            !ui.dismissedBadges.includes("deviceProfileEditor")
+                          )
+                            dispatch(dismissBadge("deviceProfileEditor"));
+                        }}
                         content={
                           <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-96">
                             <p className="text-lg font-bold">Profiles</p>
@@ -308,6 +315,15 @@ export function GroupActions({
                         }
                       >
                         <span className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between">
+                          {!ui.dismissedBadges.includes(
+                            "deviceProfileEditor"
+                          ) ? (
+                            <div className="absolute top-0 -right-4 -m-1 bg-red-600 rounded-full px-1">
+                              New
+                            </div>
+                          ) : (
+                            <></>
+                          )}
                           <p>Switch Profile</p>
                           <ArrowSwitch />
                         </span>
@@ -345,7 +361,8 @@ export function GroupActions({
                   placement="bottom-start"
                 >
                   <div className="flex items-center rounded-md p-1 bg-white dark:bg-neutral-800 cursor-pointer h-fit m-1 drop-shadow-xl">
-                    {!ui.dismissedBadges.includes("deviceLogDisplay") ? (
+                    {!ui.dismissedBadges.includes("deviceLogDisplay") ||
+                    !ui.dismissedBadges.includes("deviceProfileEditor") ? (
                       <span className="absolute top-0 right-0 -m-1 bg-red-600 rounded-full w-3 h-3" />
                     ) : (
                       <></>
