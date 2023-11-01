@@ -230,7 +230,7 @@ export function GroupActions({
                             dispatch(dismissBadge("deviceProfileEditor"));
                         }}
                         content={
-                          <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-96">
+                          <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-fit">
                             <p className="text-lg font-bold">Profiles</p>
                             <span className="flex flex-col flex-wrap">
                               {Object.keys(deviceProfiles).map((key) => (
@@ -268,7 +268,8 @@ export function GroupActions({
                                           className="w-4 h-4 rounded-full"
                                           style={{
                                             backgroundColor:
-                                              deviceProfiles[key].color,
+                                              deviceProfiles[key].color ||
+                                              "#a0a0a0",
                                           }}
                                         />
                                       </span>

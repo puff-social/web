@@ -39,7 +39,8 @@ export function ProfileEditModal({ instance }: Props) {
     if (!ui.editingProfile) return;
 
     if (profileName != ui.editingProfile.name) {
-      const buf = Buffer.from(profileName);
+      const buf = Buffer.alloc(29);
+      Buffer.from(profileName).copy(buf);
       await instance.sendLoraxValueShort(
         DynamicLoraxCharacteristics[Characteristic.PROFILE_NAME](
           ui.editingProfileIndex - 1
@@ -131,7 +132,7 @@ export function ProfileEditModal({ instance }: Props) {
                     <input
                       value={profileName}
                       placeholder="Profile name"
-                      maxLength={32}
+                      maxLength={29}
                       className="w-full rounded-md p-2 mb-2 border-2 border-slate-300 text-black"
                       onChange={({ target: { value } }) =>
                         setProfileName(value)
