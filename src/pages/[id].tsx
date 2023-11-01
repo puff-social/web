@@ -519,6 +519,9 @@ export default function Group({
       setConnecting(true);
       instance.on("profiles", (profiles) => {
         setDeviceProfiles(profiles);
+        const profile = profiles[instance.currentProfileId + 1];
+        setMyDevice((curr) => ({ ...curr, profile }));
+        gateway.send(Op.SendDeviceState, { profile });
       });
       await instance.init();
 

@@ -50,7 +50,7 @@ export function ProfileEditModal({ instance }: Props) {
 
     if (profileTemperature != ui.editingProfile.temp * 1.8 + 32) {
       const buf = Buffer.alloc(4);
-      buf.writeFloatLE(profileTemperature);
+      buf.writeFloatLE((profileTemperature - 32) * (5 / 9));
       await instance.sendLoraxValueShort(
         DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TEMP](
           ui.editingProfileIndex - 1
@@ -146,7 +146,6 @@ export function ProfileEditModal({ instance }: Props) {
 
                     <span className="flex flex-row items-center justify-center">
                       <input
-                        disabled
                         type="range"
                         min={PROFILE_TEMPERATURE_MIN}
                         max={TEMPERATURE_MAX}
