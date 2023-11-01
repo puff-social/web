@@ -255,8 +255,8 @@ export default function Group({
 
         toast(
           `${
-            member.user?.display_name ||
-            member.device_state?.deviceName ||
+            member?.user?.display_name ||
+            member?.device_state?.deviceName ||
             "Guest"
           }: ${emoji}`,
           {
