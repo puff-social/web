@@ -88,8 +88,9 @@ export function DeviceSettingsModal({
   }, [deviceName, deviceDob]);
 
   const updateDevice = useCallback(async () => {
-    if (deviceName != device.deviceName)
+    if (deviceName != device.deviceName) {
       await instance.updateDeviceName(deviceName);
+    }
     if (batteryPreservation != device.batteryPreservation)
       await instance.updateBatteryPreservation(batteryPreservation);
     setMyDevice((curr) => ({ ...curr, deviceName }));

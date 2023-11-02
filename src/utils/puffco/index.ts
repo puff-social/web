@@ -1992,9 +1992,16 @@ export class Device extends EventEmitter {
 
   async updateDeviceName(name: string) {
     if (this.isLorax) {
+      await this.openPath(
+        LoraxCharacteristicPathMap[Characteristic.DEVICE_NAME],
+        4
+      );
       await this.sendLoraxValueShort(
         LoraxCharacteristicPathMap[Characteristic.DEVICE_NAME],
         Buffer.from(new TextEncoder().encode(name))
+      );
+      await this.closePath(
+        LoraxCharacteristicPathMap[Characteristic.DEVICE_NAME]
       );
     } else {
       await this.writeRawValue(
