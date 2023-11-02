@@ -1237,10 +1237,10 @@ export class Device extends EventEmitter {
       ? 1
       : 4;
 
-    const watch = watchCmd(open.readUInt8(0), int, len ? len : length);
+    const watch = watchCmd(open.readUInt8(0), int, len ?? length);
     const cmd = await this.sendLoraxCommand(LoraxCommands.WATCH, watch, path);
     this.watchMap.set(open.readUInt8(0), path);
-    this.pathWatchers.set(path, open.readUInt8());
+    this.pathWatchers.set(path, open.readUInt8(0));
     return cmd;
   }
 
@@ -1687,6 +1687,11 @@ export class Device extends EventEmitter {
     );
   }
 
+  // async sendLoraxValue(path: string, data: Buffer, padding = true) {
+  //   const command = writeCmd(path, data, padding);
+  //   await this.sendLoraxCommand(LoraxCommands.WRITE, command, path);
+  // }
+
   async sendLoraxValueShort(path: string, data: Buffer, padding = true) {
     const command = writeShortCmd(path, data, padding);
     await this.sendLoraxCommand(LoraxCommands.WRITE_SHORT, command, path);
@@ -1901,12 +1906,12 @@ export class Device extends EventEmitter {
     });
   }
 
-  async openPath(path: string): Promise<Buffer | undefined> {
+  async openPath(path: string, reservedBytes = 0): Promise<Buffer | undefined> {
     if (!this.server || !this.server.connected) return;
     return new Promise(async (resolve, reject) => {
       if (this.isLorax) {
         try {
-          const command = openCmd(this.loraxLimits, path);
+          const command = openCmd(this.loraxLimits, path, reservedBytes);
           const req = await this.sendLoraxCommand(
             LoraxCommands.OPEN,
             command,

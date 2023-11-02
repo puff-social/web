@@ -40,16 +40,24 @@ export function ProfileEditModal({ instance }: Readonly<Props>) {
     if (!ui.editingProfile) return;
 
     if (profileName != ui.editingProfile.name) {
-      const buf = Buffer.alloc(profileName.length);
-      console.log(buf, "buf");
-      Buffer.from(profileName).copy(buf);
-      console.log(buf, "buf");
-      // await instance.sendLoraxValueShort(
-      //   DynamicLoraxCharacteristics[Characteristic.PROFILE_NAME](
-      //     ui.editingProfileIndex - 1
-      //   ),
-      //   buf
-      // );
+      await instance.openPath(
+        DynamicLoraxCharacteristics[Characteristic.PROFILE_NAME](
+          ui.editingProfileIndex - 1
+        ),
+        4
+      );
+      const buf = Buffer.from(profileName);
+      await instance.sendLoraxValueShort(
+        DynamicLoraxCharacteristics[Characteristic.PROFILE_NAME](
+          ui.editingProfileIndex - 1
+        ),
+        buf
+      );
+      await instance.closePath(
+        DynamicLoraxCharacteristics[Characteristic.PROFILE_NAME](
+          ui.editingProfileIndex - 1
+        )
+      );
     }
 
     if (profileTemperature != Math.round(ui.editingProfile.temp * 1.8 + 32)) {

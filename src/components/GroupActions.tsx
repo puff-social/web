@@ -230,7 +230,7 @@ export function GroupActions({
                             dispatch(dismissBadge("deviceProfileEditor"));
                         }}
                         content={
-                          <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 w-fit">
+                          <div className="flex flex-col text-black bg-white dark:text-white dark:bg-neutral-900 drop-shadow-xl rounded-md p-2 min-w-[24rem] w-fit">
                             <p className="text-lg font-bold">Profiles</p>
                             <span className="flex flex-col flex-wrap">
                               {Object.keys(deviceProfiles).map((key) => (
