@@ -22,6 +22,7 @@ import {
   XL_INTENSITY,
   meetsMinimumFirmware,
 } from "@puff-social/commons/dist/puffco";
+import { Tippy } from "../Tippy";
 
 interface Props {
   instance: Device;
@@ -60,9 +61,9 @@ export function ProfileEditModal({ instance }: Readonly<Props>) {
       );
     }
 
-    if (profileTemperature != Math.round(ui.editingProfile.temp * 1.8 + 32)) {
+    if (profileTemperature != ui.editingProfile.temp) {
       const buf = Buffer.alloc(4);
-      buf.writeFloatLE(Math.round((profileTemperature - 32) * (5 / 9)));
+      buf.writeFloatLE((profileTemperature - 32) * (5 / 9));
       await instance.sendLoraxValueShort(
         DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TEMP](
           ui.editingProfileIndex - 1
@@ -92,12 +93,9 @@ export function ProfileEditModal({ instance }: Readonly<Props>) {
 
   useEffect(() => {
     if (ui.editingProfile) {
-      console.log("edited editingProfile", ui.editingProfile);
-      console.log(ui.editingProfile.name.length);
-      console.log(ui.editingProfile.name.length);
       setProfileName(ui.editingProfile.name.toString());
       setProfileIntensity(ui.editingProfile.intensity);
-      setProfileTemperature(Math.round(ui.editingProfile.temp * 1.8 + 32));
+      setProfileTemperature(ui.editingProfile.temp * (9 / 5) + 32);
       setProfileTime(ui.editingProfile.time);
     }
   }, [ui.editingProfile]);

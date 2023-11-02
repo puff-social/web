@@ -673,7 +673,7 @@ export function GroupMember(props: GroupMemberProps) {
                       props.device.temperature >= TEMPERATURE_MIN &&
                       props.device.temperature <= TEMPERATURE_MAX ? (
                       <h2 className="text-2xl">
-                        {Math.floor(props.device.temperature * 1.8 + 32)}°
+                        {Math.round(props.device.temperature * 1.8 + 32)}°
                       </h2>
                     ) : (
                       <h2 className="text-2xl">--</h2>
@@ -725,7 +725,7 @@ export function GroupMember(props: GroupMemberProps) {
                               </p>
                               <p className="opacity-40">@</p>
                               <p className="opacity-40">
-                                {Math.floor(
+                                {Math.round(
                                   props.device.lastDab.nominalTemp * 1.8 + 32
                                 )}
                                 °)
@@ -746,7 +746,7 @@ export function GroupMember(props: GroupMemberProps) {
                           <p>({props.device.profile.time}</p>
                           <p className="opacity-40">@</p>
                           <p>
-                            {Math.floor(props.device.profile.temp * 1.8 + 32)}°)
+                            {Math.round(props.device.profile.temp * 1.8 + 32)}°)
                           </p>
                         </span>
                       </span>

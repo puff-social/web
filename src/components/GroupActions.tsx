@@ -274,7 +274,7 @@ export function GroupActions({
                                         />
                                       </span>
                                       <p className="text-2xl font-bold">
-                                        {Math.floor(
+                                        {Math.round(
                                           deviceProfiles[key].temp * 1.8 + 32
                                         )}
                                         °

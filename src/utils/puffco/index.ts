@@ -1284,7 +1284,7 @@ export class Device extends EventEmitter {
       Characteristic.HEATER_TEMP,
       true
     );
-    initState.temperature = Number(initTemperature.readFloatLE(0).toFixed(0));
+    initState.temperature = Number(initTemperature.readFloatLE(0));
 
     const initActiveColor = await this.getValue(
       Characteristic.ACTIVE_LED_COLOR
@@ -1397,7 +1397,7 @@ export class Device extends EventEmitter {
       ),
       true
     );
-    const temp = Number(temperatureCall.readFloatLE(0).toFixed(0));
+    const temp = Number(temperatureCall.readFloatLE(0));
     const time = Number(timeCall.readFloatLE(0).toFixed(0));
 
     const color =
@@ -2224,7 +2224,7 @@ export class Device extends EventEmitter {
         true
       );
 
-      const temp = Number(temperatureCall.readFloatLE(0).toFixed(0));
+      const temp = Number(temperatureCall.readFloatLE(0));
       const time = Number(timeCall.readFloatLE(0).toFixed(0));
       const intensity = intensityCall.readFloatLE(0);
       const color =
@@ -2283,7 +2283,7 @@ export class Device extends EventEmitter {
         Characteristic.PROFILE_PREHEAT_TEMP
       );
       const timeCall = await this.getValue(Characteristic.PROFILE_PREHEAT_TIME);
-      const temp = Number(temperatureCall.readFloatLE(0).toFixed(0));
+      const temp = Number(temperatureCall.readFloatLE(0));
       const time = Number(timeCall.readFloatLE(0).toFixed(0));
 
       console.log(
