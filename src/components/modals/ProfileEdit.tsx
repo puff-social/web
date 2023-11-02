@@ -154,7 +154,7 @@ export function ProfileEditModal({ instance }: Readonly<Props>) {
 
                   <span className="flex justify-between items-center">
                     <p className="font-bold opacity-60 self-center">
-                      Color and Mood controls coming soon!
+                      Color, Mood, and Time controls coming soon!
                     </p>
                   </span>
 
