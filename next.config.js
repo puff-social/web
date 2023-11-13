@@ -5,6 +5,12 @@ const moduleExports = {
   async redirects() {
     return [
       {
+        source: "/pals",
+        destination:
+          "https://www.puffco.com/?sref_id=6ao52xb&utm_medium=sms&utm_campaign=referral_program&utm_source=loyalty",
+        permanent: false,
+      },
+      {
         source: "/puffco",
         destination:
           "https://www.puffco.com/?sref_id=6ao52xb&utm_medium=sms&utm_campaign=referral_program&utm_source=loyalty",
