@@ -6,7 +6,8 @@ const moduleExports = {
     return [
       {
         source: "/puffco",
-        destination: "path-web-fullscreen://https://puffco.app",
+        destination:
+          "https://www.puffco.com/?sref_id=6ao52xb&utm_medium=sms&utm_campaign=referral_program&utm_source=loyalty",
         permanent: false,
       },
       {
