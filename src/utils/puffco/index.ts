@@ -1169,9 +1169,10 @@ export class Device extends EventEmitter {
           const chamberType = chamberTypeRaw.readUInt8(0);
           this.chamberType = chamberType;
 
+          const userAgent = window?.navigator?.userAgent ?? 'none';
           const diagData: DiagData = {
             session_id: gateway.session_id,
-            device_services: await Promise.all(
+            device_services: /iPad|iPhone|iPod/.test(userAgent) && !(window as any)?.MSStream ? [] : await Promise.all(
               (
                 await this.server.getPrimaryServices()
               ).map(async (service) => ({
@@ -1179,7 +1180,7 @@ export class Device extends EventEmitter {
                 characteristicCount: (
                   await service.getCharacteristics()
                 ).length,
-              }))
+              })),
             ),
             device_profiles: this.profiles,
             device_parameters: {
