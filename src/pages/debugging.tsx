@@ -28,6 +28,8 @@ if (typeof window != "undefined") window["instance"] = instance;
 export default function Updater() {
   const router = useRouter();
 
+  const [connectionError, setConnectionError] = useState("");
+
   const [connected, setConnected] = useState(false);
   const [deviceLogsModalOpen, setDeviceLogsModalOpen] = useState(false);
 
@@ -74,13 +76,21 @@ export default function Updater() {
 
     instance.on("logsPercentage", setLogsPercentage);
 
-    await instance.setupDevice([
-      LoraxCharacteristicPathMap[Characteristic.UTC_TIME],
-    ]);
+    try {
+      await instance.setupDevice([
+        LoraxCharacteristicPathMap[Characteristic.UTC_TIME],
+      ]);
 
-    setTimeout(async () => {
-      await instance.readDeviceAuditLogs({ reverse: true });
-    }, 1000);
+      setTimeout(async () => {
+        try {
+          await instance.readDeviceAuditLogs({ reverse: true });
+        } catch (error) {
+          setConnectionError(`readDeviceAuditLogs : ${error.toString()}`);
+        }
+      }, 1000);
+    } catch (error) {
+      setConnectionError(`setupDevice : ${error.toString()}`);
+    }
   }, []);
 
   const disconnectDevice = useCallback(async () => {
@@ -169,7 +179,16 @@ export default function Updater() {
 
             <NoSSR>
               <div className="flex flex-col">
-                {bluetooth ? (
+                {connectionError ? (
+                  <>
+                    <div>
+                      <p>The debugging attempt failed.</p>
+                      <p>
+                        Error: <pre>{connectionError}</pre>
+                      </p>
+                    </div>
+                  </>
+                ) : bluetooth ? (
                   connected && instance.device && debugging.sessionId ? (
                     <div className="flex flex-col justify-start">
                       <div className="m-4">
