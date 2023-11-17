@@ -112,9 +112,7 @@ export default function Updater() {
       dob: (
         await instance.getValue(Characteristic.DEVICE_BIRTHDAY, true)
       ).readUInt32LE(0),
-      utcTime: (
-        await instance.getValue(Characteristic.UTC_TIME, true)
-      ).readUInt32LE(0),
+      utcTime: device.utcTime,
       deviceLogs: [...device.auditLogs].sort(
         (a: AuditLog, b: AuditLog) => b.id - a.id
       ),
