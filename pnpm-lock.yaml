@@ -3,7 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@headlessui/react': ^1.7.13
   '@headlessui/tailwindcss': ^0.1.3
-  '@puff-social/commons': ^1.0.33
+  '@puff-social/commons': ^1.0.35
   '@reduxjs/toolkit': ^1.9.3
   '@sentry/nextjs': ^7.40.0
   '@tippyjs/react': ^4.2.6
@@ -45,7 +45,7 @@ specifiers:
 dependencies:
   '@headlessui/react': 1.7.13_biqbaboplfbrettd7655fr4n2y
   '@headlessui/tailwindcss': 0.1.3_tailwindcss@3.2.7
-  '@puff-social/commons': 1.0.33
+  '@puff-social/commons': 1.0.35
   '@reduxjs/toolkit': 1.9.3_k4ae6lp43ej6mezo3ztvx6pykq
   '@sentry/nextjs': 7.40.0_next@13.2.0+react@18.2.0
   '@tippyjs/react': 4.2.6_biqbaboplfbrettd7655fr4n2y
@@ -303,8 +303,8 @@ packages:
     resolution: {integrity: sha512-3jum8/YSudeSN0zGW5qkpz+wAN2V/NYCQ+BPjvHYDfWatLWlQkqy99toX0GysDeaUoBIJg1vaz2yKqiA3CFcQw==}
     dev: false
 
-  /@puff-social/commons/1.0.33:
-    resolution: {integrity: sha512-MM3UcxZGRP9mrCTGsAE5sBn/HoJ4AQHwE5FkBOijv2Ec1rg1anCqxtGV1iFTIX3eluls1PshXQH5Lz/KhfzPEA==, tarball: download/@puff-social/commons/1.0.33/d03ccbed5747f650164fb9fbbf922fb488ee31ab}
+  /@puff-social/commons/1.0.35:
+    resolution: {integrity: sha512-VWwx7fNhHiOM6w1FmiGMV2KAZCSLUJeh09eah7OA7cUaOfPi+SwyyDBNIWhqweZfu2bBYaH6P/LyFkghakfCSg==, tarball: download/@puff-social/commons/1.0.35/9af03bddae01e7ec2f1d2addbb7e9f9b4b0fb5ba}
     dependencies:
       '@prisma/client': 4.14.0
       envsafe: 2.0.3
@@ -653,8 +653,8 @@ packages:
     resolution: {integrity: sha512-oh8q2Zc32S6gd/j50GowEjKLoOVOwHP/bWVjKJInBwQqdOYMdPrf1oVlelTlyfFK3CKxL1uahMDAr+vy8T7yMQ==}
     dev: true
 
-  /@types/yauzl/2.10.2:
-    resolution: {integrity: sha512-Km7XAtUIduROw7QPgvcft0lIupeG8a8rdKL8RiSyKvlE7dYY31fEn41HVuQsRFDuROA8tA4K2UVL+WdfFmErBA==}
+  /@types/yauzl/2.10.3:
+    resolution: {integrity: sha512-oJoftv0LSuaDZE3Le4DbKX+KS9G36NzOeSap90UIK0yMA/NhKJhqlSGtNDORNRaIbQfzjXDrQa0ytJ6mNRGz/Q==}
     requiresBuild: true
     dependencies:
       '@types/node': 18.11.18
@@ -1069,7 +1069,7 @@ packages:
       get-stream: 5.2.0
       yauzl: 2.10.0
     optionalDependencies:
-      '@types/yauzl': 2.10.2
+      '@types/yauzl': 2.10.3
     transitivePeerDependencies:
       - supports-color
     dev: false

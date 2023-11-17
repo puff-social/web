@@ -80,6 +80,51 @@ export async function trackDiags(data: DiagData) {
   });
 }
 
+export async function createDebuggingSession(identifier: string) {
+  // const [signature, body] = signRequest(data);
+  const req = await fetch(`${API_URL}/v1/debugging/generate`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      // "x-signature": signature,
+      ...(localStorage.getItem("puff-social-auth")
+        ? { authorization: localStorage.getItem("puff-social-auth") }
+        : {}),
+    },
+    body: JSON.stringify({ deviceIdentifier: identifier }),
+  });
+  if (req.status == 403) {
+    const json: { error: boolean; code: string } = await req.json();
+    if ("code" in json && json.code == "user_suspended")
+      throw { code: json.code };
+  }
+  if (req.status != 200) throw { code: "invalid_authentication" };
+  return (await req.json()) as APIResponse<{
+    id: string
+  }>;
+}
+
+export async function submitDebuggingSession(id: string, data: Record<any, any>) {
+  // const [signature, body] = signRequest(data);
+  const req = await fetch(`${API_URL}/v1/debugging/${id}`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      // "x-signature": signature,
+      ...(localStorage.getItem("puff-social-auth")
+        ? { authorization: localStorage.getItem("puff-social-auth") }
+        : {}),
+    },
+    body: JSON.stringify(data),
+  });
+  if (req.status == 403) {
+    const json: { error: boolean; code: string } = await req.json();
+    if ("code" in json && json.code == "user_suspended")
+      throw { code: json.code };
+  }
+  if (req.status != 204) throw { code: "invalid_authentication" };
+}
+
 export async function getLeaderboardDevice(id: string) {
   const req = await fetch(
     `${API_URL}/v1/device/${id.startsWith("device") ? id : `device_${id}`}`

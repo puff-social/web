@@ -140,6 +140,8 @@ export interface Device {
 
   registeredDisconnectHandler: () => void;
 
+  on(event: "logsPercentage", listener: (percentage: number) => void): this;
+
   on(event: "clearWatchers", listener: () => void): this;
   on(
     event: "profiles",
@@ -333,11 +335,11 @@ export class Device extends EventEmitter {
     }
   }
 
-  async setupWatchers() {
-    for await (const path of [
+  async setupWatchers(paths = [
       LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE],
       LoraxCharacteristicPathMap[Characteristic.UTC_TIME],
     ]) {
+    for await (const path of paths) {
       try {
         await this.watchWithConfirmation(path);
 
@@ -381,7 +383,7 @@ export class Device extends EventEmitter {
     }
   }
 
-  async setupDevice() {
+  async setupDevice(paths?: string[]) {
     if (this.isLorax) {
       this.loraxEvent = await this.service.getCharacteristic(
         LoraxCharacteristic.EVENT
@@ -411,7 +413,7 @@ export class Device extends EventEmitter {
               if (reply.data.byteLength != 1) return;
               const val = reply.data.readUInt8(0);
               if (val != currentOperatingState) {
-                this.poller.emit("data", { state: val });
+                this.poller?.emit("data", { state: val });
 
                 const {
                   group: { group },
@@ -511,7 +513,7 @@ export class Device extends EventEmitter {
 
               const val = reply.data.readUInt8(0);
               if (val != currentChamberType && reply.data.byteLength == 1) {
-                this.poller.emit("data", {
+                this.poller?.emit("data", {
                   chamberType: val,
                 });
                 this.chamberType = val;
@@ -526,7 +528,7 @@ export class Device extends EventEmitter {
 
               const conv = Number(reply.data.readFloatLE(0));
               if (lastElapsedTime != conv) {
-                this.poller.emit("data", {
+                this.poller?.emit("data", {
                   stateTime: conv,
                 });
                 lastElapsedTime = conv;
@@ -538,7 +540,7 @@ export class Device extends EventEmitter {
 
               const conv = Number(reply.data.readFloatLE(0).toFixed(0));
               if (lastTemp != conv && conv < 1000 && conv > 1) {
-                this.poller.emit("data", { temperature: conv });
+                this.poller?.emit("data", { temperature: conv });
                 lastTemp = conv;
               }
               break;
@@ -548,7 +550,7 @@ export class Device extends EventEmitter {
 
               const conv = Number(reply.data.readUInt32LE(0));
               if (conv) {
-                this.poller.emit("data", { utcTime: conv });
+                this.poller?.emit("data", { utcTime: conv });
                 this.utcTime = conv;
                 store.dispatch(setDeviceUTCTime(conv));
 
@@ -570,7 +572,7 @@ export class Device extends EventEmitter {
 
       this.loraxEvent.startNotifications();
 
-      this.setupWatchers();
+      this.setupWatchers(paths);
     } else {
       let currentOperatingState: number;
       const operatingState = await this.pollValue(
@@ -581,7 +583,7 @@ export class Device extends EventEmitter {
         if (!data || data.byteLength != (this.isLorax ? 1 : 4)) return;
         const val = this.isLorax ? data.readUInt8(0) : data.readFloatLE(0);
         if (val != currentOperatingState) {
-          this.poller.emit("data", { state: val });
+          this.poller?.emit("data", { state: val });
 
           const {
             group: { group },
@@ -619,7 +621,7 @@ export class Device extends EventEmitter {
         currentOperatingState = val;
       });
 
-      this.poller.on("stop", () => {
+      this.poller?.on("stop", () => {
         const pollers = [operatingState];
 
         for (const poller of pollers) poller.emit("stop");
@@ -1116,6 +1118,9 @@ export class Device extends EventEmitter {
         await this.handleAuthentication();
 
         try {
+          const deviceNameRaw = await this.getValue(Characteristic.DEVICE_NAME, true);
+          this.deviceName = deviceNameRaw.toString();
+
           const gitHashRaw = await this.getValue(Characteristic.GIT_HASH, true);
           this.gitHash = gitHashRaw.toString();
 
@@ -1201,7 +1206,7 @@ export class Device extends EventEmitter {
 
           resolve({
             device: this.device,
-            profiles: this.profiles || {},
+            profiles: this.profiles || {}
           });
         } catch (error) {
           console.error(`Failed to track diags: ${error}`);
@@ -1468,14 +1473,14 @@ export class Device extends EventEmitter {
         const g = data.readUInt8(1);
         const b = data.readUInt8(2);
         if (JSON.stringify(currentLedColor) != JSON.stringify({ r, g, b }))
-          this.poller.emit("data", { activeColor: { r, g, b } });
+          this.poller?.emit("data", { activeColor: { r, g, b } });
         currentLedColor = { r, g, b };
       } else if (characteristic == Characteristic.LED_BRIGHTNESS) {
         if (!data || data.byteLength != 4) return;
         const mainLed = data.readUInt8(2);
         const val = Number(mainLed.toFixed(0));
         if (val != currentBrightness)
-          this.poller.emit("data", {
+          this.poller?.emit("data", {
             brightness: val,
           });
         currentBrightness = val;
@@ -1495,13 +1500,13 @@ export class Device extends EventEmitter {
         if (!data || data.byteLength != 4) return;
         const conv = Number(data.readFloatLE(0).toFixed(0));
         if (currentTemperature != conv && conv < 1000 && conv > 1)
-          this.poller.emit("data", { temperature: conv });
+          this.poller?.emit("data", { temperature: conv });
         currentTemperature = conv;
       } else if (characteristic == Characteristic.CHAMBER_TYPE) {
         if (!data || data.byteLength != 1) return;
         const chamberType = data.readUInt8(0);
         if (chamberType != this.chamberType)
-          this.poller.emit("data", {
+          this.poller?.emit("data", {
             chamberType: chamberType,
           });
         this.chamberType = chamberType;
@@ -1530,7 +1535,7 @@ export class Device extends EventEmitter {
           this.profiles[profileCurrent + 1] &&
           data.byteLength == 1
         ) {
-          this.poller.emit("data", {
+          this.poller?.emit("data", {
             profile: this.profiles[profileCurrent + 1],
           });
           this.currentProfileId = profileCurrent;
@@ -1539,7 +1544,7 @@ export class Device extends EventEmitter {
         if (data.byteLength != 1) return;
         const val = data.readUInt8(0);
         if (val != currentChargingState) {
-          this.poller.emit("data", {
+          this.poller?.emit("data", {
             chargeSource: val,
           });
           currentChargingState = val;
@@ -1548,7 +1553,7 @@ export class Device extends EventEmitter {
         if (data.byteLength < 4) return;
         const val = Number(data.readFloatLE(0).toFixed(0));
         if (val != currentBattery) {
-          this.poller.emit("data", {
+          this.poller?.emit("data", {
             battery: val,
           });
           currentBattery = val;
@@ -1569,7 +1574,7 @@ export class Device extends EventEmitter {
         if (data.byteLength != 4) return;
         const val = data.readFloatLE(0);
         if (val != currentDabCount) {
-          this.poller.emit("data", {
+          this.poller?.emit("data", {
             totalDabs: val,
           });
           currentDabCount = val;
@@ -1586,7 +1591,7 @@ export class Device extends EventEmitter {
     //   if (characteristic == Characteristic.UTC_TIME) {
     //     if (data.byteLength != 4) return;
     //     const val = data.readUInt32LE(0);
-    //     this.poller.emit("data", {
+    //     this.poller?.emit("data", {
     //       utcTime: val,
     //     });
     //     this.utcTime = val;
@@ -1594,8 +1599,8 @@ export class Device extends EventEmitter {
     // });
     // this.pollerMap.set("utcTime", UTCTimePoll);
 
-    this.poller.on("stop", (disconnect = true) => {
-      this.poller.removeAllListeners();
+    this.poller?.on("stop", (disconnect = true) => {
+      this.poller?.removeAllListeners();
       if (this.server.connected && disconnect) this.server.disconnect();
 
       const pollers = [
@@ -2644,9 +2649,12 @@ export class Device extends EventEmitter {
       ? this.auditOffset
       : auditBegin;
 
-    while (
-      currentIndex < (limit ?? (reverse ? auditEnd - auditBegin : auditBegin))
-    ) {
+      const ending = limit ?? (reverse ? auditEnd - auditBegin : auditBegin);
+
+      while (
+        currentIndex < ending
+        ) {
+      this.emit('logsPercentage', ((currentIndex+1) / ending) * 100);
       const log = await this.readDeviceAuditLog(
         reverse ? currentOffset - currentIndex : currentOffset + currentIndex
       );
@@ -2663,6 +2671,7 @@ export class Device extends EventEmitter {
         : currentOffset + currentIndex;
 
       const parsed = parseAuditLog(curr, this.utcTime, log);
+      store.dispatch(appendAuditLog(parsed));
       store.dispatch(appendAuditLog(parsed));
 
       this.auditLogEntries.set(curr, {
@@ -2696,7 +2705,7 @@ export class Device extends EventEmitter {
             actualTemp,
             nominalTemp,
           };
-          this.poller.emit("data", {
+          this.poller?.emit("data", {
             lastDab: this.lastHeatCycleCompleted,
           });
           this.emit("device_last_heat_completed", timestamp);

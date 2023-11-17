@@ -15,6 +15,7 @@ import { session } from "./slices/session";
 import { group } from "./slices/group";
 import { ui } from "./slices/ui";
 import { updater } from "./slices/updater";
+import { debugging } from "./slices/debugging";
 import { desktop } from "./slices/desktop";
 import { device } from "./slices/device";
 
@@ -26,6 +27,7 @@ const makeStore = wrapMakeStore(() => {
       [session.name]: session.reducer,
       [group.name]: group.reducer,
       [updater.name]: updater.reducer,
+      [debugging.name]: debugging.reducer,
       [ui.name]: ui.reducer,
       [desktop.name]: desktop.reducer,
       [device.name]: device.reducer,
