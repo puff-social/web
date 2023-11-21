@@ -91,6 +91,7 @@ export default function Group({
   const [ourUser, setOurUser] = useState<User>();
   const [usDisconnected, setUsDisconnected] = useState<boolean>(false);
 
+  const [unsupportedModel, setUnsupportedModel] = useState(false);
   const [connecting, setConnecting] = useState(false);
 
   const [deviceProfiles, setDeviceProfiles] = useState<
@@ -512,6 +513,8 @@ export default function Group({
 
   const connectToDevice = useCallback(async () => {
     try {
+      setUnsupportedModel(false);
+
       instance.on("device_connected", (device) => {
         setConnectingDevice(device);
       });
@@ -524,6 +527,14 @@ export default function Group({
         gateway.send(Op.SendDeviceState, { profile });
       });
       await instance.init();
+
+      if ([15, 74, 72, 12].includes(Number(instance.deviceModel))) {
+        setUnsupportedModel(true);
+        setConnecting(false);
+        setConnectingDevice(null);
+        instance.disconnect();
+        return;
+      } else setUnsupportedModel(false);
 
       const { poller, initState, deviceInfo } = await instance.startPolling();
       try {
@@ -811,6 +822,8 @@ export default function Group({
                   (mem) => mem.session_id == gateway.session_id
                 )}
                 connecting={connecting}
+                unsupportedModel={unsupportedModel}
+                setUnsupportedModel={setUnsupportedModel}
                 disconnected={usDisconnected}
                 headless={headless}
                 us
