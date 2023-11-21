@@ -91,7 +91,7 @@ export default function Group({
   const [ourUser, setOurUser] = useState<User>();
   const [usDisconnected, setUsDisconnected] = useState<boolean>(false);
 
-  const [unsupportedModel, setUnsupportedModel] = useState(false);
+  const [unsupportedModel, setUnsupportedModel] = useState(0);
   const [connecting, setConnecting] = useState(false);
 
   const [deviceProfiles, setDeviceProfiles] = useState<
@@ -513,7 +513,7 @@ export default function Group({
 
   const connectToDevice = useCallback(async () => {
     try {
-      setUnsupportedModel(false);
+      setUnsupportedModel(0);
 
       instance.on("device_connected", (device) => {
         setConnectingDevice(device);
@@ -529,12 +529,12 @@ export default function Group({
       await instance.init();
 
       if ([15, 74].includes(Number(instance.deviceModel))) {
-        setUnsupportedModel(true);
+        setUnsupportedModel(Number(instance.deviceModel));
         setConnecting(false);
         setConnectingDevice(null);
         instance.disconnect();
         return;
-      } else setUnsupportedModel(false);
+      } else setUnsupportedModel(0);
 
       const { poller, initState, deviceInfo } = await instance.startPolling();
       try {

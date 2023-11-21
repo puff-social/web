@@ -57,7 +57,7 @@ interface GroupMemberProps {
   away?: boolean;
   connected?: boolean;
   connecting?: boolean;
-  unsupportedModel?: boolean;
+  unsupportedModel?: number;
   disconnected?: boolean;
   owner?: boolean;
   us?: boolean;
@@ -71,7 +71,7 @@ interface GroupMemberProps {
   removeBackground?: boolean;
   useDeviceName?: boolean;
   connectDismissed?: boolean;
-  setUnsupportedModel?: Dispatch<SetStateAction<boolean>>;
+  setUnsupportedModel?: Dispatch<SetStateAction<number>>;
   setConnectDismissed?: Dispatch<SetStateAction<boolean>>;
   setStrainModalOpen?: Dispatch<SetStateAction<boolean>>;
 }
@@ -826,17 +826,28 @@ export function GroupMember(props: GroupMemberProps) {
         ) : props.unsupportedModel ? (
           <span className="flex flex-col space-y-8 justify-center items-center h-72">
             <div className="flex flex-col items-center justify-center space-y-6">
-              <p className="text-center text-md break-normal">
-                This device model has not been tested and therefore is not
-                allowed to particpate in groups or leaderboards.
-              </p>
-              <p className="text-center text-md break-normal">
-                If you'd like to help us support this model, hop in the discord
-                and let's chat about it.
-              </p>
+              {[15, 74].includes(Number(props.unsupportedModel)) ? (
+                <p className="text-center text-md break-normal bg-emerald-500 rounded-md p-4">
+                  We think this is the desert, and due to a couple errors on the
+                  server side that are hard to fix without a device in-hand, the
+                  site will work with your device next week if not by the end of
+                  this week.
+                </p>
+              ) : (
+                <>
+                  <p className="text-center text-md break-normal">
+                    This device model has not been tested and therefore is not
+                    allowed to particpate in groups or leaderboards.
+                  </p>
+                  <p className="text-center text-md break-normal">
+                    If you'd like to help us support this model, hop in the
+                    discord and let's chat about it.
+                  </p>
+                </>
+              )}
               <button
                 className="w-32 self-center rounded-md bg-gray-700 hover:bg-gray-800 text-white p-1"
-                onClick={() => props.setUnsupportedModel(false)}
+                onClick={() => props.setUnsupportedModel(0)}
               >
                 Dismiss
               </button>
