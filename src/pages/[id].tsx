@@ -528,7 +528,7 @@ export default function Group({
       });
       await instance.init();
 
-      if ([15, 74, 72, 12].includes(Number(instance.deviceModel))) {
+      if ([15, 74].includes(Number(instance.deviceModel))) {
         setUnsupportedModel(true);
         setConnecting(false);
         setConnectingDevice(null);
