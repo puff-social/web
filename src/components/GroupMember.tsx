@@ -41,6 +41,7 @@ import { IntensityIcon } from "./IntensityIcon";
 import { useSelector } from "react-redux";
 import { selectSessionState } from "../state/slices/session";
 import { Device } from "../utils/puffco";
+import { ChristmasLights } from "./ChristmasLights";
 
 interface GroupMemberProps {
   device?: DeviceState;
@@ -84,6 +85,11 @@ export function GroupMember(props: GroupMemberProps) {
     props.leaderboardPosition || 0
   );
 
+  const [christmasTime, setChristmasTime] = useState(() => {
+    const currentDate = new Date();
+    return currentDate.getMonth() == 11;
+  });
+
   const session = useSelector(selectSessionState);
 
   const [bluetooth] = useState<boolean>(() => {
@@ -112,6 +118,14 @@ export function GroupMember(props: GroupMemberProps) {
       const int = setInterval(() => setCurrentDate(new Date()), 1000);
       return () => clearInterval(int);
     }
+  }, []);
+
+  useEffect(() => {
+    const int = setInterval(() => {
+      const currentDate = new Date();
+      setChristmasTime(currentDate.getMonth() == 11);
+    }, 1000);
+    return () => clearInterval(int);
   }, []);
 
   if ((props.nobodyelse && props.headless) || (props.headless && props.us)) {
@@ -197,6 +211,14 @@ export function GroupMember(props: GroupMemberProps) {
         onMouseEnter={() => setHoveringCard(true)}
         onMouseLeave={() => setHoveringCard(false)}
       >
+        {christmasTime ? (
+          <ChristmasLights
+            count={10}
+            altClass="absolute top-0 -z-[60] w-full h-full"
+          />
+        ) : (
+          <></>
+        )}
         {(props.us && !!(props.device || props.lbDevice) && props.connected) ||
         (!props.us && !!(props.device || props.lbDevice)) ? (
           <div className="flex flex-col justify-center w-full overflow-hidden">

@@ -14,6 +14,7 @@ import { Toaster, ToastIcon, toast, resolveValue } from "react-hot-toast";
 
 import "tippy.js/dist/tippy.css";
 import "../assets/app.css";
+import "../assets/christmas.css";
 
 import { APIGroup } from "../types/api";
 import { wrapper } from "../state/store";

@@ -14,6 +14,7 @@ import { LeaderboardModal } from "../components/modals/Leaderboard";
 import { UserSettingsModal } from "../components/modals/UserSettings";
 import { Op } from "@puff-social/commons";
 import { PuffLogo } from "../assets/Logo";
+import { ChristmasLights } from "../components/ChristmasLights";
 
 export default function Home() {
   const router = useRouter();
@@ -37,6 +38,19 @@ export default function Home() {
   );
 
   const [items, setItems] = useState([]);
+
+  const [christmasTime, setChristmasTime] = useState(() => {
+    const currentDate = new Date();
+    return currentDate.getMonth() == 11;
+  });
+
+  useEffect(() => {
+    const int = setInterval(() => {
+      const currentDate = new Date();
+      setChristmasTime(currentDate.getMonth() == 11);
+    }, 1000);
+    return () => clearInterval(int);
+  }, []);
 
   async function init() {
     const groups = await getGroups();
@@ -119,6 +133,14 @@ export default function Home() {
 
       <div className="flex flex-col">
         <div className="flex flex-col rounded-md bg-white dark:bg-neutral-800 p-2 m-3 w-[600px] text-black dark:text-white drop-shadow-xl">
+          {christmasTime ? (
+            <ChristmasLights
+              count={20}
+              altClass="absolute top-0 left-0 -z-50 opacity-50 w-full h-full"
+            />
+          ) : (
+            <></>
+          )}
           <h2 className="text-xl font-bold p-1">Join a group</h2>
           <div className="flex flex-col overflow-y-scroll h-80 p-2 justify-center">
             {items.length > 0 ? (
