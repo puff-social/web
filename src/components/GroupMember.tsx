@@ -830,8 +830,7 @@ export function GroupMember(props: GroupMemberProps) {
                 <p className="text-center text-md break-normal bg-emerald-500 rounded-md p-4">
                   We think this is the desert, and due to a couple errors on the
                   server side that are hard to fix without a device in-hand, the
-                  site will work with your device next week if not by the end of
-                  this week.
+                  site will work with your device by Tuesday the 28th.
                 </p>
               ) : (
                 <>
