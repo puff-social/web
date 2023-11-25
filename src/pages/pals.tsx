@@ -3,12 +3,13 @@ import Head from "next/head";
 export default function PalsPageRedirect() {
   return (
     <Head>
-      <title>{`puff.social - pals`}</title>
+      <title>{`Refer your friends to buy a Puffco and give them $30 off!`}</title>
       <link rel="icon" href="/favicon.ico" />
 
       <meta httpEquiv="X-UA-Compatible" content="ie=edge" />
       <meta name="author" content="puff.social" />
       <meta name="copyright" content="Dustin Rouillard" />
+      <meta name="theme-color" content="#fbc123" />
       <meta name="rating" content="General" />
       <meta name="url" content={`https://puff.social/pals`} />
       <meta
@@ -32,11 +33,11 @@ export default function PalsPageRedirect() {
       <meta content="summary_large_image" name="twitter:card" />
       <meta
         name="twitter:image"
-        content="https://cdn.puff.social/puffco/puffco-pals.png"
+        content="https://cdn.puff.social/assets/meta/pals.png"
       />
       <meta
         property="og:image"
-        content="https://cdn.puff.social/puffco/puffco-pals.png"
+        content="https://cdn.puff.social/assets/meta/pals.png"
       />
 
       <meta http-equiv="refresh" content="0; url=http://rwrd.io/6ao52xb?s" />
