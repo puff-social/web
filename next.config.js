@@ -5,13 +5,8 @@ const moduleExports = {
   async redirects() {
     return [
       {
-        source: "/pals",
-        destination: "http://rwrd.io/6ao52xb?s",
-        permanent: false,
-      },
-      {
         source: "/puffco",
-        destination: "http://rwrd.io/6ao52xb?s",
+        destination: "https://puff.social/pals",
         permanent: false,
       },
       {
