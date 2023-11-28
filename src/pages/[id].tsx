@@ -528,14 +528,6 @@ export default function Group({
       });
       await instance.init();
 
-      if ([15, 74].includes(Number(instance.deviceModel))) {
-        setUnsupportedModel(Number(instance.deviceModel));
-        setConnecting(false);
-        setConnectingDevice(null);
-        instance.disconnect();
-        return;
-      } else setUnsupportedModel(0);
-
       const { poller, initState, deviceInfo } = await instance.startPolling();
       try {
         const tracked = await trackDevice({
