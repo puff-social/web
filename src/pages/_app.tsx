@@ -52,6 +52,12 @@ function App({ Component, store, props }) {
     return router.query.headless == "true";
   }, [router]);
 
+  const noIntroScreen = useMemo(() => {
+    if (["/overlay/devices/[id]", "/debugging"].includes(router.pathname))
+      return true;
+    return false;
+  }, [router]);
+
   const [firstVisit] = useState(() =>
     typeof localStorage != "undefined"
       ? localStorage.getItem("puff-social-first-visit") != "false"
@@ -229,7 +235,7 @@ function App({ Component, store, props }) {
           {isElectron() ? <Electron /> : <></>}
           {session?.suspended ? <SuspendedModal /> : <></>}
           {callKevo ? <KevoModal /> : <></>}
-          {firstVisit ? <IntroModal /> : <></>}
+          {firstVisit && !noIntroScreen ? <IntroModal /> : <></>}
         </NoSSR>
 
         {!headless ? (
