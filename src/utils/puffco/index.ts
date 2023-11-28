@@ -308,7 +308,11 @@ export class Device extends EventEmitter {
       );
       this.deviceFirmware = numbersToLetters(firmwareRaw.readUInt8(0) + 5);
 
-      await this.loraxProfiles(false);
+      try {
+        await this.loraxProfiles(false);
+      } catch (error) {
+        console.log("Failed to fetch lorax profiles");
+      }
     } else {
       const accessSeedKey = await this.service.getCharacteristic(
         Characteristic.ACCESS_KEY
@@ -335,10 +339,12 @@ export class Device extends EventEmitter {
     }
   }
 
-  async setupWatchers(paths = [
+  async setupWatchers(
+    paths = [
       LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE],
       LoraxCharacteristicPathMap[Characteristic.UTC_TIME],
-    ]) {
+    ]
+  ) {
     for await (const path of paths) {
       try {
         await this.watchWithConfirmation(path);
@@ -1118,7 +1124,10 @@ export class Device extends EventEmitter {
         await this.handleAuthentication();
 
         try {
-          const deviceNameRaw = await this.getValue(Characteristic.DEVICE_NAME, true);
+          const deviceNameRaw = await this.getValue(
+            Characteristic.DEVICE_NAME,
+            true
+          );
           this.deviceName = deviceNameRaw.toString();
 
           const gitHashRaw = await this.getValue(Characteristic.GIT_HASH, true);
@@ -1169,19 +1178,22 @@ export class Device extends EventEmitter {
           const chamberType = chamberTypeRaw.readUInt8(0);
           this.chamberType = chamberType;
 
-          const userAgent = window?.navigator?.userAgent ?? 'none';
+          const userAgent = window?.navigator?.userAgent ?? "none";
           const diagData: DiagData = {
             session_id: gateway.session_id,
-            device_services: /iPad|iPhone|iPod/.test(userAgent) && !(window as any)?.MSStream ? [] : await Promise.all(
-              (
-                await this.server.getPrimaryServices()
-              ).map(async (service) => ({
-                uuid: service.uuid,
-                characteristicCount: (
-                  await service.getCharacteristics()
-                ).length,
-              })),
-            ),
+            device_services:
+              /iPad|iPhone|iPod/.test(userAgent) && !(window as any)?.MSStream
+                ? []
+                : await Promise.all(
+                    (
+                      await this.server.getPrimaryServices()
+                    ).map(async (service) => ({
+                      uuid: service.uuid,
+                      characteristicCount: (
+                        await service.getCharacteristics()
+                      ).length,
+                    }))
+                  ),
             device_profiles: this.profiles,
             device_parameters: {
               name: this.device.name,
@@ -1207,7 +1219,7 @@ export class Device extends EventEmitter {
 
           resolve({
             device: this.device,
-            profiles: this.profiles || {}
+            profiles: this.profiles || {},
           });
         } catch (error) {
           console.error(`Failed to track diags: ${error}`);
@@ -2650,12 +2662,10 @@ export class Device extends EventEmitter {
       ? this.auditOffset
       : auditBegin;
 
-      const ending = limit ?? (reverse ? auditEnd - auditBegin : auditBegin);
+    const ending = limit ?? (reverse ? auditEnd - auditBegin : auditBegin);
 
-      while (
-        currentIndex < ending
-        ) {
-      this.emit('logsPercentage', ((currentIndex+1) / ending) * 100);
+    while (currentIndex < ending) {
+      this.emit("logsPercentage", ((currentIndex + 1) / ending) * 100);
       const log = await this.readDeviceAuditLog(
         reverse ? currentOffset - currentIndex : currentOffset + currentIndex
       );
