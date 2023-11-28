@@ -52,44 +52,48 @@ export default function Updater() {
   }, [isiOS, bluetooth]);
 
   const connectDevice = useCallback(async () => {
-    const { device, profiles } = await instance.init();
-    setConnected(true);
-    instance.once("gattdisconnect", () => disconnectDevice());
-
-    toast(`Connected to ${instance.device.name}`, {
-      position: "top-right",
-      duration: 2000,
-      icon: <BluetoothConnected />,
-    });
-
-    if (instance.device) {
-      const session = await createDebuggingSession(
-        instance.deviceMacAddress.replace(/:/g, "")
-      );
-      dispatch(setSessionId(session.data.id));
-    }
-
-    toast("Collecting device data and logs.", {
-      position: "bottom-center",
-      duration: 6000,
-    });
-
-    instance.on("logsPercentage", setLogsPercentage);
-
     try {
-      await instance.setupDevice([
-        LoraxCharacteristicPathMap[Characteristic.UTC_TIME],
-      ]);
+      const { device, profiles } = await instance.init();
+      setConnected(true);
+      instance.once("gattdisconnect", () => disconnectDevice());
 
-      setTimeout(async () => {
-        try {
-          await instance.readDeviceAuditLogs({ reverse: true });
-        } catch (error) {
-          setConnectionError(`readDeviceAuditLogs : ${error.toString()}`);
-        }
-      }, 1000);
+      toast(`Connected to ${instance.device.name}`, {
+        position: "top-right",
+        duration: 2000,
+        icon: <BluetoothConnected />,
+      });
+
+      if (instance.device) {
+        const session = await createDebuggingSession(
+          instance.deviceMacAddress.replace(/:/g, "")
+        );
+        dispatch(setSessionId(session.data.id));
+      }
+
+      toast("Collecting device data and logs.", {
+        position: "bottom-center",
+        duration: 6000,
+      });
+
+      instance.on("logsPercentage", setLogsPercentage);
+
+      try {
+        await instance.setupDevice([
+          LoraxCharacteristicPathMap[Characteristic.UTC_TIME],
+        ]);
+
+        setTimeout(async () => {
+          try {
+            await instance.readDeviceAuditLogs({ reverse: true });
+          } catch (error) {
+            setConnectionError(`readDeviceAuditLogs : ${error.toString()}`);
+          }
+        }, 1000);
+      } catch (error) {
+        setConnectionError(`setupDevice : ${error.toString()}`);
+      }
     } catch (error) {
-      setConnectionError(`setupDevice : ${error.toString()}`);
+      setConnectionError(`connectDevice : ${error.toString()}`);
     }
   }, []);
 
