@@ -212,10 +212,7 @@ export default function ChecklistTool() {
               DynamicLoraxCharacteristics[Characteristic.PROFILE_COLOR](0),
             length: colorCall.byteLength,
             expected: ">30 <=125",
-            value:
-              colorCall.byteLength < 30 && colorCall.byteLength >= 125
-                ? null
-                : colorCall,
+            value: colorCall.join(", "),
             failure:
               colorCall.byteLength < 30 && colorCall.byteLength >= 125
                 ? formatMessage(
@@ -640,6 +637,7 @@ export default function ChecklistTool() {
                               ) : (
                                 <></>
                               )}
+                              <p>Data: {tr.value}</p>
                             </div>
                           ))}
                         </div>
