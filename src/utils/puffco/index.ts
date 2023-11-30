@@ -307,12 +307,6 @@ export class Device extends EventEmitter {
         true
       );
       this.deviceFirmware = numbersToLetters(firmwareRaw.readUInt8(0) + 5);
-
-      try {
-        await this.loraxProfiles(false);
-      } catch (error) {
-        console.log("Failed to fetch lorax profiles");
-      }
     } else {
       const accessSeedKey = await this.service.getCharacteristic(
         Characteristic.ACCESS_KEY
@@ -993,7 +987,7 @@ export class Device extends EventEmitter {
     });
   }
 
-  init(): Promise<{
+  init(skipCharInit?: boolean): Promise<{
     profiles: Record<number, PuffcoProfile>;
     device: BluetoothDevice;
   }> {
@@ -1067,6 +1061,34 @@ export class Device extends EventEmitter {
         if (this.isLorax && this.isPup)
           this.pupService = await this.server.getPrimaryService(PUP_SERVICE);
 
+        await this.handleAuthentication();
+
+        if (skipCharInit) {
+          try {
+            const deviceMacAddressRaw = await this.getValue(
+              Characteristic.BT_MAC,
+              true
+            );
+            this.deviceMacAddress = intArrayToMacAddress(deviceMacAddressRaw);
+          } catch (error) {
+            this.deviceMacAddress = "00:00:00:00:00";
+          }
+
+          this.emit("profiles", this.profiles || {});
+          this.emit("inited", this.device);
+
+          return resolve({
+            device: this.device,
+            profiles: this.profiles || {},
+          });
+        }
+
+        if (this.isLorax) {
+          try {
+            await this.loraxProfiles();
+          } catch (error) {}
+        }
+
         if (!this.isLorax) {
           const modelRaw = await this.getValue(
             Characteristic.HARDWARE_MODEL,
@@ -1120,8 +1142,6 @@ export class Device extends EventEmitter {
             trackDiags(diagData);
           }, 100);
         }
-
-        await this.handleAuthentication();
 
         try {
           const deviceNameRaw = await this.getValue(
@@ -1213,17 +1233,17 @@ export class Device extends EventEmitter {
           };
 
           trackDiags(diagData);
-
-          this.emit("profiles", this.profiles || {});
-          this.emit("inited", this.device);
-
-          resolve({
-            device: this.device,
-            profiles: this.profiles || {},
-          });
         } catch (error) {
           console.error(`Failed to track diags: ${error}`);
         }
+
+        this.emit("profiles", this.profiles || {});
+        this.emit("inited", this.device);
+
+        resolve({
+          device: this.device,
+          profiles: this.profiles || {},
+        });
       } catch (error) {
         if (isElectron()) store.dispatch(setBleConnectionModalOpen(false));
 
@@ -2083,7 +2103,7 @@ export class Device extends EventEmitter {
       );
     } else {
       await this.writeRawValue(
-        Characteristic.PROFILE,
+        Characteristic.PROFILE_POINTER,
         new Uint8Array([profile - 1, 0, 0, 0])
       );
       await this.writeRawValue(
@@ -2285,7 +2305,7 @@ export class Device extends EventEmitter {
       const key = (idx + profileCurrent) % DeviceProfileReverse.length;
       await this.sendCommand(
         new Uint8Array([key, 0, 0, 0]),
-        Characteristic.PROFILE
+        Characteristic.PROFILE_POINTER
       );
       const profileName = await this.getValue(Characteristic.PROFILE_NAME);
       const name = profileName.toString();

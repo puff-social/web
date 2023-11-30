@@ -151,7 +151,8 @@ export function PuffcoContainer({
                         0 ${g / 100} 0 0 0
                         0 0 ${b / 100} 0 0
                         0 0 0 ${
-                          ["onyx", "pearl"].includes(model) && !r && !g && !b
+                          ["onyx", "pearl", "desert"].includes(model) ||
+                          (!r && !g && !b)
                             ? 0
                             : brightness / 100
                         } 0`}

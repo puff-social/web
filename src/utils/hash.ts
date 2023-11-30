@@ -100,23 +100,30 @@ export async function createDebuggingSession(identifier: string) {
   }
   if (req.status != 200) throw { code: "invalid_authentication" };
   return (await req.json()) as APIResponse<{
-    id: string
+    id: string;
   }>;
 }
 
-export async function submitDebuggingSession(id: string, data: Record<any, any>) {
+export async function submitDebuggingSession(
+  id: string,
+  data: Record<any, any>,
+  type?: string
+) {
   // const [signature, body] = signRequest(data);
-  const req = await fetch(`${API_URL}/v1/debugging/${id}`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      // "x-signature": signature,
-      ...(localStorage.getItem("puff-social-auth")
-        ? { authorization: localStorage.getItem("puff-social-auth") }
-        : {}),
-    },
-    body: JSON.stringify(data),
-  });
+  const req = await fetch(
+    `${API_URL}/v1/debugging/${id}${type ? `?type=${type}` : ""}`,
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        // "x-signature": signature,
+        ...(localStorage.getItem("puff-social-auth")
+          ? { authorization: localStorage.getItem("puff-social-auth") }
+          : {}),
+      },
+      body: JSON.stringify(data),
+    }
+  );
   if (req.status == 403) {
     const json: { error: boolean; code: string } = await req.json();
     if ("code" in json && json.code == "user_suspended")
