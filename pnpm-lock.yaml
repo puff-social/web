@@ -46,7 +46,7 @@ specifiers:
 dependencies:
   '@headlessui/react': 1.7.13_biqbaboplfbrettd7655fr4n2y
   '@headlessui/tailwindcss': 0.1.3_tailwindcss@3.2.7
-  '@puff-social/commons': link:../commons
+  '@puff-social/commons': 1.0.35
   '@reduxjs/toolkit': 1.9.3_k4ae6lp43ej6mezo3ztvx6pykq
   '@sentry/nextjs': 7.40.0_next@13.2.0+react@18.2.0
   '@tippyjs/react': 4.2.6_biqbaboplfbrettd7655fr4n2y
