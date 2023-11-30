@@ -83,17 +83,15 @@ export default function FixDesert() {
   }, [device]);
 
   const restoreProfileColors = useCallback(async () => {
-    for await (const i of [0, 1, 2, 3]) {
-      if (instance.isLorax) {
-        toast(`Setting profile color for #${i}`, {
-          position: "top-right",
-          duration: 500,
-        });
-        await instance.sendLoraxValueShort(
-          DynamicLoraxCharacteristics[Characteristic.PROFILE_COLOR](i),
-          Buffer.from([76, 111, 119])
-        );
-      }
+    if (instance.isLorax) {
+      toast(`Setting profile color for #$1`, {
+        position: "top-right",
+        duration: 500,
+      });
+      await instance.sendLoraxValueShort(
+        DynamicLoraxCharacteristics[Characteristic.PROFILE_COLOR](0),
+        Buffer.from([76, 111, 119])
+      );
     }
   }, [device]);
 
