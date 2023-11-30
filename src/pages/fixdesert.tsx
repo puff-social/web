@@ -90,7 +90,7 @@ export default function FixDesert() {
       });
       await instance.sendLoraxValueShort(
         DynamicLoraxCharacteristics[Characteristic.PROFILE_COLOR](0),
-        Buffer.from([76, 111, 119])
+        Buffer.from([22, 233, 135, 0, 1, 0, 0, 0])
       );
     }
   }, [device]);

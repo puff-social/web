@@ -214,8 +214,8 @@ export default function ChecklistTool() {
             expected: ">30 <=125",
             value:
               colorCall.byteLength < 30 && colorCall.byteLength >= 125
-                ? colorCall
-                : null,
+                ? null
+                : colorCall,
             failure:
               colorCall.byteLength < 30 && colorCall.byteLength >= 125
                 ? formatMessage(
