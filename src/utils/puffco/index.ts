@@ -1892,7 +1892,6 @@ export class Device extends EventEmitter {
   async getValue(
     characteristic: string,
     retry = false,
-    short = 0,
     buff?: Buffer
   ): Promise<Buffer | undefined> {
     return new Promise(async (resolve, reject) => {
@@ -1903,7 +1902,7 @@ export class Device extends EventEmitter {
             LoraxCharacteristicPathMap[characteristic]
               ? LoraxCharacteristicPathMap[characteristic]
               : characteristic,
-            short,
+            1,
             retry,
             cursor.byteLength
           );
@@ -1913,7 +1912,7 @@ export class Device extends EventEmitter {
               new Promise((res) =>
                 setTimeout(
                   () =>
-                    res(this.getValue(characteristic, retry, short, cursor)),
+                    res(this.getValue(characteristic, retry, cursor)),
                   50
                 )
               )
@@ -1930,7 +1929,7 @@ export class Device extends EventEmitter {
             if (
               msg &&
               msg.op ==
-              (short ? LoraxCommands.READ_SHORT : LoraxCommands.READ) &&
+              (1 ? LoraxCommands.READ_SHORT : LoraxCommands.READ) &&
               msg.seq == req.seq &&
               msg.path ==
               (LoraxCharacteristicPathMap[characteristic]
@@ -1960,7 +1959,7 @@ export class Device extends EventEmitter {
               if (msg.response.data.byteLength >= this.loraxLimits.maxPayload) {
                 cursor = Buffer.concat([cursor, msg.response.data]);
                 return resolve(
-                  await this.getValue(characteristic, retry, short, cursor)
+                  await this.getValue(characteristic, retry, cursor)
                 );
               } else return resolve(Buffer.concat([cursor, msg.response.data]));
             }
