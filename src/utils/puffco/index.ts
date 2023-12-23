@@ -49,6 +49,7 @@ import {
   openCmd,
   processLoraxEvent,
   processLoraxReply,
+  readCmd,
   readShortCmd,
   unwatchCmd,
   watchCmd,
@@ -352,8 +353,7 @@ export class Device extends EventEmitter {
               "DEBUG: Deviation for",
               path,
               "is beyond 2x, unwatching and rewatching",
-              `(D: ${
-                new Date().getTime() - this.lastOperatingStateUpdate.getTime()
+              `(D: ${new Date().getTime() - this.lastOperatingStateUpdate.getTime()
               })`
             );
 
@@ -422,7 +422,7 @@ export class Device extends EventEmitter {
                 if (group) {
                   const groupStartOnBatteryCheck =
                     localStorage.getItem("puff-battery-check-start") ==
-                      "true" || false;
+                    "true" || false;
 
                   if (
                     group.state == GroupState.Awaiting &&
@@ -451,7 +451,7 @@ export class Device extends EventEmitter {
                 if (
                   val == PuffcoOperatingState.HEAT_CYCLE_PREHEAT &&
                   currentOperatingState !=
-                    PuffcoOperatingState.HEAT_CYCLE_PREHEAT
+                  PuffcoOperatingState.HEAT_CYCLE_PREHEAT
                 ) {
                   console.log(
                     `DEBUG: Preheat started, suspending poller and starting watcher`
@@ -465,7 +465,7 @@ export class Device extends EventEmitter {
                     this.pollerMap.get("chamberTemp").emit("suspend");
                     await this.watchWithConfirmation(
                       LoraxCharacteristicPathMap[
-                        Characteristic.STATE_ELAPSED_TIME
+                      Characteristic.STATE_ELAPSED_TIME
                       ]
                     );
                     await this.watchWithConfirmation(
@@ -492,7 +492,7 @@ export class Device extends EventEmitter {
                     );
                     await this.unwatchPath(
                       LoraxCharacteristicPathMap[
-                        Characteristic.STATE_ELAPSED_TIME
+                      Characteristic.STATE_ELAPSED_TIME
                       ]
                     );
                     console.log(
@@ -500,7 +500,7 @@ export class Device extends EventEmitter {
                       val,
                       currentOperatingState
                     );
-                    this.pollerMap.get("chamberTemp").emit("resume");
+                    this.pollerMap.get("chamberTemp")?.emit("resume");
                   }, 15 * 1000);
                 }
 
@@ -524,17 +524,17 @@ export class Device extends EventEmitter {
             case LoraxCharacteristicPathMap[
               Characteristic.STATE_ELAPSED_TIME
             ]: {
-              if (reply.data.byteLength != 4) return;
+                if (reply.data.byteLength != 4) return;
 
-              const conv = Number(reply.data.readFloatLE(0));
-              if (lastElapsedTime != conv) {
-                this.poller?.emit("data", {
-                  stateTime: conv,
-                });
-                lastElapsedTime = conv;
+                const conv = Number(reply.data.readFloatLE(0));
+                if (lastElapsedTime != conv) {
+                  this.poller?.emit("data", {
+                    stateTime: conv,
+                  });
+                  lastElapsedTime = conv;
+                }
+                break;
               }
-              break;
-            }
             case LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]: {
               if (reply.data.byteLength != 4) return;
 
@@ -559,7 +559,7 @@ export class Device extends EventEmitter {
                   const current = Math.round(Date.now() / 1000);
                   if (Math.abs(conv - current) > 10)
                     this.updateDeviceTime(new Date());
-                } catch (error) {}
+                } catch (error) { }
               }
               break;
             }
@@ -1086,7 +1086,7 @@ export class Device extends EventEmitter {
         if (this.isLorax) {
           try {
             await this.loraxProfiles();
-          } catch (error) {}
+          } catch (error) { }
         }
 
         if (!this.isLorax) {
@@ -1137,7 +1137,7 @@ export class Device extends EventEmitter {
                 .getPrimaryService(PUP_SERVICE)
                 .then(() => true)
                 .catch(() => false);
-            } catch (error) {}
+            } catch (error) { }
 
             trackDiags(diagData);
           }, 100);
@@ -1205,15 +1205,15 @@ export class Device extends EventEmitter {
               /iPad|iPhone|iPod/.test(userAgent) && !(window as any)?.MSStream
                 ? []
                 : await Promise.all(
-                    (
-                      await this.server.getPrimaryServices()
-                    ).map(async (service) => ({
-                      uuid: service.uuid,
-                      characteristicCount: (
-                        await service.getCharacteristics()
-                      ).length,
-                    }))
-                  ),
+                  (
+                    await this.server.getPrimaryServices()
+                  ).map(async (service) => ({
+                    uuid: service.uuid,
+                    characteristicCount: (
+                      await service.getCharacteristics()
+                    ).length,
+                  }))
+                ),
             device_profiles: this.profiles,
             device_parameters: {
               name: this.device.name,
@@ -1407,8 +1407,8 @@ export class Device extends EventEmitter {
     const initProfileName = await this.getValue(
       this.isLorax
         ? DynamicLoraxCharacteristics[Characteristic.PROFILE_NAME](
-            this.currentProfileId
-          )
+          this.currentProfileId
+        )
         : Characteristic.PROFILE_NAME,
       true
     );
@@ -1416,33 +1416,35 @@ export class Device extends EventEmitter {
     const temperatureCall = await this.getValue(
       this.isLorax
         ? DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TEMP](
-            this.currentProfileId
-          )
+          this.currentProfileId
+        )
         : Characteristic.PROFILE_PREHEAT_TEMP,
       true
     );
     const timeCall = await this.getValue(
       this.isLorax
         ? DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TIME](
-            this.currentProfileId
-          )
+          this.currentProfileId
+        )
         : Characteristic.PROFILE_PREHEAT_TIME,
       true
     );
-    const colorCall = await this.getValue(
-      DynamicLoraxCharacteristics[Characteristic.PROFILE_COLOR](
-        this.currentProfileId
-      ),
-      true
-    );
-    const temp = Number(temperatureCall.readFloatLE(0));
-    const time = Number(timeCall.readFloatLE(0).toFixed(0));
+    //    const colorCall = await this.getValue(
+    //      DynamicLoraxCharacteristics[Characteristic.PROFILE_COLOR](
+    //        this.currentProfileId
+    //      ),
+    //      true
+    //    );
+    const temp = temperatureCall.length == 4 ? Number(temperatureCall.readFloatLE(0)) : 0;
+    const time = timeCall.length == 4 ? Number(timeCall.readFloatLE(0).toFixed(0)) : 0;
 
-    const color =
-      "#" +
-      colorCall.readUInt8(0).toString(16) +
-      colorCall.readUInt8(1).toString(16) +
-      colorCall.readUInt8(2).toString(16);
+    //    const color =
+    //      "#" +
+    //      colorCall.readUInt8(0).toString(16) +
+    //      colorCall.readUInt8(1).toString(16) +
+    //      colorCall.readUInt8(2).toString(16);
+
+    const color = "#ffffff";
 
     initState.profile = {
       name: initProfileName.toString(),
@@ -1451,13 +1453,13 @@ export class Device extends EventEmitter {
       time: millisToMinutesAndSeconds(time * 1000),
       intensity: this.isLorax
         ? (
-            await this.getValue(
-              DynamicLoraxCharacteristics.PROFILE_INTENSITY(
-                this.currentProfileId
-              ),
-              true
-            )
-          ).readFloatLE(0)
+          await this.getValue(
+            DynamicLoraxCharacteristics.PROFILE_INTENSITY(
+              this.currentProfileId
+            ),
+            true
+          )
+        ).readFloatLE(0)
         : 0,
     };
 
@@ -1715,10 +1717,41 @@ export class Device extends EventEmitter {
     }
   }
 
-  private async getLoraxValueShort(path: string, retry?: boolean) {
-    const command = readShortCmd(this.loraxLimits, path);
+  private async getLoraxValue(path: string, retry?: boolean, cursor?: number) {
+    const opened = await this.openPath(path);
+    const command = readCmd(this.loraxLimits, opened.readUInt8(), cursor ?? 0);
+    const buff = await this.sendLoraxCommand(
+      LoraxCommands.READ,
+      command,
+      path,
+      retry
+    );
+    await this.closePath(path);
+    return buff;
+  }
+
+  private async openAndRead(
+    path: string,
+    reservedBytes: number,
+    cursor?: number
+  ) {
+    const open = await this.openPath(path, reservedBytes);
+    const read = readCmd(this.loraxLimits, open.readUint8(0), cursor ?? 0);
+    await this.closePath(path);
+    return read;
+  }
+
+  private async getLoraxValueShort(
+    path: string,
+    short = 0,
+    retry?: boolean,
+    cursor?: number
+  ) {
+    const command = short
+      ? readShortCmd(this.loraxLimits, path, cursor ?? 0)
+      : await this.openAndRead(path, short, cursor ?? 0);
     return await this.sendLoraxCommand(
-      LoraxCommands.READ_SHORT,
+      short ? LoraxCommands.READ_SHORT : LoraxCommands.READ,
       command,
       path,
       retry
@@ -1751,6 +1784,7 @@ export class Device extends EventEmitter {
         LoraxCommands.OPEN,
         LoraxCommands.CLOSE,
         retry ? LoraxCommands.READ_SHORT : null,
+        retry ? LoraxCommands.READ : null,
       ].includes(op)
     ) {
       await new Promise((resolve) => setTimeout(() => resolve(1), 100));
@@ -1857,22 +1891,31 @@ export class Device extends EventEmitter {
 
   async getValue(
     characteristic: string,
-    retry = false
+    retry = false,
+    short = 0,
+    buff?: Buffer
   ): Promise<Buffer | undefined> {
     return new Promise(async (resolve, reject) => {
       if (this.isLorax) {
         try {
+          let cursor = buff ?? Buffer.alloc(0);
           const req = await this.getLoraxValueShort(
             LoraxCharacteristicPathMap[characteristic]
               ? LoraxCharacteristicPathMap[characteristic]
               : characteristic,
-            retry
+            short,
+            retry,
+            cursor.byteLength
           );
 
           if (!req)
             return resolve(
               new Promise((res) =>
-                setTimeout(() => res(this.getValue(characteristic, retry)), 50)
+                setTimeout(
+                  () =>
+                    res(this.getValue(characteristic, retry, short, cursor)),
+                  50
+                )
               )
             );
 
@@ -1886,12 +1929,13 @@ export class Device extends EventEmitter {
 
             if (
               msg &&
-              msg.op == LoraxCommands.READ_SHORT &&
+              msg.op ==
+              (short ? LoraxCommands.READ_SHORT : LoraxCommands.READ) &&
               msg.seq == req.seq &&
               msg.path ==
-                (LoraxCharacteristicPathMap[characteristic]
-                  ? LoraxCharacteristicPathMap[characteristic]
-                  : characteristic)
+              (LoraxCharacteristicPathMap[characteristic]
+                ? LoraxCharacteristicPathMap[characteristic]
+                : characteristic)
             ) {
               if (msg.response.error)
                 console.log(
@@ -1906,14 +1950,27 @@ export class Device extends EventEmitter {
                 "characteristicvaluechanged",
                 func
               );
-              return resolve(msg.response.data);
+
+              if (cursor.byteLength) console.log(msg.response.data, cursor);
+              else if (
+                characteristic ==
+                LoraxCharacteristicPathMap[Characteristic.LANTERN_COLOR]
+              )
+                console.log(msg.response.data, cursor);
+              if (msg.response.data.byteLength >= this.loraxLimits.maxPayload) {
+                cursor = Buffer.concat([cursor, msg.response.data]);
+                return resolve(
+                  await this.getValue(characteristic, retry, short, cursor)
+                );
+              } else return resolve(Buffer.concat([cursor, msg.response.data]));
             }
           };
 
           this.loraxReply.addEventListener("characteristicvaluechanged", func);
         } catch (error) {
           console.log(
-            `Failed to get value for ${characteristic} - ${LoraxCharacteristicPathMap[characteristic]}`
+            `Failed to get value for ${characteristic} - ${LoraxCharacteristicPathMap[characteristic]}`,
+            error
           );
           return undefined;
         }
@@ -2252,10 +2309,10 @@ export class Device extends EventEmitter {
         true
       );
 
-      const colorCall = await this.getValue(
-        DynamicLoraxCharacteristics[Characteristic.PROFILE_COLOR](idx),
-        true
-      );
+      //      const colorCall = await this.getValue(
+      //        DynamicLoraxCharacteristics[Characteristic.PROFILE_COLOR](idx),
+      //        true
+      //      );
 
       const intensityCall = await this.getValue(
         DynamicLoraxCharacteristics.PROFILE_INTENSITY(idx),
@@ -2265,15 +2322,16 @@ export class Device extends EventEmitter {
       const temp = Number(temperatureCall.readFloatLE(0));
       const time = Number(timeCall.readFloatLE(0).toFixed(0));
       const intensity = intensityCall.readFloatLE(0);
-      const color =
-        "#" +
-        colorCall.readUInt8(0).toString(16) +
-        colorCall.readUInt8(1).toString(16) +
-        colorCall.readUInt8(2).toString(16);
+      //      const color =
+      //        "#" +
+      //        colorCall.readUInt8(0).toString(16) +
+      //        colorCall.readUInt8(1).toString(16) +
+      //        colorCall.readUInt8(2).toString(16);
+
+      const color = "#ffffff";
 
       console.log(
-        `%c${this.device.name}%c Profile #${
-          idx + 1
+        `%c${this.device.name}%c Profile #${idx + 1
         } - ${name} - ${temp} - ${time} (I: ${intensity})`,
         `padding: 10px; font-size: 1em; line-height: 1.4em; color: white; background: ${color}; border-radius: 15px;`,
         "font-size: 1em;"
@@ -2325,8 +2383,7 @@ export class Device extends EventEmitter {
       const time = Number(timeCall.readFloatLE(0).toFixed(0));
 
       console.log(
-        `%c${this.device.name}%c Profile #${
-          idx + 1
+        `%c${this.device.name}%c Profile #${idx + 1
         } - ${name} - ${temp} - ${time}`,
         `padding: 10px; font-size: 1em; line-height: 1.4em; color: white; background: ${color}; border-radius: 15px;`,
         "font-size: 1em;"
@@ -2361,21 +2418,21 @@ export class Device extends EventEmitter {
 
       const func = this.isLorax
         ? async () => {
-            const value = await this.getValue(name);
-            listener.emit("change", value, name);
-            listener.emit("data", value, name);
-          }
+          const value = await this.getValue(name);
+          listener.emit("change", value, name);
+          listener.emit("data", value, name);
+        }
         : async () => {
-            try {
-              const value = await char?.readValue();
-              listener.emit("data", Buffer.from(value.buffer), name);
-              listener.emit("change", Buffer.from(value.buffer), name);
-            } catch (error) {}
-          };
+          try {
+            const value = await char?.readValue();
+            listener.emit("data", Buffer.from(value.buffer), name);
+            listener.emit("change", Buffer.from(value.buffer), name);
+          } catch (error) { }
+        };
 
       func();
       const int = setInterval(
-        () => (suspended ? () => {} : this.pollerSuspended ? () => {} : func()),
+        () => (suspended ? () => { } : this.pollerSuspended ? () => { } : func()),
         time
       );
       listener.on("suspend", () => {
@@ -2679,8 +2736,8 @@ export class Device extends EventEmitter {
       : this.auditOffset &&
         this.auditOffset > auditBegin &&
         this.auditOffset <= auditEnd
-      ? this.auditOffset
-      : auditBegin;
+        ? this.auditOffset
+        : auditBegin;
 
     const ending = limit ?? (reverse ? auditEnd - auditBegin : auditBegin);
 
