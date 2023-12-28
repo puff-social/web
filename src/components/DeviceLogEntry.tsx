@@ -81,12 +81,15 @@ function AuditData({ entry }: DeviceLogEntry) {
               {(entry.data as HeatCycleLog).timeElapsed * 1000 < 0
                 ? "0:00"
                 : millisToMinutesAndSeconds(
-                    (entry.data as HeatCycleLog).timeElapsed * 1000
-                  )}
+                  (entry.data as HeatCycleLog).timeElapsed * 1000
+                )}
             </p>
           ) : (
             <></>
           )}
+          {entry.type == AuditLogCode.HEAT_CYCLE_ENTER_PREHEAT ? <p className="mt-2 text-sm italic opacity-50 w-3/4">
+            Temperature is expected low, unless you started another cycle whilst the chamber was hot.
+          </p> : <></>}
         </div>
       );
     }
@@ -104,8 +107,8 @@ function AuditData({ entry }: DeviceLogEntry) {
             {(entry.data as ChargeLog).timeElapsed * 1000 < 0
               ? "0:00"
               : millisToMinutesAndSeconds(
-                  (entry.data as ChargeLog).timeElapsed * 1000
-                )}
+                (entry.data as ChargeLog).timeElapsed * 1000
+              )}
           </p>
         </div>
       );
@@ -139,8 +142,8 @@ function AuditData({ entry }: DeviceLogEntry) {
             {(entry.data as ChargeLog).timeElapsed * 1000 < 1
               ? "now"
               : formatFancyDuration(
-                  (entry.data as ClockAdjustLog).uptime * 1000
-                )}
+                (entry.data as ClockAdjustLog).uptime * 1000
+              )}
           </p>
         </div>
       );
