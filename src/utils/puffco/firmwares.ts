@@ -92,4 +92,16 @@ export const Firmwares = [
       },
     ],
   },
+  {
+    name: "AJ",
+    files: [
+      {
+        id: 9,
+        type: "puff",
+        hash: "6c25950",
+        date: new Date("2024-01-24T00:25:00.000Z"),
+        file: "https://cdn.puff.social/fw/peak/AJ-peach-application-6c25950-release.puff",
+      }
+    ],
+  },
 ];
