@@ -1,7 +1,35 @@
 const { withSentryConfig } = require("@sentry/nextjs");
 const { withPlausibleProxy } = require("next-plausible");
 
+const cspHeader = `
+    default-src wss://rosin.puff.social https://rosin.puff.social https://cdn.puff.social https://hash.puff.social 'self';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline';
+    style-src https://fonts.gstatic.com https://fonts.googleapis.com 'self' 'unsafe-inline';
+    img-src https://cdn.puff.social 'self' blob: data:;
+    font-src https://fonts.gstatic.com https://fonts.googleapis.com 'self';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
+    block-all-mixed-content;
+    upgrade-insecure-requests;
+`;
+
 const moduleExports = {
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: cspHeader.replace(/\n/g, ""),
+          },
+        ],
+      },
+    ];
+  },
+
   async redirects() {
     return [
       {

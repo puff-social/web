@@ -50,7 +50,7 @@ interface SocketMessage {
 
 export interface Gateway {
   ws: WebSocket;
-  heartbeat: NodeJS.Timer;
+  heartbeat: NodeJS.Timeout;
 
   new_session_id: string;
   session_id: string;
@@ -198,7 +198,7 @@ export class Gateway extends EventEmitter {
 
       try {
         this.message(message);
-      } catch (error) {}
+      } catch (error) { }
     });
 
     // Close event for websocket
@@ -219,10 +219,10 @@ export class Gateway extends EventEmitter {
       this.connectionAttempt == 1
         ? 1000 * 2
         : this.connectionAttempt == 2
-        ? 1000 * 5
-        : this.connectionAttempt == 3
-        ? 1000 * 10
-        : 1000 * 15
+          ? 1000 * 5
+          : this.connectionAttempt == 3
+            ? 1000 * 10
+            : 1000 * 15
     );
   }
 
@@ -448,10 +448,9 @@ export class Gateway extends EventEmitter {
 
   private opened(): void {
     console.log(
-      `%c${
-        SOCKET_URL.includes("puff.social")
-          ? SOCKET_URL.split(".")[0].split("//")[1]
-          : "Local"
+      `%c${SOCKET_URL.includes("puff.social")
+        ? SOCKET_URL.split(".")[0].split("//")[1]
+        : "Local"
       }%c Socket connection opened`,
       "padding: 10px; text-transform: capitalize; font-size: 1em; line-height: 1.4em; color: white; background: #151515; border-radius: 15px;",
       "font-size: 1em;"
@@ -464,10 +463,9 @@ export class Gateway extends EventEmitter {
     if (code != 4006) this.emit("close");
 
     console.log(
-      `%c${
-        SOCKET_URL.includes("puff.social")
-          ? SOCKET_URL.split(".")[0].split("//")[1]
-          : "Local"
+      `%c${SOCKET_URL.includes("puff.social")
+        ? SOCKET_URL.split(".")[0].split("//")[1]
+        : "Local"
       }%c Socket connection closed ${code} - ${reason || "no reason"}`,
       "padding: 10px; text-transform: capitalize; font-size: 1em; line-height: 1.4em; color: white; background: #151515; border-radius: 15px;",
       "font-size: 1em;"
@@ -481,7 +479,7 @@ export class Gateway extends EventEmitter {
 
 export const SOCKET_URL =
   typeof location != "undefined" &&
-  ["localhost", "beta.puff.social"].includes(location.hostname)
+    ["localhost", "beta.puff.social"].includes(location.hostname)
     ? location.hostname == "beta.puff.social"
       ? "wss://flower.puff.social"
       : "ws://127.0.0.1:9000"

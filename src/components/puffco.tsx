@@ -56,7 +56,7 @@ export function PuffcoContainer({
   }
 
   useEffect(() => {
-    let interval: NodeJS.Timer;
+    let interval: NodeJS.Timeout;
     switch (device?.chargeSource) {
       case ChargeSource.Wireless:
       case ChargeSource.USB: {
@@ -84,7 +84,7 @@ export function PuffcoContainer({
   }, [device?.activeColor]);
 
   useEffect(() => {
-    let interval: NodeJS.Timer;
+    let interval: NodeJS.Timeout;
     switch (device?.state) {
       case PuffcoOperatingState.IDLE:
       case PuffcoOperatingState.SLEEP: {
@@ -116,27 +116,24 @@ export function PuffcoContainer({
 
   return (
     <div
-      className={`flex flex-col justify-center items-center${
-        className ? ` ${className}` : ""
-      }`}
+      className={`flex flex-col justify-center items-center${className ? ` ${className}` : ""
+        }`}
     >
       <div className={`flex justify-center items-center self-center`}>
         <svg
-          className={`${
-            svgClassName || "w-full"
-          } flex justify-center items-center self-center`}
+          className={`${svgClassName || "w-full"
+            } flex justify-center items-center self-center`}
           viewBox="0 0 5 8"
         >
           <image
             className="flex justify-center items-center self-center"
             height="100%"
-            href={`/${model}/${
-              model == "opal"
-                ? prefersColorScheme == "dark"
-                  ? "device"
-                  : "device-light-bg"
-                : "device"
-            }.png`}
+            href={`/${model}/${model == "opal"
+              ? prefersColorScheme == "dark"
+                ? "device"
+                : "device-light-bg"
+              : "device"
+              }.png`}
           />
           <filter
             className="flex justify-center items-center self-center"
@@ -150,50 +147,49 @@ export function PuffcoContainer({
               values={`${r / 100} 0 0 0 0
                         0 ${g / 100} 0 0 0
                         0 0 ${b / 100} 0 0
-                        0 0 0 ${
-                          ["onyx", "pearl", "desert"].includes(model) ||
-                          (!r && !g && !b)
-                            ? 0
-                            : brightness / 100
-                        } 0`}
+                        0 0 0 ${["onyx", "pearl", "desert"].includes(model) ||
+                  (!r && !g && !b)
+                  ? 0
+                  : brightness / 100
+                } 0`}
             ></feColorMatrix>
           </filter>
           {["onyx", "pearl", "desert"].includes(model)
             ? [
-                "peach/peak-peach-lights-glass-mid-left",
-                "peach/peak-peach-lights-glass-mid-right",
-                "peach/peak-peach-lights-glass-far-left",
-                "peach/peak-peach-lights-glass-far-right",
-                "peach/peak-peach-lights-base-far-left",
-                "peach/peak-peach-lights-base-far-right",
-                "peach/peak-peach-lights-base-mid-left",
-                "peach/peak-peach-lights-base-mid-right",
-                "peach/peak-peach-lights-ring-far-right",
-                "peach/peak-peach-lights-ring-far-left",
-                "peach/peak-peach-lights-ring-mid-left",
-              ].map((img, key) => (
-                <image
-                  className="flex justify-center items-center self-center"
-                  height="100%"
-                  key={key}
-                  filter={`url(#${id}-svg-matrix)`}
-                  href={`/${img}.png`}
-                />
-              ))
+              "peach/peak-peach-lights-glass-mid-left",
+              "peach/peak-peach-lights-glass-mid-right",
+              "peach/peak-peach-lights-glass-far-left",
+              "peach/peak-peach-lights-glass-far-right",
+              "peach/peak-peach-lights-base-far-left",
+              "peach/peak-peach-lights-base-far-right",
+              "peach/peak-peach-lights-base-mid-left",
+              "peach/peak-peach-lights-base-mid-right",
+              "peach/peak-peach-lights-ring-far-right",
+              "peach/peak-peach-lights-ring-far-left",
+              "peach/peak-peach-lights-ring-mid-left",
+            ].map((img, key) => (
+              <image
+                className="flex justify-center items-center self-center"
+                height="100%"
+                key={key}
+                filter={`url(#${id}-svg-matrix)`}
+                href={`/${img}.png`}
+              />
+            ))
             : [
-                "peak/device-glass-left",
-                "peak/device-glass-right",
-                "peak/device-base-left",
-                "peak/device-base-right",
-              ].map((img, key) => (
-                <image
-                  className="flex justify-center items-center self-center"
-                  height="100%"
-                  key={key}
-                  filter={`url(#${id}-svg-matrix)`}
-                  href={`/${img}.png`}
-                />
-              ))}
+              "peak/device-glass-left",
+              "peak/device-glass-right",
+              "peak/device-base-left",
+              "peak/device-base-right",
+            ].map((img, key) => (
+              <image
+                className="flex justify-center items-center self-center"
+                height="100%"
+                key={key}
+                filter={`url(#${id}-svg-matrix)`}
+                href={`/${img}.png`}
+              />
+            ))}
           {chamberType == ChamberType.XL ? (
             <image
               className="flex justify-center items-center self-center"
