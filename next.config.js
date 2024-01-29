@@ -7,6 +7,7 @@ const cspHeader = `
     style-src https://fonts.gstatic.com https://fonts.googleapis.com 'self' 'unsafe-inline';
     img-src https://cdn.puff.social 'self' blob: data:;
     font-src https://fonts.gstatic.com https://fonts.googleapis.com 'self';
+    connect-src https://o1220194.ingest.sentry.io 'self';
     object-src 'none';
     base-uri 'self';
     form-action 'self';
