@@ -183,31 +183,27 @@ export function GroupMember(props: GroupMemberProps) {
 
   return (
     <div
-      className={`flex justify-center items-center ${
-        props.lbDevice ? (props.thing ? "h-screen" : "h-48") : "h-72"
-      } ${props.thing ? "w-full" : "w-[440px] m-1"} ${
-        props.device
+      className={`flex justify-center items-center ${props.lbDevice ? (props.thing ? "h-screen" : "h-48") : "h-72"
+        } ${props.thing ? "w-full" : "w-[440px] m-1"} ${props.device
           ? props.member?.user?.flags & UserFlags.admin
             ? "rounded-md bg-gradient-to-r from-blue-500/60 to-purple-700/60 p-px"
             : props.member?.user?.flags & UserFlags.supporter
-            ? "rounded-md bg-gradient-to-r from-green-500/60 to-yellow-600/60 p-px"
-            : ""
+              ? "rounded-md bg-gradient-to-r from-green-500/60 to-yellow-600/60 p-px"
+              : ""
           : ""
-      }`}
+        }`}
       id={props.us ? gateway.session_id : props.member?.session_id}
     >
       <div
-        className={`group flex flex-col  ${
-          props.removeBackground
-            ? ``
-            : props.thing
+        id="card"
+        className={`group flex flex-col  ${props.removeBackground
+          ? ``
+          : props.thing
             ? "bg-neutral-800 text-white"
             : `bg-neutral-100 dark:bg-neutral-800 rounded-md text-black dark:text-white`
-        } drop-shadow-xl px-4 h-full ${
-          props.thing ? "w-full" : "w-[440px]"
-        } justify-center items-center overflow-hidden ${
-          props.member?.away ? "brightness-75" : ""
-        }`}
+          } drop-shadow-xl px-4 h-full ${props.thing ? "w-full" : "w-[440px]"
+          } justify-center items-center overflow-hidden ${props.member?.away ? "brightness-75" : ""
+          }`}
         onMouseEnter={() => setHoveringCard(true)}
         onMouseLeave={() => setHoveringCard(false)}
       >
@@ -220,7 +216,7 @@ export function GroupMember(props: GroupMemberProps) {
           <></>
         )}
         {(props.us && !!(props.device || props.lbDevice) && props.connected) ||
-        (!props.us && !!(props.device || props.lbDevice)) ? (
+          (!props.us && !!(props.device || props.lbDevice)) ? (
           <div className="flex flex-col justify-center w-full overflow-hidden">
             {!props.headless ? (
               <div className="flex flex-row-reverse absolute right-0 bottom-0 m-4">
@@ -246,8 +242,7 @@ export function GroupMember(props: GroupMemberProps) {
                             className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between"
                             onClick={() => {
                               toast(
-                                `Marked you as ${
-                                  props.member?.away ? "no longer away" : "away"
+                                `Marked you as ${props.member?.away ? "no longer away" : "away"
                                 }`,
                                 {
                                   position: "top-right",
@@ -327,10 +322,10 @@ export function GroupMember(props: GroupMemberProps) {
                         <></>
                       )}
                       {gateway.session_id == props.group?.owner_session_id ||
-                      session.user?.flags & UserFlags.admin ? (
+                        session.user?.flags & UserFlags.admin ? (
                         <>
                           {props.member?.session_id !=
-                          props.group?.owner_session_id ? (
+                            props.group?.owner_session_id ? (
                             <span
                               className="flex p-2 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer justify-between transition-all"
                               onClick={() =>
@@ -392,20 +387,18 @@ export function GroupMember(props: GroupMemberProps) {
                 id={
                   props.us
                     ? "self"
-                    : `${props.member?.session_id}-${
-                        props.device
-                          ? props.device.deviceMac
-                          : props.lbDeviceMac
-                      }`
+                    : `${props.member?.session_id}-${props.device
+                      ? props.device.deviceMac
+                      : props.lbDeviceMac
+                    }`
                 }
                 svgClassName={props.lbDevice ? "" : "w-40 h-full"}
-                className={`-z-50 min-w-[${props.lbDevice ? "10%" : "40%"}] ${
-                  props.lbDevice
-                    ? props.thing
-                      ? "w-[200px]"
-                      : "w-[100px]"
-                    : ""
-                }`}
+                className={`-z-50 min-w-[${props.lbDevice ? "10%" : "40%"}] ${props.lbDevice
+                  ? props.thing
+                    ? "w-[200px]"
+                    : "w-[100px]"
+                  : ""
+                  }`}
                 chamberType={props.device?.chamberType}
                 model={
                   ProductModelMap[
@@ -414,10 +407,10 @@ export function GroupMember(props: GroupMemberProps) {
                       : props.lbDevice?.model
                   ]
                     ? ProductModelMap[
-                        props.device
-                          ? props.device.deviceModel
-                          : props.lbDevice?.model
-                      ].toLowerCase()
+                      props.device
+                        ? props.device.deviceModel
+                        : props.lbDevice?.model
+                    ].toLowerCase()
                     : ProductModelMap[0].toLowerCase()
                 }
                 device={props.device || { activeColor: { r: 0, g: 0, b: 0 } }}
@@ -494,7 +487,7 @@ export function GroupMember(props: GroupMemberProps) {
                     <></>
                   )}
                   {props.member &&
-                  props.member?.session_id == props.group?.owner_session_id ? (
+                    props.member?.session_id == props.group?.owner_session_id ? (
                     <Tippy content="Group owner" placement="top-start">
                       <div className="flex items-center">
                         <Crown className="text-green-700" />
@@ -508,13 +501,11 @@ export function GroupMember(props: GroupMemberProps) {
                   {props.member?.user && props.member?.user.image ? (
                     <img
                       className="rounded-full p-0.5 w-7 h-7"
-                      src={`https://cdn.puff.social/avatars/${
-                        props.member?.user.id
-                      }/${props.member?.user.image}.${
-                        props.member?.user.image.startsWith("a_")
+                      src={`https://cdn.puff.social/avatars/${props.member?.user.id
+                        }/${props.member?.user.image}.${props.member?.user.image.startsWith("a_")
                           ? "gif"
                           : "png"
-                      }`}
+                        }`}
                     />
                   ) : (
                     <></>
@@ -522,18 +513,16 @@ export function GroupMember(props: GroupMemberProps) {
                   {props.lbDevice ? (
                     props.useDeviceName ? (
                       <h1
-                        className={`m-0 ${
-                          props.thing ? "text-4xl" : "text-xl"
-                        } font-bold truncate`}
+                        className={`m-0 ${props.thing ? "text-4xl" : "text-xl"
+                          } font-bold truncate`}
                       >
                         {props.lbDevice?.name || "Unknown"}
                       </h1>
                     ) : (
                       <div className="flex flex-col">
                         <h1
-                          className={`m-0 ${
-                            props.thing ? "text-4xl" : "text-xl"
-                          } font-bold truncate`}
+                          className={`m-0 ${props.thing ? "text-4xl" : "text-xl"
+                            } font-bold truncate`}
                         >
                           {props.member?.user?.display_name ||
                             props.member?.device_state?.deviceName ||
@@ -542,9 +531,8 @@ export function GroupMember(props: GroupMemberProps) {
                             "Unknown"}
                         </h1>
                         <p
-                          className={`m-0 ${
-                            props.thing ? "text-2xl" : "text-md"
-                          } truncate`}
+                          className={`m-0 ${props.thing ? "text-2xl" : "text-md"
+                            } truncate`}
                         >
                           {props.lbDevice?.name || "Unknown"}
                         </p>
@@ -583,21 +571,19 @@ export function GroupMember(props: GroupMemberProps) {
                     <span className="flex flex-row justify-center items-center">
                       {props.device ? (
                         <Tippy
-                          content={`${
-                            props.device?.dabsPerDay ||
+                          content={`${props.device?.dabsPerDay ||
                             props.lbDevice?.avg_dabs ||
                             `0.0`
-                          } dabs per day`}
+                            } dabs per day`}
                           placement="right"
                         >
                           <div
-                            className={`flex justify-center ${
-                              EASTER_EGG_CYCLE_COUNTS.includes(
-                                props.device?.totalDabs || props.lbDevice?.dabs
-                              )
-                                ? "rainbow"
-                                : ""
-                            }`}
+                            className={`flex justify-center ${EASTER_EGG_CYCLE_COUNTS.includes(
+                              props.device?.totalDabs || props.lbDevice?.dabs
+                            )
+                              ? "rainbow"
+                              : ""
+                              }`}
                           >
                             <Counter className="m-1 ml-0" />
                             <p className="m-0 p-1 text-lg">
@@ -611,23 +597,20 @@ export function GroupMember(props: GroupMemberProps) {
                         </Tippy>
                       ) : (
                         <div
-                          className={`flex justify-center items-center ${
-                            EASTER_EGG_CYCLE_COUNTS.includes(
-                              props.device?.totalDabs || props.lbDevice?.dabs
-                            )
-                              ? "rainbow"
-                              : ""
-                          }`}
+                          className={`flex justify-center items-center ${EASTER_EGG_CYCLE_COUNTS.includes(
+                            props.device?.totalDabs || props.lbDevice?.dabs
+                          )
+                            ? "rainbow"
+                            : ""
+                            }`}
                         >
                           <Counter
-                            className={`m-1 ml-0 h-auto ${
-                              props.thing ? "w-10" : "w-6"
-                            }`}
+                            className={`m-1 ml-0 h-auto ${props.thing ? "w-10" : "w-6"
+                              }`}
                           />
                           <p
-                            className={`m-0 p-1 ${
-                              props.thing ? "text-2xl" : "text-md"
-                            }`}
+                            className={`m-0 p-1 ${props.thing ? "text-2xl" : "text-md"
+                              }`}
                           >
                             {(
                               props.device?.totalDabs ||
@@ -636,16 +619,14 @@ export function GroupMember(props: GroupMemberProps) {
                             ).toLocaleString()}
                           </p>
                           <p
-                            className={`m-0 p-1 ${
-                              props.thing ? "text-2xl" : "text-md"
-                            }`}
+                            className={`m-0 p-1 ${props.thing ? "text-2xl" : "text-md"
+                              }`}
                           >
                             -
                           </p>
                           <p
-                            className={`m-0 p-1 ${
-                              props.thing ? "text-2xl" : "text-md"
-                            }`}
+                            className={`m-0 p-1 ${props.thing ? "text-2xl" : "text-md"
+                              }`}
                           >
                             {(
                               props.device?.dabsPerDay ||
@@ -705,7 +686,7 @@ export function GroupMember(props: GroupMemberProps) {
                     <span className="flex flex-row">
                       <h3 className="text-lg m-0">
                         {props.ready &&
-                        props.device.state !=
+                          props.device.state !=
                           PuffcoOperatingState.HEAT_CYCLE_ACTIVE
                           ? "Ready"
                           : PuffcoOperatingMap[props.device.state]}
@@ -714,8 +695,8 @@ export function GroupMember(props: GroupMemberProps) {
                           PuffcoOperatingState.HEAT_CYCLE_ACTIVE,
                         ].includes(props.device.state)
                           ? ` - ${millisToMinutesAndSeconds(
-                              props.device.stateTime * 1000
-                            )}`
+                            props.device.stateTime * 1000
+                          )}`
                           : ""}
                       </h3>
                       {props.ready ? (
@@ -734,7 +715,7 @@ export function GroupMember(props: GroupMemberProps) {
                               {formatRelativeTime(
                                 new Date(props.device.lastDab.timestamp),
                                 props.device.utcTime &&
-                                  new Date(props.device.utcTime * 1000)
+                                new Date(props.device.utcTime * 1000)
                               )}{" "}
                               ago
                             </p>
@@ -744,8 +725,8 @@ export function GroupMember(props: GroupMemberProps) {
                                 {props.device.lastDab.timeElapsed * 1000 < 1
                                   ? "now"
                                   : millisToMinutesAndSeconds(
-                                      props.device.lastDab.timeElapsed * 1000
-                                    )}
+                                    props.device.lastDab.timeElapsed * 1000
+                                  )}
                               </p>
                               <p className="opacity-40">@</p>
                               <p className="opacity-40">
@@ -798,7 +779,7 @@ export function GroupMember(props: GroupMemberProps) {
                             </span>
                           </Tippy>
                           {props.device.profile.intensity &&
-                          props.device.profile.intensity > 0 ? (
+                            props.device.profile.intensity > 0 ? (
                             <Tippy content="Profile Intensity" placement="auto">
                               <span className="flex">
                                 <IntensityIcon
