@@ -157,10 +157,9 @@ export default function Group({
     const member = group.members.find((mem) => mem.session_id == session_id);
     if (member)
       toast(
-        `${
-          member.user?.display_name ||
-          member.device_state?.deviceName ||
-          "Guest"
+        `${member.user?.display_name ||
+        member.device_state?.deviceName ||
+        "Guest"
         } left`,
         {
           position: "top-right",
@@ -255,10 +254,9 @@ export default function Group({
         });
 
         toast(
-          `${
-            member?.user?.display_name ||
-            member?.device_state?.deviceName ||
-            "Guest"
+          `${member?.user?.display_name ||
+          member?.device_state?.deviceName ||
+          "Guest"
           }: ${emoji}`,
           {
             position: "top-right",
@@ -292,8 +290,7 @@ export default function Group({
         (mem) => mem.session_id == data.session_id
       );
       toast(
-        `${
-          initiator.user?.name || initiator.device_state?.deviceName || "Guest"
+        `${initiator.user?.name || initiator.device_state?.deviceName || "Guest"
         } wants to start`,
         {
           icon: "🔥",
@@ -325,8 +322,7 @@ export default function Group({
       );
 
       toast(
-        `${
-          initiator.user?.name || initiator.device_state?.deviceName || "Guest"
+        `${initiator.user?.name || initiator.device_state?.deviceName || "Guest"
         } is ready`,
         {
           icon: "✅",
@@ -346,10 +342,9 @@ export default function Group({
 
       if (initiator)
         toast(
-          `${
-            initiator.user?.name ||
-            initiator.device_state?.deviceName ||
-            "Guest"
+          `${initiator.user?.name ||
+          initiator.device_state?.deviceName ||
+          "Guest"
           } is no longer ready`,
           {
             icon: "🚫",
@@ -379,12 +374,11 @@ export default function Group({
       );
 
       toast(
-        `${
-          data.session_id == gateway.session_id
-            ? ourUser?.name
-            : initiator.user?.name ||
-              initiator.device_state?.deviceName ||
-              "Guest"
+        `${data.session_id == gateway.session_id
+          ? ourUser?.name
+          : initiator.user?.name ||
+          initiator.device_state?.deviceName ||
+          "Guest"
         } made the group ${data.visibility}`,
         {
           icon: data.visibility == "public" ? "🌍" : "🔒",
@@ -495,7 +489,7 @@ export default function Group({
     };
   }, [sessionResumed]);
 
-  useEffect(() => {}, [chatBoxOpen]);
+  useEffect(() => { }, [chatBoxOpen]);
 
   useEffect(() => {
     gateway.on("group_delete", deletedGroup);
@@ -537,7 +531,7 @@ export default function Group({
             : {}),
         });
         setOurLeaderboardPosition(tracked.data.position);
-      } catch (error) {}
+      } catch (error) { }
 
       instance.once("gattdisconnect", async () => {
         instance.removeAllListeners("reconnecting");
@@ -597,7 +591,7 @@ export default function Group({
 
       setDeviceInfo(deviceInfo as DeviceInformation);
       setMyDevice((curr) => ({ ...curr, ...initState }));
-      gateway.send(Op.SendDeviceState, initState);
+      gateway.send(Op.SendDeviceState, { serialNumber: deviceInfo.serial, ...initState });
 
       setConnecting(false);
       setDeviceConnected(true);
