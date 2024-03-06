@@ -29,10 +29,12 @@ import { Op, UserFlags, millisToMinutesAndSeconds } from "@puff-social/commons";
 import {
   ChamberType,
   ChargeSource,
+  DeviceModels,
   DeviceState,
   EASTER_EGG_CYCLE_COUNTS,
   ProductModelMap,
   PuffcoOperatingState,
+  SerialPrefixMap,
   TEMPERATURE_MAX,
   TEMPERATURE_MIN,
 } from "@puff-social/commons/dist/puffco/constants";
@@ -401,17 +403,18 @@ export function GroupMember(props: GroupMemberProps) {
                   }`}
                 chamberType={props.device?.chamberType}
                 model={
-                  ProductModelMap[
-                    props.device
-                      ? props.device.deviceModel
-                      : props.lbDevice?.model
-                  ]
-                    ? ProductModelMap[
+                  props.device?.deviceModel == DeviceModels.Onyx && props.instance.deviceInfo.serial.startsWith(SerialPrefixMap.Desert) ? "desert" :
+                    ProductModelMap[
                       props.device
                         ? props.device.deviceModel
                         : props.lbDevice?.model
-                    ].toLowerCase()
-                    : ProductModelMap[0].toLowerCase()
+                    ]
+                      ? ProductModelMap[
+                        props.device
+                          ? props.device.deviceModel
+                          : props.lbDevice?.model
+                      ].toLowerCase()
+                      : ProductModelMap[0].toLowerCase()
                 }
                 device={props.device || { activeColor: { r: 0, g: 0, b: 0 } }}
               />
