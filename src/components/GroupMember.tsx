@@ -403,7 +403,7 @@ export function GroupMember(props: GroupMemberProps) {
                   }`}
                 chamberType={props.device?.chamberType}
                 model={
-                  (props.us && props.device?.deviceModel == DeviceModels.Onyx && props.instance.deviceInfo.serial.startsWith(SerialPrefixMap.Desert)) ? "desert" :
+                  (props.us && props.device?.deviceModel == DeviceModels.Onyx && props.instance?.deviceInfo?.serial?.startsWith(SerialPrefixMap.Desert)) ? "desert" :
                     ProductModelMap[
                       props.device
                         ? props.device.deviceModel
