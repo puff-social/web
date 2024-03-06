@@ -147,14 +147,14 @@ export function PuffcoContainer({
               values={`${r / 100} 0 0 0 0
                         0 ${g / 100} 0 0 0
                         0 0 ${b / 100} 0 0
-                        0 0 0 ${["onyx", "pearl", "desert"].includes(model) ||
+                        0 0 0 ${["onyx", "pearl", "desert", "flourish"].includes(model) ||
                   (!r && !g && !b)
                   ? 0
                   : brightness / 100
                 } 0`}
             ></feColorMatrix>
           </filter>
-          {["onyx", "pearl", "desert"].includes(model)
+          {["onyx", "pearl", "desert", "flourish"].includes(model)
             ? [
               "peach/peak-peach-lights-glass-mid-left",
               "peach/peak-peach-lights-glass-mid-right",

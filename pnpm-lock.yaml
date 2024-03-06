@@ -12,8 +12,8 @@ dependencies:
     specifier: ^0.2.0
     version: 0.2.0(tailwindcss@3.4.1)
   '@puff-social/commons':
-    specifier: ^1.0.36
-    version: 1.0.36
+    specifier: ^1.0.41
+    version: 1.0.41
   '@reduxjs/toolkit':
     specifier: ^2.1.0
     version: 2.1.0(react-redux@9.1.0)(react@18.2.0)
@@ -446,8 +446,8 @@ packages:
     resolution: {integrity: sha512-3jum8/YSudeSN0zGW5qkpz+wAN2V/NYCQ+BPjvHYDfWatLWlQkqy99toX0GysDeaUoBIJg1vaz2yKqiA3CFcQw==}
     dev: false
 
-  /@puff-social/commons@1.0.36:
-    resolution: {integrity: sha512-v3wqfwqVVYFxiEtsVRkJ07z7e1WMGjfxv7t0KxxsLjt2FgabcEUsTBPsKbxO5JfsOyHglpyJmzNAKN8Bg62bIg==, tarball: https://npm.pkg.github.com/download/@puff-social/commons/1.0.36/d9a5a49c26592a0525612de53d861b54dbacab1e}
+  /@puff-social/commons@1.0.41:
+    resolution: {integrity: sha512-ggSCvKZhd5mxifl3sp91EF1MduZskddw7UI1zyYJ/er6VJ1twgK4LxVPXei36UXcqFDZrqHEGobh1amngAxGAw==, tarball: https://npm.pkg.github.com/download/@puff-social/commons/1.0.41/be42452e7a56271af21c3db3db2fd6120c01a896}
     dependencies:
       '@prisma/client': 4.14.0
       envsafe: 2.0.3
