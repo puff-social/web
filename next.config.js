@@ -44,7 +44,7 @@ const moduleExports = {
       },
       {
         source: "/discord",
-        destination: "https://discord.gg/puffsocial",
+        destination: "https://discord.gg/9F8SP9MDJq",
         permanent: false,
       },
       {
