@@ -44,7 +44,7 @@ export function GroupSettingsModal({
       visibility: groupVisibility,
       persistent: groupPersistent,
     });
-    toast("Updated group", { position: "top-right", duration: 3000 });
+
     closeModal();
   }, [groupName, groupVisibility, groupPersistent]);
 
@@ -157,7 +157,7 @@ export function GroupSettingsModal({
                 </button>
                 <hr className="mt-3 border-neutral-500/30 rounded-md" />
                 {group.persistent &&
-                !(session.user?.flags & UserFlags.admin) ? (
+                  !(session.user?.flags & UserFlags.admin) ? (
                   <Tippy
                     placement="bottom"
                     content="Cannot delete a persistent group"

@@ -367,6 +367,17 @@ export default function Group({
     }
   }
 
+  function groupActionError(error: GatewayError) {
+    switch (error.code) {
+      case "INVALID_DATA": {
+        dispatch(
+          setGroupState({ joinErrorMessage: "Invalid data provided for group update" })
+        );
+        break;
+      }
+    }
+  }
+
   const groupChangeVisibility = useCallback(
     (data: GroupActionInitiator & { visibility: string }) => {
       const initiator = group.members.find(
@@ -436,6 +447,7 @@ export default function Group({
       //   );
       // }
       gateway.on("group_join_error", groupJoinError);
+      gateway.on("group_action_error", groupActionError);
       gateway.on("group_user_device_update", groupMemberDeviceUpdated);
       gateway.on("group_heat_begin", startDab);
 
@@ -460,6 +472,7 @@ export default function Group({
         gateway.send(Op.LeaveGroup);
         disconnect();
         gateway.removeListener("group_join_error", groupJoinError);
+        gateway.removeListener("group_action_error", groupActionError);
 
         gateway.removeListener(
           "group_user_device_update",

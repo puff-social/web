@@ -35,6 +35,7 @@ import {
 } from "../state/slices/group";
 import { instance } from "../pages/[id]";
 import { PuffLightMode } from "@puff-social/commons/dist/puffco";
+import toast from "react-hot-toast";
 
 interface SocketData {
   session_id?: string;
@@ -298,6 +299,8 @@ export class Gateway extends EventEmitter {
                 instance.setLightMode(PuffLightMode.Default);
               }
             }
+
+            toast("Updated group", { position: "top-right", duration: 3000 });
 
             this.emit("group_update", data.d);
             break;
