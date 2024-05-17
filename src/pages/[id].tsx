@@ -373,6 +373,12 @@ export default function Group({
         dispatch(
           setGroupState({ joinErrorMessage: "Invalid data provided for group update" })
         );
+
+        toast("Invalid data provided for group update", {
+          position: "top-right",
+          duration: 1000,
+          icon: "❌",
+        });
         break;
       }
     }
