@@ -370,10 +370,6 @@ export default function Group({
   function groupActionError(error: GatewayError) {
     switch (error.code) {
       case "INVALID_DATA": {
-        dispatch(
-          setGroupState({ joinErrorMessage: "Invalid data provided for group update" })
-        );
-
         toast("Invalid data provided for group update", {
           position: "top-right",
           duration: 1000,
