@@ -10,7 +10,7 @@
   "dependencies": {
     "@headlessui/react": "^1.7.18",
     "@headlessui/tailwindcss": "^0.2.0",
-    "@puff-social/commons": "^1.0.41",
+    "@puff-social/commons": "^1.0.42",
     "@reduxjs/toolkit": "^2.1.0",
     "@sentry/nextjs": "^7.98.0",
     "@tippyjs/react": "^4.2.6",

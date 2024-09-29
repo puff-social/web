@@ -116,25 +116,52 @@ export function PuffcoContainer({
 
   return (
     <div
-      className={`flex flex-col justify-center items-center${className ? ` ${className}` : ""
-        }`}
+      className={`flex flex-col justify-center items-center${
+        className ? ` ${className}` : ""
+      }`}
     >
       <div className={`flex justify-center items-center self-center`}>
         <svg
-          className={`${svgClassName || "w-full"
-            } flex justify-center items-center self-center`}
+          className={`${
+            svgClassName || "w-full"
+          } flex justify-center items-center self-center`}
           viewBox="0 0 5 8"
         >
-          <image
-            className="flex justify-center items-center self-center"
-            height="100%"
-            href={`/${model}/${model == "opal"
-              ? prefersColorScheme == "dark"
-                ? "device"
-                : "device-light-bg"
-              : "device"
-              }.png`}
-          />
+          {["storm"].includes(model) ? (
+            <>
+              <image
+                className="flex justify-center items-center self-center"
+                height="100%"
+                href={`/${model}/glass.png`}
+              />
+              <image
+                className="flex justify-center items-center self-center"
+                height="100%"
+                href={`/${model}/base.png`}
+              />
+              {chamberType == ChamberType.XL ? (
+                <image
+                  className="flex justify-center items-center self-center"
+                  height="100%"
+                  href={`/${model}/chamber-xl.png`}
+                />
+              ) : chamberType == ChamberType.None ? (
+                <></>
+              ) : (
+                <image
+                  className="flex justify-center items-center self-center"
+                  height="100%"
+                  href={`/${model}/chamber-regular.png`}
+                />
+              )}
+            </>
+          ) : (
+            <image
+              className="flex justify-center items-center self-center"
+              height="100%"
+              href={`/${model}/device.png`}
+            />
+          )}
           <filter
             className="flex justify-center items-center self-center"
             id={`${id}-svg-matrix`}
@@ -147,55 +174,62 @@ export function PuffcoContainer({
               values={`${r / 100} 0 0 0 0
                         0 ${g / 100} 0 0 0
                         0 0 ${b / 100} 0 0
-                        0 0 0 ${["onyx", "pearl", "desert", "flourish"].includes(model) ||
-                  (!r && !g && !b)
-                  ? 0
-                  : brightness / 100
-                } 0`}
+                        0 0 0 ${
+                          ["onyx", "pearl", "desert", "flourish"].includes(
+                            model,
+                          ) ||
+                          (!r && !g && !b)
+                            ? 0
+                            : brightness / 100
+                        } 0`}
             ></feColorMatrix>
           </filter>
-          {["onyx", "pearl", "desert", "flourish"].includes(model)
+          {["onyx", "pearl", "desert", "flourish", "storm"].includes(model)
             ? [
-              "peach/peak-peach-lights-glass-mid-left",
-              "peach/peak-peach-lights-glass-mid-right",
-              "peach/peak-peach-lights-glass-far-left",
-              "peach/peak-peach-lights-glass-far-right",
-              "peach/peak-peach-lights-base-far-left",
-              "peach/peak-peach-lights-base-far-right",
-              "peach/peak-peach-lights-base-mid-left",
-              "peach/peak-peach-lights-base-mid-right",
-              "peach/peak-peach-lights-ring-far-right",
-              "peach/peak-peach-lights-ring-far-left",
-              "peach/peak-peach-lights-ring-mid-left",
-            ].map((img, key) => (
-              <image
-                className="flex justify-center items-center self-center"
-                height="100%"
-                key={key}
-                filter={`url(#${id}-svg-matrix)`}
-                href={`/${img}.png`}
-              />
-            ))
+                "peach/peak-peach-lights-glass-mid-left",
+                "peach/peak-peach-lights-glass-mid-right",
+                "peach/peak-peach-lights-glass-far-left",
+                "peach/peak-peach-lights-glass-far-right",
+                "peach/peak-peach-lights-base-far-left",
+                "peach/peak-peach-lights-base-far-right",
+                "peach/peak-peach-lights-base-mid-left",
+                "peach/peak-peach-lights-base-mid-right",
+                "peach/peak-peach-lights-ring-far-right",
+                "peach/peak-peach-lights-ring-far-left",
+                "peach/peak-peach-lights-ring-mid-left",
+              ].map((img, key) => (
+                <image
+                  className="flex justify-center items-center self-center"
+                  height="100%"
+                  key={key}
+                  filter={`url(#${id}-svg-matrix)`}
+                  href={`/${img}.png`}
+                />
+              ))
             : [
-              "peak/device-glass-left",
-              "peak/device-glass-right",
-              "peak/device-base-left",
-              "peak/device-base-right",
-            ].map((img, key) => (
+                "peak/device-glass-left",
+                "peak/device-glass-right",
+                "peak/device-base-left",
+                "peak/device-base-right",
+              ].map((img, key) => (
+                <image
+                  className="flex justify-center items-center self-center"
+                  height="100%"
+                  key={key}
+                  filter={`url(#${id}-svg-matrix)`}
+                  href={`/${img}.png`}
+                />
+              ))}
+          {chamberType == ChamberType.XL ? (
+            model == "storm" ? (
+              <></>
+            ) : (
               <image
                 className="flex justify-center items-center self-center"
                 height="100%"
-                key={key}
-                filter={`url(#${id}-svg-matrix)`}
-                href={`/${img}.png`}
+                href="/shared/device-xl.png"
               />
-            ))}
-          {chamberType == ChamberType.XL ? (
-            <image
-              className="flex justify-center items-center self-center"
-              height="100%"
-              href="/shared/device-xl.png"
-            />
+            )
           ) : (
             <></>
           )}
