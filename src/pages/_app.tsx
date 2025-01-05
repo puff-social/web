@@ -31,6 +31,7 @@ import { KevoModal } from "../components/modals/KevoModal";
 import { selectGroupState } from "../state/slices/group";
 import { instance } from "./[id]";
 import { DeviceCommand } from "@puff-social/commons/dist/puffco";
+import { DomainRenewalCTA } from "../components/DomainRenewalCTA";
 
 function AppWrapper({ Component, ...appProps }) {
   const { store, props } = wrapper.useWrappedStore(appProps);
@@ -61,13 +62,13 @@ function App({ Component, store, props }) {
   const [firstVisit] = useState(() =>
     typeof localStorage != "undefined"
       ? localStorage.getItem("puff-social-first-visit") != "false"
-      : false
+      : false,
   );
 
   const [callKevo] = useState(() =>
     typeof location != "undefined"
       ? new URL(location.href).searchParams.get("ref") == "callkevo"
-      : false
+      : false,
   );
 
   function groupCreated(group: GatewayGroupCreate) {
@@ -122,9 +123,9 @@ function App({ Component, store, props }) {
             user: usr.data.user,
             connection: usr.data.connection,
             suspended: usr.data.user.flags & UserFlags.suspended,
-          })
+          }),
         );
-      } catch (error) { }
+      } catch (error) {}
     }
   }
 
@@ -168,7 +169,7 @@ function App({ Component, store, props }) {
           break;
       }
     },
-    [group.group]
+    [group.group],
   );
 
   useEffect(() => {
@@ -258,6 +259,11 @@ function App({ Component, store, props }) {
                 </Transition>
               )}
             </Toaster>
+            {router.pathname.startsWith("/overlay") ? (
+              <></>
+            ) : (
+              <DomainRenewalCTA />
+            )}
           </>
         ) : (
           <></>

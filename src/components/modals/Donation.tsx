@@ -1,12 +1,27 @@
 import { Dialog, Transition } from "@headlessui/react";
-import { Fragment } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
+import { formatRelativeTimeInDays } from "../../utils/time";
 
 interface Props {
+  from: string;
   modalOpen: boolean;
   setModalOpen: (open: boolean) => void;
 }
 
-export function DonationModal({ modalOpen, setModalOpen }: Props) {
+const EXPIRY_DATE_EPOCH = 1738627200000;
+
+export function DonationModal({ modalOpen, setModalOpen, from }: Props) {
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+
+  const expiry = useMemo(() => {
+    return formatRelativeTimeInDays(currentDate, new Date(EXPIRY_DATE_EPOCH));
+  }, [currentDate]);
+
+  useEffect(() => {
+    const int = setInterval(() => setCurrentDate(new Date()), 60_000);
+    return () => clearInterval(int);
+  }, []);
+
   return (
     <Transition appear show={modalOpen} as={Fragment}>
       <Dialog
@@ -43,15 +58,39 @@ export function DonationModal({ modalOpen, setModalOpen }: Props) {
 
                   <span className="flex flex-col space-y-4">
                     <span className="flex flex-col rounded-md space-y-4">
-                      <p>
-                        Hey there, a lot of work goes into keeping this site
-                        running, even more went into building it.
-                      </p>
-                      <p>
-                        If you're enjoying the platform and feel like supporting
-                        future development, buying licenses and actual hosting,
-                        we have a couple ways to support.
-                      </p>
+                      {from == "renewal_cta" ? (
+                        <>
+                          <p>
+                            Our domain{" "}
+                            <span className="px-1 bg-neutral-300 dark:bg-neutral-600 rounded-md">
+                              puff.social
+                            </span>{" "}
+                            is due for renewal on{" "}
+                            <span className="px-1 bg-neutral-300 dark:bg-neutral-600 rounded-md">
+                              February 4th, 2025
+                            </span>
+                            <span className="px-1 bg-neutral-300 dark:bg-neutral-600 rounded-md ml-2">
+                              ({expiry})
+                            </span>
+                          </p>
+                          <p>
+                            If you wanna see us stick around, we'd love to have
+                            your support.
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p>
+                            Hey there, a lot of work goes into keeping this site
+                            running, even more went into building it.
+                          </p>
+                          <p>
+                            If you're enjoying the platform and feel like
+                            supporting future development, buying licenses and
+                            actual hosting, we have a couple ways to support.
+                          </p>
+                        </>
+                      )}
                     </span>
                   </span>
                 </div>
@@ -68,6 +107,10 @@ export function DonationModal({ modalOpen, setModalOpen }: Props) {
                   >
                     Subscribe on Patreon
                   </button>
+                  <p className="text-sm italic opacity-75">
+                    We don't mind if you only subscribe for one month to offer a
+                    one-time contribution
+                  </p>
                 </span>
               </Dialog.Panel>
             </Transition.Child>

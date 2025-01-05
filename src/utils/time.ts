@@ -17,6 +17,15 @@ export function automaticRelativeDifference(d: Date): {
   return { duration: diff, unit: "seconds" };
 }
 
+export function formatRelativeTimeInDays(startDate: Date, endDate: Date) {
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const differenceInMs = endDate.getTime() - startDate.getTime();
+  const differenceInDays = Math.round(differenceInMs / msPerDay);
+
+  const formatter = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+  return formatter.format(differenceInDays, "day");
+}
+
 export function formatRelativeTime(fromDate: Date, toDate?: Date): string {
   if (!toDate) toDate = new Date();
   const timeDifference = Math.abs(toDate.getTime() - fromDate.getTime());
@@ -35,14 +44,14 @@ export function formatRelativeTime(fromDate: Date, toDate?: Date): string {
 
 export function convertRelativeTimestamp(
   relativeTimestamp: Date,
-  deviceUtcTimestamp: number
+  deviceUtcTimestamp: number,
 ): number {
   const deviceUtcTime = new Date(deviceUtcTimestamp * 1000);
   const deviceTimeDifference =
     deviceUtcTime.getTime() - relativeTimestamp.getTime();
 
   const realTimeDifference = Math.abs(
-    new Date().getTime() - deviceUtcTime.getTime()
+    new Date().getTime() - deviceUtcTime.getTime(),
   );
 
   const convertedTimestamp =
