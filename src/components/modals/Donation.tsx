@@ -3,7 +3,7 @@ import { Fragment, useEffect, useMemo, useState } from "react";
 import { formatRelativeTimeInDays } from "../../utils/time";
 
 interface Props {
-  from: string;
+  from?: string;
   modalOpen: boolean;
   setModalOpen: (open: boolean) => void;
 }
