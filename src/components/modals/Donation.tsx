@@ -74,6 +74,12 @@ export function DonationModal({ modalOpen, setModalOpen, from }: Props) {
                             </span>
                           </p>
                           <p>
+                            For transparency, the domain currently costs{" "}
+                            <span className="px-1 bg-neutral-300 dark:bg-neutral-600 rounded-md">
+                              $40/year
+                            </span>
+                          </p>
+                          <p>
                             If you wanna see us stick around, we'd love to have
                             your support.
                           </p>
