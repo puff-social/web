@@ -146,16 +146,16 @@ export interface Device {
   on(event: "clearWatchers", listener: () => void): this;
   on(
     event: "profiles",
-    listener: (profiles: Record<number, PuffcoProfile>) => void
+    listener: (profiles: Record<number, PuffcoProfile>) => void,
   ): this;
   on(event: "gattdisconnect", listener: () => void): this;
   on(
     event: "device_connected",
-    listener: (device: BluetoothDevice) => void
+    listener: (device: BluetoothDevice) => void,
   ): this;
   on(
     event: "gatt_connected",
-    listener: (server: BluetoothRemoteGATTServer) => void
+    listener: (server: BluetoothRemoteGATTServer) => void,
   ): this;
   on(event: "reconnecting", listener: () => void): this;
   on(event: "reconnected", listener: () => void): this;
@@ -164,7 +164,7 @@ export interface Device {
   on(event: "device_last_heat_completed", listener: (date: Date) => void): this;
   on(
     event: "device_last_charge_completed",
-    listener: (date: Date) => void
+    listener: (date: Date) => void,
   ): this;
 }
 
@@ -194,15 +194,14 @@ export class Device extends EventEmitter {
         const pupVer = await this.pupService.getCharacteristic(PUP_APP_VERSION);
         await pupVer.readValue();
       } else {
-        const silLabsVer = await this.silabsService.getCharacteristic(
-          SILLABS_VERISON
-        );
+        const silLabsVer =
+          await this.silabsService.getCharacteristic(SILLABS_VERISON);
         await silLabsVer.readValue();
       }
 
       await new Promise(async (upperResolve, upperReject) => {
         this.loraxReply = await this.service.getCharacteristic(
-          LoraxCharacteristic.REPLY
+          LoraxCharacteristic.REPLY,
         );
         this.loraxReply.addEventListener(
           "characteristicvaluechanged",
@@ -210,7 +209,7 @@ export class Device extends EventEmitter {
             const {
               value: { buffer },
             }: { value: DataView } = ev.target as any;
-            const data = processLoraxReply(buffer);
+            const data = processLoraxReply(buffer as ArrayBuffer);
             const msg = this.loraxMessages.get(data.seq);
             if (!msg) return upperResolve(true);
             msg.response = { data: data.data, error: !!data.error };
@@ -218,7 +217,7 @@ export class Device extends EventEmitter {
             switch (msg.op) {
               case LoraxCommands.GET_ACCESS_SEED: {
                 const decodedHandshake = convertFromHex(
-                  LORAX_HANDSHAKE_KEY.toString("hex")
+                  LORAX_HANDSHAKE_KEY.toString("hex"),
                 );
 
                 const newSeed = new Uint8Array(32);
@@ -228,14 +227,14 @@ export class Device extends EventEmitter {
                 }
 
                 const newKey = convertHexStringToNumArray(
-                  createHash("sha256").update(newSeed).digest("hex")
+                  createHash("sha256").update(newSeed).digest("hex"),
                 ).slice(0, 16);
 
                 await this.sendLoraxCommand(
                   LoraxCommands.UNLOCK_ACCESS,
                   newKey,
                   null,
-                  true
+                  true,
                 );
 
                 break;
@@ -250,7 +249,7 @@ export class Device extends EventEmitter {
                 console.log(
                   `%c${this.device.name}%c Lorax: Authenticated`,
                   `padding: 10px; font-size: 1em; line-height: 1.4em; color: white; background: #000000; border-radius: 15px;`,
-                  "font-size: 1em;"
+                  "font-size: 1em;",
                 );
 
                 upperResolve(true);
@@ -264,7 +263,7 @@ export class Device extends EventEmitter {
                     "Got an error response to a write short",
                     msg.path,
                     msg,
-                    data
+                    data,
                   );
 
                 break;
@@ -280,14 +279,14 @@ export class Device extends EventEmitter {
                     LoraxCommands.GET_ACCESS_SEED,
                     null,
                     null,
-                    true
+                    true,
                   );
                 }
 
                 break;
               }
             }
-          }
+          },
         );
         await this.loraxReply.startNotifications();
 
@@ -299,18 +298,18 @@ export class Device extends EventEmitter {
 
       const hardwareVersion = await this.getValue(
         Characteristic.HARDWARE_VERSION,
-        true
+        true,
       );
       this.hardwareVersion = hardwareVersion.readUInt8(0);
 
       const firmwareRaw = await this.getValue(
         Characteristic.FIRMWARE_VERSION,
-        true
+        true,
       );
       this.deviceFirmware = numbersToLetters(firmwareRaw.readUInt8(0) + 5);
     } else {
       const accessSeedKey = await this.service.getCharacteristic(
-        Characteristic.ACCESS_KEY
+        Characteristic.ACCESS_KEY,
       );
       const value = await accessSeedKey.readValue();
 
@@ -326,7 +325,7 @@ export class Device extends EventEmitter {
       }
 
       const newKey = convertHexStringToNumArray(
-        createHash("sha256").update(newSeed).digest("hex")
+        createHash("sha256").update(newSeed).digest("hex"),
       ).slice(0, 16);
       await accessSeedKey.writeValue(Buffer.from(newKey));
 
@@ -338,7 +337,7 @@ export class Device extends EventEmitter {
     paths = [
       LoraxCharacteristicPathMap[Characteristic.OPERATING_STATE],
       LoraxCharacteristicPathMap[Characteristic.UTC_TIME],
-    ]
+    ],
   ) {
     for await (const path of paths) {
       try {
@@ -353,8 +352,9 @@ export class Device extends EventEmitter {
               "DEBUG: Deviation for",
               path,
               "is beyond 2x, unwatching and rewatching",
-              `(D: ${new Date().getTime() - this.lastOperatingStateUpdate.getTime()
-              })`
+              `(D: ${
+                new Date().getTime() - this.lastOperatingStateUpdate.getTime()
+              })`,
             );
 
             await Promise.race([
@@ -386,7 +386,7 @@ export class Device extends EventEmitter {
   async setupDevice(paths?: string[]) {
     if (this.isLorax) {
       this.loraxEvent = await this.service.getCharacteristic(
-        LoraxCharacteristic.EVENT
+        LoraxCharacteristic.EVENT,
       );
 
       delete this.lastOperatingStateUpdate;
@@ -402,7 +402,11 @@ export class Device extends EventEmitter {
             value: { buffer },
           }: { value: DataView } = ev.target as any;
           const buf = Buffer.from(buffer);
-          const reply = processLoraxEvent(buf);
+          const arrayBuffer = buf.buffer.slice(
+            buf.byteOffset,
+            buf.byteOffset + buf.byteLength,
+          );
+          const reply = processLoraxEvent(arrayBuffer as ArrayBuffer);
           const path = this.watchMap.get(reply.watchId);
 
           if (!reply.data || reply.data.byteLength == 0) return;
@@ -422,7 +426,7 @@ export class Device extends EventEmitter {
                 if (group) {
                   const groupStartOnBatteryCheck =
                     localStorage.getItem("puff-battery-check-start") ==
-                    "true" || false;
+                      "true" || false;
 
                   if (
                     group.state == GroupState.Awaiting &&
@@ -451,28 +455,28 @@ export class Device extends EventEmitter {
                 if (
                   val == PuffcoOperatingState.HEAT_CYCLE_PREHEAT &&
                   currentOperatingState !=
-                  PuffcoOperatingState.HEAT_CYCLE_PREHEAT
+                    PuffcoOperatingState.HEAT_CYCLE_PREHEAT
                 ) {
                   console.log(
-                    `DEBUG: Preheat started, suspending poller and starting watcher`
+                    `DEBUG: Preheat started, suspending poller and starting watcher`,
                   );
                   if (this.watcherSuspendTimeout) {
                     console.log(
-                      "DEBUG: ^ Ignored because was less than 15 seconds since last heat/preheat"
+                      "DEBUG: ^ Ignored because was less than 15 seconds since last heat/preheat",
                     );
                     clearTimeout(this.watcherSuspendTimeout);
                   } else {
                     this.pollerMap.get("chamberTemp").emit("suspend");
                     await this.watchWithConfirmation(
                       LoraxCharacteristicPathMap[
-                      Characteristic.STATE_ELAPSED_TIME
-                      ]
+                        Characteristic.STATE_ELAPSED_TIME
+                      ],
                     );
                     await this.watchWithConfirmation(
-                      LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]
+                      LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE],
                     );
                     await this.watchWithConfirmation(
-                      LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]
+                      LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP],
                     );
                   }
                 } else if (
@@ -485,20 +489,20 @@ export class Device extends EventEmitter {
                   await this.readDeviceAuditLogs({ limit: 3, reverse: true });
                   this.watcherSuspendTimeout = setTimeout(async () => {
                     await this.unwatchPath(
-                      LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE]
+                      LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE],
                     );
                     await this.unwatchPath(
-                      LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]
+                      LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP],
                     );
                     await this.unwatchPath(
                       LoraxCharacteristicPathMap[
-                      Characteristic.STATE_ELAPSED_TIME
-                      ]
+                        Characteristic.STATE_ELAPSED_TIME
+                      ],
                     );
                     console.log(
                       "resuming, again for some reason",
                       val,
-                      currentOperatingState
+                      currentOperatingState,
                     );
                     this.pollerMap.get("chamberTemp")?.emit("resume");
                   }, 15 * 1000);
@@ -524,17 +528,17 @@ export class Device extends EventEmitter {
             case LoraxCharacteristicPathMap[
               Characteristic.STATE_ELAPSED_TIME
             ]: {
-                if (reply.data.byteLength != 4) return;
+              if (reply.data.byteLength != 4) return;
 
-                const conv = Number(reply.data.readFloatLE(0));
-                if (lastElapsedTime != conv) {
-                  this.poller?.emit("data", {
-                    stateTime: conv,
-                  });
-                  lastElapsedTime = conv;
-                }
-                break;
+              const conv = Number(reply.data.readFloatLE(0));
+              if (lastElapsedTime != conv) {
+                this.poller?.emit("data", {
+                  stateTime: conv,
+                });
+                lastElapsedTime = conv;
               }
+              break;
+            }
             case LoraxCharacteristicPathMap[Characteristic.HEATER_TEMP]: {
               if (reply.data.byteLength != 4) return;
 
@@ -559,7 +563,7 @@ export class Device extends EventEmitter {
                   const current = Math.round(Date.now() / 1000);
                   if (Math.abs(conv - current) > 10)
                     this.updateDeviceTime(new Date());
-                } catch (error) { }
+                } catch (error) {}
               }
               break;
             }
@@ -567,7 +571,7 @@ export class Device extends EventEmitter {
             default:
               break;
           }
-        }
+        },
       );
 
       this.loraxEvent.startNotifications();
@@ -577,7 +581,7 @@ export class Device extends EventEmitter {
       let currentOperatingState: number;
       const operatingState = await this.pollValue(
         Characteristic.OPERATING_STATE,
-        this.isLorax ? 555 : 1200
+        this.isLorax ? 555 : 1200,
       );
       operatingState.on("change", (data: Buffer) => {
         if (!data || data.byteLength != (this.isLorax ? 1 : 4)) return;
@@ -635,7 +639,7 @@ export class Device extends EventEmitter {
     try {
       if (this.reconnectionAttempts >= 3) {
         console.log(
-          "Reconnection failed after 3 attempts, gatt server disconnected"
+          "Reconnection failed after 3 attempts, gatt server disconnected",
         );
         this.emit("gattdisconnect");
         if (!this.disconnected) this.disconnect();
@@ -649,7 +653,7 @@ export class Device extends EventEmitter {
           "reconnecting",
           this.allowReconnection,
           this.server,
-          this.disconnected
+          this.disconnected,
         );
 
         await new Promise((resolve) => setTimeout(() => resolve(1), 100));
@@ -674,31 +678,30 @@ export class Device extends EventEmitter {
         const primaryServices = await this.server.getPrimaryServices();
 
         this.isLorax = !!primaryServices.find(
-          (service) => service.uuid == LORAX_SERVICE
+          (service) => service.uuid == LORAX_SERVICE,
         );
         this.isPup = !!primaryServices.find(
-          (service) => service.uuid == PUP_SERVICE
+          (service) => service.uuid == PUP_SERVICE,
         );
 
         if (!this.isLorax)
           this.modelService = await this.server.getPrimaryService(
-            Characteristic.MODEL_SERVICE
+            Characteristic.MODEL_SERVICE,
           );
 
         if (this.isLorax && !this.isPup)
-          this.silabsService = await this.server.getPrimaryService(
-            SILLABS_OTA_SERVICE
-          );
+          this.silabsService =
+            await this.server.getPrimaryService(SILLABS_OTA_SERVICE);
 
         if (this.isLorax && this.isPup)
           this.pupService = await this.server.getPrimaryService(PUP_SERVICE);
 
         this.service = await this.server.getPrimaryService(
-          this.isLorax ? LORAX_SERVICE : SERVICE
+          this.isLorax ? LORAX_SERVICE : SERVICE,
         );
 
         await this.handleAuthentication().catch(() =>
-          this.handleAuthentication().catch(() => this.handleAuthentication())
+          this.handleAuthentication().catch(() => this.handleAuthentication()),
         );
 
         await this.setupDevice();
@@ -794,48 +797,45 @@ export class Device extends EventEmitter {
         const primaryServices = await this.server.getPrimaryServices();
 
         this.isLorax = !!primaryServices.find(
-          (service) => service.uuid == LORAX_SERVICE
+          (service) => service.uuid == LORAX_SERVICE,
         );
         this.isPup = !!primaryServices.find(
-          (service) => service.uuid == PUP_SERVICE
+          (service) => service.uuid == PUP_SERVICE,
         );
         this.isSillabs = !!primaryServices.find(
-          (service) => service.uuid == SILLABS_OTA_SERVICE
+          (service) => service.uuid == SILLABS_OTA_SERVICE,
         );
         this.hasService = !!primaryServices.find((service) =>
-          [LORAX_SERVICE, SERVICE].includes(service.uuid)
+          [LORAX_SERVICE, SERVICE].includes(service.uuid),
         );
 
         if (this.isSillabs)
-          this.silabsService = await this.server.getPrimaryService(
-            SILLABS_OTA_SERVICE
-          );
+          this.silabsService =
+            await this.server.getPrimaryService(SILLABS_OTA_SERVICE);
         if (this.isPup)
           this.pupService = await this.server.getPrimaryService(PUP_SERVICE);
 
         if (this.hasService) {
           this.service = await this.server.getPrimaryService(
-            this.isLorax ? LORAX_SERVICE : SERVICE
+            this.isLorax ? LORAX_SERVICE : SERVICE,
           );
 
           if (this.isLorax) {
             // This triggers pairing on lorax ;P
             if (this.isPup) {
-              const pupVer = await this.pupService.getCharacteristic(
-                PUP_APP_VERSION
-              );
+              const pupVer =
+                await this.pupService.getCharacteristic(PUP_APP_VERSION);
               await pupVer.readValue();
             } else {
-              const silLabsVer = await this.silabsService.getCharacteristic(
-                SILLABS_VERISON
-              );
+              const silLabsVer =
+                await this.silabsService.getCharacteristic(SILLABS_VERISON);
               await silLabsVer.readValue();
             }
 
             if (this.hasService) {
               await new Promise(async (upperResolve, upperReject) => {
                 this.loraxReply = await this.service.getCharacteristic(
-                  LoraxCharacteristic.REPLY
+                  LoraxCharacteristic.REPLY,
                 );
                 this.loraxReply.addEventListener(
                   "characteristicvaluechanged",
@@ -843,7 +843,7 @@ export class Device extends EventEmitter {
                     const {
                       value: { buffer },
                     }: { value: DataView } = ev.target as any;
-                    const data = processLoraxReply(buffer);
+                    const data = processLoraxReply(buffer as ArrayBuffer);
                     const msg = this.loraxMessages.get(data.seq);
                     if (!msg) return upperResolve(true);
                     msg.response = { data: data.data, error: !!data.error };
@@ -851,7 +851,7 @@ export class Device extends EventEmitter {
                     switch (msg.op) {
                       case LoraxCommands.GET_ACCESS_SEED: {
                         const decodedHandshake = convertFromHex(
-                          LORAX_HANDSHAKE_KEY.toString("hex")
+                          LORAX_HANDSHAKE_KEY.toString("hex"),
                         );
 
                         const newSeed = new Uint8Array(32);
@@ -861,12 +861,12 @@ export class Device extends EventEmitter {
                         }
 
                         const newKey = convertHexStringToNumArray(
-                          createHash("sha256").update(newSeed).digest("hex")
+                          createHash("sha256").update(newSeed).digest("hex"),
                         ).slice(0, 16);
 
                         await this.sendLoraxCommand(
                           LoraxCommands.UNLOCK_ACCESS,
-                          newKey
+                          newKey,
                         );
 
                         break;
@@ -877,7 +877,7 @@ export class Device extends EventEmitter {
                         console.log(
                           `%c${this.device.name}%c Lorax: Authenticated`,
                           `padding: 10px; font-size: 1em; line-height: 1.4em; color: white; background: #000000; border-radius: 15px;`,
-                          "font-size: 1em;"
+                          "font-size: 1em;",
                         );
 
                         upperResolve(true);
@@ -891,7 +891,7 @@ export class Device extends EventEmitter {
                             "Got an error response to a write short",
                             msg.path,
                             msg,
-                            data
+                            data,
                           );
 
                         break;
@@ -906,14 +906,14 @@ export class Device extends EventEmitter {
 
                           this.sendLoraxCommand(
                             LoraxCommands.GET_ACCESS_SEED,
-                            null
+                            null,
                           );
                         }
 
                         break;
                       }
                     }
-                  }
+                  },
                 );
                 this.loraxReply.startNotifications();
 
@@ -921,20 +921,20 @@ export class Device extends EventEmitter {
               });
 
               const modelRaw = await this.getValue(
-                Characteristic.HARDWARE_MODEL
+                Characteristic.HARDWARE_MODEL,
               );
               this.deviceModel = modelRaw.readUInt32LE(0).toString();
 
               const hardwareVersion = await this.getValue(
-                Characteristic.HARDWARE_VERSION
+                Characteristic.HARDWARE_VERSION,
               );
               this.hardwareVersion = hardwareVersion.readUInt8(0);
 
               const firmwareRaw = await this.getValue(
-                Characteristic.FIRMWARE_VERSION
+                Characteristic.FIRMWARE_VERSION,
               );
               this.deviceFirmware = numbersToLetters(
-                firmwareRaw.readUInt8(0) + 5
+                firmwareRaw.readUInt8(0) + 5,
               );
 
               const gitHashRaw = await this.getValue(Characteristic.GIT_HASH);
@@ -945,7 +945,7 @@ export class Device extends EventEmitter {
             }
           } else {
             const accessSeedKey = await this.service.getCharacteristic(
-              Characteristic.ACCESS_KEY
+              Characteristic.ACCESS_KEY,
             );
             const value = await accessSeedKey.readValue();
 
@@ -953,7 +953,7 @@ export class Device extends EventEmitter {
             for (let i = 0; i < 16; i++) decodedKey[i] = value.getUint8(i);
 
             const decodedHandshake = convertFromHex(
-              HANDSHAKE_KEY.toString("hex")
+              HANDSHAKE_KEY.toString("hex"),
             );
 
             const newSeed = new Uint8Array(32);
@@ -963,7 +963,7 @@ export class Device extends EventEmitter {
             }
 
             const newKey = convertHexStringToNumArray(
-              createHash("sha256").update(newSeed).digest("hex")
+              createHash("sha256").update(newSeed).digest("hex"),
             ).slice(0, 16);
             await accessSeedKey.writeValue(Buffer.from(newKey));
           }
@@ -1029,14 +1029,14 @@ export class Device extends EventEmitter {
 
         const primaryServices = await this.server.getPrimaryServices();
         this.isLorax = !!primaryServices.find(
-          (service) => service.uuid == LORAX_SERVICE
+          (service) => service.uuid == LORAX_SERVICE,
         );
         this.isPup = !!primaryServices.find(
-          (service) => service.uuid == PUP_SERVICE
+          (service) => service.uuid == PUP_SERVICE,
         );
 
         this.service = await this.server.getPrimaryService(
-          this.isLorax ? LORAX_SERVICE : SERVICE
+          this.isLorax ? LORAX_SERVICE : SERVICE,
         );
 
         this.registeredDisconnectHandler = () => {
@@ -1045,18 +1045,17 @@ export class Device extends EventEmitter {
 
         this.device.addEventListener(
           "gattserverdisconnected",
-          this.registeredDisconnectHandler
+          this.registeredDisconnectHandler,
         );
 
         if (!this.isLorax)
           this.modelService = await this.server.getPrimaryService(
-            Characteristic.MODEL_SERVICE
+            Characteristic.MODEL_SERVICE,
           );
 
         if (this.isLorax && !this.isPup)
-          this.silabsService = await this.server.getPrimaryService(
-            SILLABS_OTA_SERVICE
-          );
+          this.silabsService =
+            await this.server.getPrimaryService(SILLABS_OTA_SERVICE);
 
         if (this.isLorax && this.isPup)
           this.pupService = await this.server.getPrimaryService(PUP_SERVICE);
@@ -1067,7 +1066,7 @@ export class Device extends EventEmitter {
           try {
             const deviceMacAddressRaw = await this.getValue(
               Characteristic.BT_MAC,
-              true
+              true,
             );
             this.deviceMacAddress = intArrayToMacAddress(deviceMacAddressRaw);
           } catch (error) {
@@ -1086,25 +1085,25 @@ export class Device extends EventEmitter {
         if (this.isLorax) {
           try {
             await this.loraxProfiles();
-          } catch (error) { }
+          } catch (error) {}
         }
 
         if (!this.isLorax) {
           const modelRaw = await this.getValue(
             Characteristic.HARDWARE_MODEL,
-            true
+            true,
           );
           this.deviceModel = modelRaw.toString();
 
           const firmwareRaw = await this.getValue(
             Characteristic.FIRMWARE_VERSION,
-            true
+            true,
           );
           this.deviceFirmware = decoder.decode(firmwareRaw);
 
           const hardwareVersion = await this.getValue(
             Characteristic.HARDWARE_VERSION,
-            true
+            true,
           );
           this.hardwareVersion = hardwareVersion.readUInt8(0);
 
@@ -1120,14 +1119,13 @@ export class Device extends EventEmitter {
 
             try {
               diagData.device_services = await Promise.all(
-                (
-                  await this.server.getPrimaryServices()
-                ).map(async (service) => ({
-                  uuid: service.uuid,
-                  characteristicCount: (
-                    await service.getCharacteristics()
-                  ).length,
-                }))
+                (await this.server.getPrimaryServices()).map(
+                  async (service) => ({
+                    uuid: service.uuid,
+                    characteristicCount: (await service.getCharacteristics())
+                      .length,
+                  }),
+                ),
               );
               diagData.device_parameters.loraxService = await this.server
                 .getPrimaryService(LORAX_SERVICE)
@@ -1137,7 +1135,7 @@ export class Device extends EventEmitter {
                 .getPrimaryService(PUP_SERVICE)
                 .then(() => true)
                 .catch(() => false);
-            } catch (error) { }
+            } catch (error) {}
 
             trackDiags(diagData);
           }, 100);
@@ -1146,7 +1144,7 @@ export class Device extends EventEmitter {
         try {
           const deviceNameRaw = await this.getValue(
             Characteristic.DEVICE_NAME,
-            true
+            true,
           );
           this.deviceName = deviceNameRaw.toString();
 
@@ -1155,45 +1153,45 @@ export class Device extends EventEmitter {
 
           const deviceUptimeRaw = await this.getValue(
             Characteristic.UPTIME,
-            true
+            true,
           );
           const deviceUptime = deviceUptimeRaw.readUInt32LE(0);
 
           const deviceUtcTimeRaw = await this.getValue(
             Characteristic.UTC_TIME,
-            true
+            true,
           );
           const deviceUtcTime = deviceUtcTimeRaw.readUInt32LE(0);
 
           const deviceDobRaw = await this.getValue(
             Characteristic.DEVICE_BIRTHDAY,
-            true
+            true,
           );
           const deviceDob = deviceDobRaw.readUInt32LE(0);
 
           const batteryCapacityRaw = await this.getValue(
             Characteristic.BATTERY_CAPACITY,
-            true
+            true,
           );
           const batteryCapacity = batteryCapacityRaw.readUInt16LE(0);
 
           const deviceMacAddressRaw = await this.getValue(
             Characteristic.BT_MAC,
-            true
+            true,
           );
           this.deviceMacAddress = intArrayToMacAddress(deviceMacAddressRaw);
 
           if (this.isLorax) {
             const deviceSerialNumberRaw = await this.getValue(
               Characteristic.SERIAL_NUMBER,
-              true
+              true,
             );
             this.deviceSerialNumber = deviceSerialNumberRaw.toString();
           }
 
           const chamberTypeRaw = await this.getValue(
             Characteristic.CHAMBER_TYPE,
-            true
+            true,
           );
           const chamberType = chamberTypeRaw.readUInt8(0);
           this.chamberType = chamberType;
@@ -1205,15 +1203,15 @@ export class Device extends EventEmitter {
               /iPad|iPhone|iPod/.test(userAgent) && !(window as any)?.MSStream
                 ? []
                 : await Promise.all(
-                  (
-                    await this.server.getPrimaryServices()
-                  ).map(async (service) => ({
-                    uuid: service.uuid,
-                    characteristicCount: (
-                      await service.getCharacteristics()
-                    ).length,
-                  }))
-                ),
+                    (await this.server.getPrimaryServices()).map(
+                      async (service) => ({
+                        uuid: service.uuid,
+                        characteristicCount: (
+                          await service.getCharacteristics()
+                        ).length,
+                      }),
+                    ),
+                  ),
             device_profiles: this.profiles,
             device_parameters: {
               name: this.device.name,
@@ -1320,12 +1318,12 @@ export class Device extends EventEmitter {
 
     const initTemperature = await this.getValue(
       Characteristic.HEATER_TEMP,
-      true
+      true,
     );
     initState.temperature = Number(initTemperature.readFloatLE(0));
 
     const initActiveColor = await this.getValue(
-      Characteristic.ACTIVE_LED_COLOR
+      Characteristic.ACTIVE_LED_COLOR,
     );
 
     initState.activeColor = {
@@ -1336,10 +1334,12 @@ export class Device extends EventEmitter {
 
     const initBrightness = await this.getValue(
       Characteristic.LED_BRIGHTNESS,
-      true
+      true,
     );
     initState.brightness = Number(
-      (((Number(initBrightness.readUInt8(0)) - 0) / (255 - 0)) * 100).toFixed(0)
+      (((Number(initBrightness.readUInt8(0)) - 0) / (255 - 0)) * 100).toFixed(
+        0,
+      ),
     );
 
     const initBattery = await this.getValue(Characteristic.BATTERY_SOC, true);
@@ -1347,13 +1347,13 @@ export class Device extends EventEmitter {
 
     const initBatterySaver = await this.getValue(
       Characteristic.BATTERY_SAVER,
-      true
+      true,
     );
     deviceInfo.batteryPreservation = Number(initBatterySaver.readFloatLE(0));
 
     const initStateState = await this.getValue(
       Characteristic.OPERATING_STATE,
-      true
+      true,
     );
     initState.state = this.isLorax
       ? initStateState.readUInt8(0)
@@ -1361,31 +1361,31 @@ export class Device extends EventEmitter {
 
     const initStateTime = await this.getValue(
       Characteristic.STATE_ELAPSED_TIME,
-      true
+      true,
     );
     initState.stateTime = Number(initStateTime.readFloatLE(0));
 
     const initChargeSource = await this.getValue(
       Characteristic.BATTERY_CHARGE_SOURCE,
-      true
+      true,
     );
     initState.chargeSource = Number(
       (this.isLorax
         ? initChargeSource.readUInt8(0)
         : initChargeSource.readFloatLE(0)
-      ).toFixed(0)
+      ).toFixed(0),
     );
 
     const initTotalDabs = await this.getValue(
       Characteristic.TOTAL_HEAT_CYCLES,
-      true
+      true,
     );
     initState.totalDabs = Number(initTotalDabs.readFloatLE(0));
     deviceInfo.totalDabs = initState.totalDabs;
 
     const initDabsPerDay = await this.getValue(
       Characteristic.DABS_PER_DAY,
-      true
+      true,
     );
 
     deviceInfo.dabsPerDay = Number(initDabsPerDay.readFloatLE(0).toFixed(2));
@@ -1394,7 +1394,7 @@ export class Device extends EventEmitter {
 
     const initDeviceName = await this.getValue(
       Characteristic.DEVICE_NAME,
-      true
+      true,
     );
     if (initDeviceName.byteLength == 0 && this.device) {
       initState.deviceName = this.device.name;
@@ -1407,27 +1407,27 @@ export class Device extends EventEmitter {
     const initProfileName = await this.getValue(
       this.isLorax
         ? DynamicLoraxCharacteristics[Characteristic.PROFILE_NAME](
-          this.currentProfileId
-        )
+            this.currentProfileId,
+          )
         : Characteristic.PROFILE_NAME,
-      true
+      true,
     );
 
     const temperatureCall = await this.getValue(
       this.isLorax
         ? DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TEMP](
-          this.currentProfileId
-        )
+            this.currentProfileId,
+          )
         : Characteristic.PROFILE_PREHEAT_TEMP,
-      true
+      true,
     );
     const timeCall = await this.getValue(
       this.isLorax
         ? DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TIME](
-          this.currentProfileId
-        )
+            this.currentProfileId,
+          )
         : Characteristic.PROFILE_PREHEAT_TIME,
-      true
+      true,
     );
     //    const colorCall = await this.getValue(
     //      DynamicLoraxCharacteristics[Characteristic.PROFILE_COLOR](
@@ -1435,8 +1435,10 @@ export class Device extends EventEmitter {
     //      ),
     //      true
     //    );
-    const temp = temperatureCall.length == 4 ? Number(temperatureCall.readFloatLE(0)) : 0;
-    const time = timeCall.length == 4 ? Number(timeCall.readFloatLE(0).toFixed(0)) : 0;
+    const temp =
+      temperatureCall.length == 4 ? Number(temperatureCall.readFloatLE(0)) : 0;
+    const time =
+      timeCall.length == 4 ? Number(timeCall.readFloatLE(0).toFixed(0)) : 0;
 
     //    const color =
     //      "#" +
@@ -1453,25 +1455,25 @@ export class Device extends EventEmitter {
       time: millisToMinutesAndSeconds(time * 1000),
       intensity: this.isLorax
         ? (
-          await this.getValue(
-            DynamicLoraxCharacteristics.PROFILE_INTENSITY(
-              this.currentProfileId
-            ),
-            true
-          )
-        ).readFloatLE(0)
+            await this.getValue(
+              DynamicLoraxCharacteristics.PROFILE_INTENSITY(
+                this.currentProfileId,
+              ),
+              true,
+            )
+          ).readFloatLE(0)
         : 0,
     };
 
     const initDeviceBirthday = await this.getValue(
       Characteristic.DEVICE_BIRTHDAY,
-      true
+      true,
     );
     deviceInfo.dob = initDeviceBirthday.readUInt32LE(0);
 
     const initDeviceUTCTime = await this.getValue(
       Characteristic.UTC_TIME,
-      true
+      true,
     );
     this.utcTime = initDeviceUTCTime.readUInt32LE(0);
     initState.utcTime = this.utcTime;
@@ -1483,7 +1485,7 @@ export class Device extends EventEmitter {
 
     const initChamberType = await this.getValue(
       Characteristic.CHAMBER_TYPE,
-      true
+      true,
     );
     initState.chamberType = initChamberType.readUInt8(0);
     this.chamberType = initState.chamberType;
@@ -1499,7 +1501,7 @@ export class Device extends EventEmitter {
     let currentLedColor: { r: number; g: number; b: number };
     const LEDPoller = await this.pollValue(
       [Characteristic.ACTIVE_LED_COLOR, Characteristic.LED_BRIGHTNESS],
-      1500
+      1500,
     );
     LEDPoller.on("data", (data: Buffer, characteristic: string) => {
       if (characteristic == Characteristic.ACTIVE_LED_COLOR) {
@@ -1528,7 +1530,7 @@ export class Device extends EventEmitter {
     let currentTemperature: number;
     const ChamberTempPoll = await this.pollValue(
       [Characteristic.HEATER_TEMP, Characteristic.CHAMBER_TYPE],
-      5000
+      5000,
     );
     ChamberTempPoll.on("data", (data: Buffer, characteristic: string) => {
       if (characteristic == Characteristic.HEATER_TEMP) {
@@ -1559,7 +1561,7 @@ export class Device extends EventEmitter {
         Characteristic.BATTERY_CHARGE_SOURCE,
         Characteristic.BATTERY_SOC,
       ],
-      8000
+      8000,
     );
     BatteryProfilePoll.on("data", (data: Buffer, characteristic: string) => {
       if (characteristic == Characteristic.PROFILE_CURRENT) {
@@ -1602,7 +1604,7 @@ export class Device extends EventEmitter {
     let currentDabCount: number;
     const DabCountPoll = await this.pollValue(
       [Characteristic.TOTAL_HEAT_CYCLES],
-      10000
+      10000,
     );
     DabCountPoll.on("data", (data: Buffer, characteristic: string) => {
       if (characteristic == Characteristic.TOTAL_HEAT_CYCLES) {
@@ -1685,7 +1687,7 @@ export class Device extends EventEmitter {
     if (!this.service || !this.server || !this.server.connected) return;
 
     const char = await this.service.getCharacteristic(
-      LoraxCharacteristic.COMMAND
+      LoraxCharacteristic.COMMAND,
     );
     try {
       return await char.writeValueWithoutResponse(message);
@@ -1701,7 +1703,7 @@ export class Device extends EventEmitter {
 
         console.log(
           `DEBUG: Already in progress when writing op: ${op} - seq: ${seq}`,
-          data
+          data,
         );
 
         if (op == LoraxCommands.WRITE_SHORT)
@@ -1710,7 +1712,7 @@ export class Device extends EventEmitter {
         console.log(
           "There was an error with writeValueWithoutResponse",
           message,
-          error
+          error,
         );
       }
       return;
@@ -1724,7 +1726,7 @@ export class Device extends EventEmitter {
       LoraxCommands.READ,
       command,
       path,
-      retry
+      retry,
     );
     await this.closePath(path);
     return buff;
@@ -1733,7 +1735,7 @@ export class Device extends EventEmitter {
   private async openAndRead(
     path: string,
     reservedBytes: number,
-    cursor?: number
+    cursor?: number,
   ) {
     const open = await this.openPath(path, reservedBytes);
     const read = readCmd(this.loraxLimits, open.readUint8(0), cursor ?? 0);
@@ -1745,7 +1747,7 @@ export class Device extends EventEmitter {
     path: string,
     short = 0,
     retry?: boolean,
-    cursor?: number
+    cursor?: number,
   ) {
     const command = short
       ? readShortCmd(this.loraxLimits, path, cursor ?? 0)
@@ -1754,7 +1756,7 @@ export class Device extends EventEmitter {
       short ? LoraxCommands.READ_SHORT : LoraxCommands.READ,
       command,
       path,
-      retry
+      retry,
     );
   }
 
@@ -1772,7 +1774,7 @@ export class Device extends EventEmitter {
     op: number,
     data: Uint8Array,
     path?: string,
-    retry?: boolean
+    retry?: boolean,
   ) {
     if (!this.service || !this.server || !this.server.connected) return;
     if (
@@ -1796,10 +1798,14 @@ export class Device extends EventEmitter {
     const off = Math.pow(2, 16) - 1;
     this.lastLoraxSequenceId = (this.lastLoraxSequenceId + 1) % off;
     const message = constructLoraxCommand(op, this.lastLoraxSequenceId, data);
-    const obj = {
+    const arrayBuffer = message.buffer.slice(
+      message.byteOffset,
+      message.byteOffset + message.byteLength,
+    );
+    const obj: LoraxMessage = {
       op,
       seq: this.lastLoraxSequenceId,
-      request: message,
+      request: arrayBuffer,
       path,
     };
     this.loraxMessages.set(this.lastLoraxSequenceId, obj);
@@ -1818,7 +1824,7 @@ export class Device extends EventEmitter {
           const {
             value: { buffer },
           }: { value: DataView } = ev.target as any;
-          const data = processLoraxReply(buffer);
+          const data = processLoraxReply(buffer as ArrayBuffer);
           const msg = this.loraxMessages.get(data.seq);
           msg.response = { data: data.data, error: !!data.error };
 
@@ -1834,11 +1840,11 @@ export class Device extends EventEmitter {
                 msg.seq,
                 msg.path,
                 msg.response.data,
-                data.error
+                data.error,
               );
             this.loraxReply.removeEventListener(
               "characteristicvaluechanged",
-              func
+              func,
             );
             return resolve(msg.response.data);
           }
@@ -1853,7 +1859,7 @@ export class Device extends EventEmitter {
 
   async sendCommand(
     command: { LORAX: Uint8Array; OLD: Uint8Array } | Uint8Array,
-    characteristic?: string
+    characteristic?: string,
   ) {
     let attempts = 0;
     const func = async (attempt: number) => {
@@ -1862,7 +1868,7 @@ export class Device extends EventEmitter {
       if (this.isLorax)
         await this.sendLoraxValueShort(
           LoraxCharacteristicPathMap[characteristic || Characteristic.COMMAND],
-          Buffer.from("LORAX" in command ? command.LORAX : command)
+          Buffer.from("LORAX" in command ? command.LORAX : command),
         ).catch(() => {
           console.log("already in progress");
           attempts++;
@@ -1871,7 +1877,7 @@ export class Device extends EventEmitter {
       else
         await this.writeRawValue(
           characteristic || Characteristic.COMMAND,
-          "OLD" in command ? command.OLD : command
+          "OLD" in command ? command.OLD : command,
         );
     };
 
@@ -1892,7 +1898,7 @@ export class Device extends EventEmitter {
   async getValue(
     characteristic: string,
     retry = false,
-    buff?: Buffer
+    buff?: Buffer,
   ): Promise<Buffer | undefined> {
     return new Promise(async (resolve, reject) => {
       if (this.isLorax) {
@@ -1904,37 +1910,35 @@ export class Device extends EventEmitter {
               : characteristic,
             1,
             retry,
-            cursor.byteLength
+            cursor.byteLength,
           );
 
           if (!req)
             return resolve(
               new Promise((res) =>
                 setTimeout(
-                  () =>
-                    res(this.getValue(characteristic, retry, cursor)),
-                  50
-                )
-              )
+                  () => res(this.getValue(characteristic, retry, cursor)),
+                  50,
+                ),
+              ),
             );
 
           const func = async (ev: Event) => {
             const {
               value: { buffer },
             }: { value: DataView } = ev.target as any;
-            const data = processLoraxReply(buffer);
+            const data = processLoraxReply(buffer as ArrayBuffer);
             const msg = this.loraxMessages.get(data.seq);
             if (msg) msg.response = { data: data.data, error: !!data.error };
 
             if (
               msg &&
-              msg.op ==
-              (1 ? LoraxCommands.READ_SHORT : LoraxCommands.READ) &&
+              msg.op == (1 ? LoraxCommands.READ_SHORT : LoraxCommands.READ) &&
               msg.seq == req.seq &&
               msg.path ==
-              (LoraxCharacteristicPathMap[characteristic]
-                ? LoraxCharacteristicPathMap[characteristic]
-                : characteristic)
+                (LoraxCharacteristicPathMap[characteristic]
+                  ? LoraxCharacteristicPathMap[characteristic]
+                  : characteristic)
             ) {
               if (msg.response.error)
                 console.log(
@@ -1943,11 +1947,11 @@ export class Device extends EventEmitter {
                   msg.seq,
                   msg.path,
                   msg.response.data,
-                  data.error
+                  data.error,
                 );
               this.loraxReply.removeEventListener(
                 "characteristicvaluechanged",
-                func
+                func,
               );
 
               if (cursor.byteLength) console.log(msg.response.data, cursor);
@@ -1959,7 +1963,7 @@ export class Device extends EventEmitter {
               if (msg.response.data.byteLength >= this.loraxLimits.maxPayload) {
                 cursor = Buffer.concat([cursor, msg.response.data]);
                 return resolve(
-                  await this.getValue(characteristic, retry, cursor)
+                  await this.getValue(characteristic, retry, cursor),
                 );
               } else return resolve(Buffer.concat([cursor, msg.response.data]));
             }
@@ -1969,7 +1973,7 @@ export class Device extends EventEmitter {
         } catch (error) {
           console.log(
             `Failed to get value for ${characteristic} - ${LoraxCharacteristicPathMap[characteristic]}`,
-            error
+            error,
           );
           return undefined;
         }
@@ -2009,14 +2013,14 @@ export class Device extends EventEmitter {
           const req = await this.sendLoraxCommand(
             LoraxCommands.OPEN,
             command,
-            path
+            path,
           );
 
           const func = async (ev: Event) => {
             const {
               value: { buffer },
             }: { value: DataView } = ev.target as any;
-            const data = processLoraxReply(buffer);
+            const data = processLoraxReply(buffer as ArrayBuffer);
             const msg = this.loraxMessages.get(data.seq);
             msg.response = { data: data.data, error: !!data.error };
 
@@ -2032,11 +2036,11 @@ export class Device extends EventEmitter {
                   msg.seq,
                   msg.path,
                   msg.response.data,
-                  data.error
+                  data.error,
                 );
               this.loraxReply.removeEventListener(
                 "characteristicvaluechanged",
-                func
+                func,
               );
               return resolve(msg.response.data);
             }
@@ -2056,7 +2060,7 @@ export class Device extends EventEmitter {
       buf.writeFloatLE(temp);
       await this.sendLoraxValueShort(
         LoraxCharacteristicPathMap[Characteristic.TEMPERATURE_OVERRIDE],
-        buf
+        buf,
       );
     } else {
       console.log("Not yet implemented");
@@ -2073,7 +2077,7 @@ export class Device extends EventEmitter {
       buf.writeFloatLE(time);
       await this.sendLoraxValueShort(
         LoraxCharacteristicPathMap[Characteristic.TIME_OVERRIDE],
-        buf
+        buf,
       );
     } else {
       console.log("Not yet implemented");
@@ -2088,19 +2092,19 @@ export class Device extends EventEmitter {
     if (this.isLorax) {
       await this.openPath(
         LoraxCharacteristicPathMap[Characteristic.DEVICE_NAME],
-        4
+        4,
       );
       await this.sendLoraxValueShort(
         LoraxCharacteristicPathMap[Characteristic.DEVICE_NAME],
-        Buffer.from(new TextEncoder().encode(name))
+        Buffer.from(new TextEncoder().encode(name)),
       );
       await this.closePath(
-        LoraxCharacteristicPathMap[Characteristic.DEVICE_NAME]
+        LoraxCharacteristicPathMap[Characteristic.DEVICE_NAME],
       );
     } else {
       await this.writeRawValue(
         Characteristic.DEVICE_NAME,
-        new TextEncoder().encode(name)
+        new TextEncoder().encode(name),
       );
     }
   }
@@ -2111,7 +2115,7 @@ export class Device extends EventEmitter {
       buf.writeFloatLE(percentage);
       await this.sendLoraxValueShort(
         LoraxCharacteristicPathMap[Characteristic.BATTERY_SAVER],
-        buf
+        buf,
       );
       this.deviceInfo.batteryPreservation = percentage;
     } else {
@@ -2126,7 +2130,7 @@ export class Device extends EventEmitter {
       buf.writeUInt32LE(time);
       await this.sendLoraxValueShort(
         LoraxCharacteristicPathMap[Characteristic.UTC_TIME],
-        buf
+        buf,
       );
       this.utcTime = time;
       if (this.deviceInfo) this.deviceInfo.utcTime = time;
@@ -2141,12 +2145,12 @@ export class Device extends EventEmitter {
       buff.writeUInt32LE(date.getTime() / 1000);
       await this.sendLoraxValueShort(
         LoraxCharacteristicPathMap[Characteristic.DEVICE_BIRTHDAY],
-        buff
+        buff,
       );
     } else {
       await this.writeRawValue(
         Characteristic.DEVICE_BIRTHDAY,
-        new Uint8Array(pack(date.getTime() / 1000, { bits: 32 }))
+        new Uint8Array(pack(date.getTime() / 1000, { bits: 32 })),
       );
     }
   }
@@ -2155,16 +2159,16 @@ export class Device extends EventEmitter {
     if (this.isLorax) {
       await this.sendCommand(
         new Uint8Array([profile - 1]),
-        Characteristic.PROFILE_CURRENT
+        Characteristic.PROFILE_CURRENT,
       );
     } else {
       await this.writeRawValue(
         Characteristic.PROFILE_POINTER,
-        new Uint8Array([profile - 1, 0, 0, 0])
+        new Uint8Array([profile - 1, 0, 0, 0]),
       );
       await this.writeRawValue(
         Characteristic.PROFILE_CURRENT,
-        DeviceProfile[profile]
+        DeviceProfile[profile],
       );
     }
   }
@@ -2173,40 +2177,40 @@ export class Device extends EventEmitter {
     if (this.isLorax) {
       await this.sendCommand(
         LightCommands.LIGHT_DEFAULT,
-        Characteristic.LANTERN_COLOR
+        Characteristic.LANTERN_COLOR,
       );
       await this.sendCommand(
         LightCommands.LANTERN_ON,
-        Characteristic.LANTERN_START
+        Characteristic.LANTERN_START,
       );
       brightness = Number((((brightness - 0) * (255 - 0)) / 100).toFixed(0));
       await this.sendCommand(
         new Uint8Array(new Array(4).fill(0).map(() => brightness)),
-        Characteristic.LED_BRIGHTNESS
+        Characteristic.LED_BRIGHTNESS,
       );
       await new Promise((resolve) => setTimeout(() => resolve(true), 1000));
       await this.sendCommand(
         LightCommands.LANTERN_OFF,
-        Characteristic.LANTERN_START
+        Characteristic.LANTERN_START,
       );
     } else {
       await this.writeRawValue(
         Characteristic.LANTERN_COLOR,
-        LightCommands.LIGHT_DEFAULT.OLD
+        LightCommands.LIGHT_DEFAULT.OLD,
       );
       await this.writeRawValue(
         Characteristic.LANTERN_START,
-        LightCommands.LANTERN_ON.OLD
+        LightCommands.LANTERN_ON.OLD,
       );
       brightness = Number((((brightness - 0) * (255 - 0)) / 100).toFixed(0));
       await this.writeRawValue(
         Characteristic.LED_BRIGHTNESS,
-        new Uint8Array(new Array(4).fill(0).map(() => brightness))
+        new Uint8Array(new Array(4).fill(0).map(() => brightness)),
       );
       await new Promise((resolve) => setTimeout(() => resolve(true), 1000));
       await this.writeRawValue(
         Characteristic.LANTERN_START,
-        LightCommands.LANTERN_OFF.OLD
+        LightCommands.LANTERN_OFF.OLD,
       );
     }
   }
@@ -2217,20 +2221,20 @@ export class Device extends EventEmitter {
         if (this.isLorax) {
           await this.sendCommand(
             LightCommands.LIGHT_QUERY_READY,
-            Characteristic.LANTERN_COLOR
+            Characteristic.LANTERN_COLOR,
           );
           await this.sendCommand(
             LightCommands.LANTERN_ON,
-            Characteristic.LANTERN_START
+            Characteristic.LANTERN_START,
           );
         } else {
           await this.writeRawValue(
             Characteristic.LANTERN_COLOR,
-            LightCommands.LIGHT_QUERY_READY.OLD
+            LightCommands.LIGHT_QUERY_READY.OLD,
           );
           await this.writeRawValue(
             Characteristic.LANTERN_START,
-            LightCommands.LANTERN_ON.OLD
+            LightCommands.LANTERN_ON.OLD,
           );
         }
         break;
@@ -2239,20 +2243,20 @@ export class Device extends EventEmitter {
         if (this.isLorax) {
           await this.sendCommand(
             LightCommands.LIGHT_MARKED_READY,
-            Characteristic.LANTERN_COLOR
+            Characteristic.LANTERN_COLOR,
           );
           await this.sendCommand(
             LightCommands.LANTERN_ON,
-            Characteristic.LANTERN_START
+            Characteristic.LANTERN_START,
           );
         } else {
           await this.writeRawValue(
             Characteristic.LANTERN_COLOR,
-            LightCommands.LIGHT_MARKED_READY.OLD
+            LightCommands.LIGHT_MARKED_READY.OLD,
           );
           await this.writeRawValue(
             Characteristic.LANTERN_START,
-            LightCommands.LANTERN_ON.OLD
+            LightCommands.LANTERN_ON.OLD,
           );
         }
         break;
@@ -2261,20 +2265,20 @@ export class Device extends EventEmitter {
         if (this.isLorax) {
           await this.sendCommand(
             LightCommands.LANTERN_OFF,
-            Characteristic.LANTERN_START
+            Characteristic.LANTERN_START,
           );
           await this.sendCommand(
             LightCommands.LIGHT_NEUTRAL,
-            Characteristic.LANTERN_COLOR
+            Characteristic.LANTERN_COLOR,
           );
         } else {
           await this.writeRawValue(
             Characteristic.LANTERN_START,
-            LightCommands.LANTERN_OFF.OLD
+            LightCommands.LANTERN_OFF.OLD,
           );
           await this.writeRawValue(
             Characteristic.LANTERN_COLOR,
-            LightCommands.LIGHT_NEUTRAL.OLD
+            LightCommands.LIGHT_NEUTRAL.OLD,
           );
         }
         break;
@@ -2285,7 +2289,7 @@ export class Device extends EventEmitter {
   async loraxProfiles(emit = true) {
     const profileCurrentRaw = await this.getValue(
       Characteristic.PROFILE_CURRENT,
-      true
+      true,
     );
     const profileCurrent = profileCurrentRaw.readUInt8(0);
     this.currentProfileId = profileCurrent;
@@ -2294,18 +2298,18 @@ export class Device extends EventEmitter {
     for await (const idx of [0, 1, 2, 3]) {
       const profileName = await this.getValue(
         DynamicLoraxCharacteristics[Characteristic.PROFILE_NAME](idx),
-        true
+        true,
       );
       const name = profileName.toString();
 
       const temperatureCall = await this.getValue(
         DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TEMP](idx),
-        true
+        true,
       );
 
       const timeCall = await this.getValue(
         DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TIME](idx),
-        true
+        true,
       );
 
       //      const colorCall = await this.getValue(
@@ -2315,7 +2319,7 @@ export class Device extends EventEmitter {
 
       const intensityCall = await this.getValue(
         DynamicLoraxCharacteristics.PROFILE_INTENSITY(idx),
-        true
+        true,
       );
 
       const temp = Number(temperatureCall.readFloatLE(0));
@@ -2330,10 +2334,11 @@ export class Device extends EventEmitter {
       const color = "#ffffff";
 
       console.log(
-        `%c${this.device.name}%c Profile #${idx + 1
+        `%c${this.device.name}%c Profile #${
+          idx + 1
         } - ${name} - ${temp} - ${time} (I: ${intensity})`,
         `padding: 10px; font-size: 1em; line-height: 1.4em; color: white; background: ${color}; border-radius: 15px;`,
-        "font-size: 1em;"
+        "font-size: 1em;",
       );
       profiles[idx + 1] = {
         name,
@@ -2352,7 +2357,7 @@ export class Device extends EventEmitter {
 
   private async loopProfiles() {
     const profileCurrentRaw = await this.getValue(
-      Characteristic.PROFILE_CURRENT
+      Characteristic.PROFILE_CURRENT,
     );
     const profileCurrent = profileCurrentRaw.readUInt8(0);
     this.currentProfileId = profileCurrent;
@@ -2362,7 +2367,7 @@ export class Device extends EventEmitter {
       const key = (idx + profileCurrent) % DeviceProfileReverse.length;
       await this.sendCommand(
         new Uint8Array([key, 0, 0, 0]),
-        Characteristic.PROFILE_POINTER
+        Characteristic.PROFILE_POINTER,
       );
       const profileName = await this.getValue(Characteristic.PROFILE_NAME);
       const name = profileName.toString();
@@ -2375,17 +2380,18 @@ export class Device extends EventEmitter {
         profileColor.readUInt8(2).toString(16);
 
       const temperatureCall = await this.getValue(
-        Characteristic.PROFILE_PREHEAT_TEMP
+        Characteristic.PROFILE_PREHEAT_TEMP,
       );
       const timeCall = await this.getValue(Characteristic.PROFILE_PREHEAT_TIME);
       const temp = Number(temperatureCall.readFloatLE(0));
       const time = Number(timeCall.readFloatLE(0).toFixed(0));
 
       console.log(
-        `%c${this.device.name}%c Profile #${idx + 1
+        `%c${this.device.name}%c Profile #${
+          idx + 1
         } - ${name} - ${temp} - ${time}`,
         `padding: 10px; font-size: 1em; line-height: 1.4em; color: white; background: ${color}; border-radius: 15px;`,
-        "font-size: 1em;"
+        "font-size: 1em;",
       );
       profiles[key + 1] = {
         name,
@@ -2400,7 +2406,7 @@ export class Device extends EventEmitter {
 
   private async pollValue(
     characteristic: string[] | string,
-    time?: number
+    time?: number,
   ): Promise<EventEmitter> {
     if (typeof characteristic == "string") characteristic = [characteristic];
     if (!time) time = 10000; // 10s
@@ -2417,22 +2423,22 @@ export class Device extends EventEmitter {
 
       const func = this.isLorax
         ? async () => {
-          const value = await this.getValue(name);
-          listener.emit("change", value, name);
-          listener.emit("data", value, name);
-        }
+            const value = await this.getValue(name);
+            listener.emit("change", value, name);
+            listener.emit("data", value, name);
+          }
         : async () => {
-          try {
-            const value = await char?.readValue();
-            listener.emit("data", Buffer.from(value.buffer), name);
-            listener.emit("change", Buffer.from(value.buffer), name);
-          } catch (error) { }
-        };
+            try {
+              const value = await char?.readValue();
+              listener.emit("data", Buffer.from(value.buffer), name);
+              listener.emit("change", Buffer.from(value.buffer), name);
+            } catch (error) {}
+          };
 
       func();
       const int = setInterval(
-        () => (suspended ? () => { } : this.pollerSuspended ? () => { } : func()),
-        time
+        () => (suspended ? () => {} : this.pollerSuspended ? () => {} : func()),
+        time,
       );
       listener.on("suspend", () => {
         console.log(`DEBUG: Suspending poller for ${name}`);
@@ -2461,7 +2467,7 @@ export class Device extends EventEmitter {
     const socService = this.pupService || this.silabsService;
 
     const socControl = await socService.getCharacteristic(
-      this.isPup ? PUP_TRIGGER_CHAR : SILLABS_CONTROL
+      this.isPup ? PUP_TRIGGER_CHAR : SILLABS_CONTROL,
     );
 
     const buf = Buffer.alloc(1);
@@ -2474,7 +2480,7 @@ export class Device extends EventEmitter {
     if (!this.isPup) throw { code: "not_implemented" };
 
     const char = await this.pupService.getCharacteristic(
-      PUP_SERIAL_NUMBER_CHAR
+      PUP_SERIAL_NUMBER_CHAR,
     );
     const value = await char.readValue();
 
@@ -2499,11 +2505,11 @@ export class Device extends EventEmitter {
       this.otaBlockSize = this.pupChunkSize;
 
       console.log(
-        `DEBUG: OTA: chunk ${this.pupChunkSize}, write ${this.pupWriteTimeout}, verify ${this.pupVerifyTimeout}`
+        `DEBUG: OTA: chunk ${this.pupChunkSize}, write ${this.pupWriteTimeout}, verify ${this.pupVerifyTimeout}`,
       );
 
       const notificationChar = await this.pupService.getCharacteristic(
-        PUP_GENERAL_COMMAND_CHAR
+        PUP_GENERAL_COMMAND_CHAR,
       );
       notificationChar.addEventListener(
         "characteristicvaluechanged",
@@ -2513,7 +2519,7 @@ export class Device extends EventEmitter {
           }: { value: DataView } = event.target as any;
           console.log("DEBUG: Data from pup general command", buffer);
           this.pupWriteNotifications.emit("data", buffer);
-        }
+        },
       );
 
       await notificationChar.startNotifications();
@@ -2535,7 +2541,7 @@ export class Device extends EventEmitter {
 
     const service = this.isPup ? this.pupService : this.silabsService;
     const char = await service.getCharacteristic(
-      this.isPup ? PUP_COMMAND_RESPONSE_CHAR : SILLABS_DATA_CHAR
+      this.isPup ? PUP_COMMAND_RESPONSE_CHAR : SILLABS_DATA_CHAR,
     );
 
     let offset = 0;
@@ -2603,7 +2609,7 @@ export class Device extends EventEmitter {
       throw { code: "not_implemented" };
 
     const char = await this.pupService.getCharacteristic(
-      PUP_GENERAL_COMMAND_CHAR
+      PUP_GENERAL_COMMAND_CHAR,
     );
 
     return new Promise<void>((resolve, reject) => {
@@ -2636,7 +2642,7 @@ export class Device extends EventEmitter {
             reject(new Error("Verify timeout"));
           }, this.pupVerifyTimeout);
         }),
-      ])
+      ]),
     );
   }
 
@@ -2647,14 +2653,14 @@ export class Device extends EventEmitter {
     const socService = this.pupService || this.silabsService;
 
     const socControl = await socService.getCharacteristic(
-      this.isPup ? PUP_COMMAND_RESPONSE_CHAR : SILLABS_CONTROL
+      this.isPup ? PUP_COMMAND_RESPONSE_CHAR : SILLABS_CONTROL,
     );
 
     const buf = Buffer.alloc(1);
     buf.writeUInt8(this.isPup ? 2 : 3, 0);
 
     await socControl[this.isPup ? "writeValue" : "writeValueWithoutResponse"](
-      buf
+      buf,
     );
   }
 
@@ -2673,7 +2679,7 @@ export class Device extends EventEmitter {
       try {
         await this.sendLoraxValueShort(
           LoraxCharacteristicPathMap.AUDIT_SELECTOR,
-          buf
+          buf,
         );
       } catch (error) {
         await new Promise((resolve) =>
@@ -2682,11 +2688,11 @@ export class Device extends EventEmitter {
               resolve(
                 this.sendLoraxValueShort(
                   LoraxCharacteristicPathMap.AUDIT_SELECTOR,
-                  buf
-                )
+                  buf,
+                ),
               ),
-            10
-          )
+            10,
+          ),
         );
       }
 
@@ -2695,7 +2701,7 @@ export class Device extends EventEmitter {
         await new Promise((resolve) => setTimeout(() => resolve(1), 10));
         const auditCall = await this.getValue(
           Characteristic.AUDIT_POINTER,
-          true
+          true,
         );
         currentIndex = auditCall.readUInt32LE(0);
       } while (currentIndex !== index);
@@ -2704,7 +2710,7 @@ export class Device extends EventEmitter {
       return entryCall;
     } catch (error) {
       return new Promise((resolve) =>
-        setTimeout(() => resolve(this.readDeviceAuditLog(index)), 5)
+        setTimeout(() => resolve(this.readDeviceAuditLog(index)), 5),
       );
     }
   }
@@ -2733,8 +2739,8 @@ export class Device extends EventEmitter {
         ? this.auditOffset
         : auditEnd
       : this.auditOffset &&
-        this.auditOffset > auditBegin &&
-        this.auditOffset <= auditEnd
+          this.auditOffset > auditBegin &&
+          this.auditOffset <= auditEnd
         ? this.auditOffset
         : auditBegin;
 
@@ -2743,13 +2749,13 @@ export class Device extends EventEmitter {
     while (currentIndex < ending) {
       this.emit("logsPercentage", ((currentIndex + 1) / ending) * 100);
       const log = await this.readDeviceAuditLog(
-        reverse ? currentOffset - currentIndex : currentOffset + currentIndex
+        reverse ? currentOffset - currentIndex : currentOffset + currentIndex,
       );
 
       if (!log) return;
 
       const timestamp = new Date(
-        log.readUInt32LE(BaseAuditLogOffset.TIMESTAMP) * 1000
+        log.readUInt32LE(BaseAuditLogOffset.TIMESTAMP) * 1000,
       );
       const logType = log[BaseAuditLogOffset.TYPE_CODE];
 
@@ -2854,7 +2860,7 @@ export class Device extends EventEmitter {
 
     this.device?.removeEventListener(
       "gattserverdisconnected",
-      this.registeredDisconnectHandler
+      this.registeredDisconnectHandler,
     );
 
     this.server?.disconnect();
