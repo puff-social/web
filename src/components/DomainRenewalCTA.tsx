@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { DonationModal } from "./modals/Donation";
 import NoSSR from "./NoSSR";
 import { formatRelativeTimeInDays } from "../utils/time";
+import { usePlausible } from "next-plausible";
 
 const EXPIRY_DATE_EPOCH = 1738627200000;
 
 export function DomainRenewalCTA() {
+  const plausible = usePlausible();
   const [donationsOpen, setDonationsOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
 
@@ -15,6 +17,7 @@ export function DomainRenewalCTA() {
 
   useEffect(() => {
     const int = setInterval(() => setCurrentDate(new Date()), 60_000);
+    plausible("renewal_cta_donation_modal");
     return () => clearInterval(int);
   }, []);
 

@@ -215,6 +215,7 @@ function App({ Component, store, props }) {
     <Provider store={store}>
       <PlausibleProvider
         domain="puff.social"
+        taggedEvents={true}
         enabled={
           typeof window != "undefined" &&
           window.location.hostname == "puff.social"
