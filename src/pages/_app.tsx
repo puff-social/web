@@ -260,11 +260,11 @@ function App({ Component, store, props }) {
                 </Transition>
               )}
             </Toaster>
-            {router.pathname.startsWith("/overlay") ? (
+            {/* {router.pathname.startsWith("/overlay") ? (
               <></>
             ) : (
               <DomainRenewalCTA />
-            )}
+            )} */}
           </>
         ) : (
           <></>
