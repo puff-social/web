@@ -114,7 +114,7 @@ export default function Group({
   const [firstVisit] = useState(() =>
     typeof localStorage != "undefined"
       ? localStorage.getItem("puff-social-first-visit") != "false"
-      : false
+      : false,
   );
 
   const deletedGroup = useCallback(() => {
@@ -157,13 +157,14 @@ export default function Group({
     const member = group.members.find((mem) => mem.session_id == session_id);
     if (member)
       toast(
-        `${member.user?.display_name ||
-        member.device_state?.deviceName ||
-        "Guest"
+        `${
+          member.user?.display_name ||
+          member.device_state?.deviceName ||
+          "Guest"
         } left`,
         {
           position: "top-right",
-        }
+        },
       );
   }
 
@@ -179,7 +180,7 @@ export default function Group({
   const groupReaction = useCallback(
     async ({ emoji, author_session_id }: GroupReaction) => {
       const member = group.members.find(
-        (mem) => mem.session_id == author_session_id
+        (mem) => mem.session_id == author_session_id,
       );
       if (
         author_session_id == gateway.session_id
@@ -254,18 +255,19 @@ export default function Group({
         });
 
         toast(
-          `${member?.user?.display_name ||
-          member?.device_state?.deviceName ||
-          "Guest"
+          `${
+            member?.user?.display_name ||
+            member?.device_state?.deviceName ||
+            "Guest"
           }: ${emoji}`,
           {
             position: "top-right",
             duration: 1000,
-          }
+          },
         );
       }
     },
-    [group?.members, deviceConnected]
+    [group?.members, deviceConnected],
   );
 
   async function startDab(data: GroupHeatBegin) {
@@ -287,16 +289,17 @@ export default function Group({
   const inquireDab = useCallback(
     (data: GroupHeatInquire) => {
       const initiator = group.members.find(
-        (mem) => mem.session_id == data.session_id
+        (mem) => mem.session_id == data.session_id,
       );
       toast(
-        `${initiator.user?.name || initiator.device_state?.deviceName || "Guest"
+        `${
+          initiator.user?.name || initiator.device_state?.deviceName || "Guest"
         } wants to start`,
         {
           icon: "🔥",
           duration: 5000,
           position: "top-right",
-        }
+        },
       );
 
       if (!data.away && !data.watcher && !data.excluded) {
@@ -312,55 +315,57 @@ export default function Group({
         });
       }
     },
-    [group?.members]
+    [group?.members],
   );
 
   const groupMemberReady = useCallback(
     (data: GroupActionInitiator) => {
       const initiator = group.members.find(
-        (mem) => mem.session_id == data.session_id
+        (mem) => mem.session_id == data.session_id,
       );
 
       toast(
-        `${initiator.user?.name || initiator.device_state?.deviceName || "Guest"
+        `${
+          initiator.user?.name || initiator.device_state?.deviceName || "Guest"
         } is ready`,
         {
           icon: "✅",
           duration: 5000,
           position: "top-right",
-        }
+        },
       );
     },
-    [group?.members]
+    [group?.members],
   );
 
   const groupMemberUnready = useCallback(
     (data: GroupActionInitiator) => {
       const initiator = group.members.find(
-        (mem) => mem.session_id == data.session_id
+        (mem) => mem.session_id == data.session_id,
       );
 
       if (initiator)
         toast(
-          `${initiator.user?.name ||
-          initiator.device_state?.deviceName ||
-          "Guest"
+          `${
+            initiator.user?.name ||
+            initiator.device_state?.deviceName ||
+            "Guest"
           } is no longer ready`,
           {
             icon: "🚫",
             duration: 5000,
             position: "top-right",
-          }
+          },
         );
     },
-    [group?.members]
+    [group?.members],
   );
 
   function groupJoinError(error: GatewayError) {
     switch (error.code) {
       case "INVALID_GROUP_ID": {
         dispatch(
-          setGroupState({ joinErrorMessage: "Unknown or invalid group ID" })
+          setGroupState({ joinErrorMessage: "Unknown or invalid group ID" }),
         );
         break;
       }
@@ -383,24 +388,25 @@ export default function Group({
   const groupChangeVisibility = useCallback(
     (data: GroupActionInitiator & { visibility: string }) => {
       const initiator = group.members.find(
-        (mem) => mem.session_id == data.session_id
+        (mem) => mem.session_id == data.session_id,
       );
 
       toast(
-        `${data.session_id == gateway.session_id
-          ? ourUser?.name
-          : initiator.user?.name ||
-          initiator.device_state?.deviceName ||
-          "Guest"
+        `${
+          data.session_id == gateway.session_id
+            ? ourUser?.name
+            : initiator.user?.name ||
+              initiator.device_state?.deviceName ||
+              "Guest"
         } made the group ${data.visibility}`,
         {
           icon: data.visibility == "public" ? "🌍" : "🔒",
           duration: 5000,
           position: "top-right",
-        }
+        },
       );
     },
-    [group?.members]
+    [group?.members],
   );
 
   const disconnect = useCallback(async () => {
@@ -478,12 +484,12 @@ export default function Group({
 
         gateway.removeListener(
           "group_user_device_update",
-          groupMemberDeviceUpdated
+          groupMemberDeviceUpdated,
         );
 
         gateway.removeListener(
           "group_visibility_change",
-          groupChangeVisibility
+          groupChangeVisibility,
         );
         gateway.removeListener("group_heat_begin", startDab);
         gateway.removeListener("group_user_ready", groupMemberReady);
@@ -504,7 +510,7 @@ export default function Group({
     };
   }, [sessionResumed]);
 
-  useEffect(() => { }, [chatBoxOpen]);
+  useEffect(() => {}, [chatBoxOpen]);
 
   useEffect(() => {
     gateway.on("group_delete", deletedGroup);
@@ -546,7 +552,7 @@ export default function Group({
             : {}),
         });
         setOurLeaderboardPosition(tracked.data.position);
-      } catch (error) { }
+      } catch (error) {}
 
       instance.once("gattdisconnect", async () => {
         instance.removeAllListeners("reconnecting");
@@ -606,7 +612,10 @@ export default function Group({
 
       setDeviceInfo(deviceInfo as DeviceInformation);
       setMyDevice((curr) => ({ ...curr, ...initState }));
-      gateway.send(Op.SendDeviceState, { serialNumber: deviceInfo.serial, ...initState });
+      gateway.send(Op.SendDeviceState, {
+        serialNumber: deviceInfo.serial,
+        ...initState,
+      });
 
       setConnecting(false);
       setDeviceConnected(true);
@@ -617,7 +626,7 @@ export default function Group({
           group_id: group.group_id,
           session_id: gateway.session_id,
           device_state: initState as DeviceState,
-        })
+        }),
       );
 
       poller.on("data", async (data) => {
@@ -641,7 +650,7 @@ export default function Group({
             group_id: group.group_id,
             session_id: gateway.session_id,
             device_state: data,
-          })
+          }),
         );
 
         setMyDevice((curr) => ({ ...curr, ...data }));
@@ -820,7 +829,7 @@ export default function Group({
                 user={ourUser}
                 instance={instance}
                 member={group.members.find(
-                  (mem) => mem.session_id == gateway.session_id
+                  (mem) => mem.session_id == gateway.session_id,
                 )}
                 connecting={connecting}
                 unsupportedModel={unsupportedModel}
@@ -837,7 +846,7 @@ export default function Group({
                 .filter(
                   (mem) =>
                     validState(mem.device_state) &&
-                    gateway.session_id != mem.session_id
+                    gateway.session_id != mem.session_id,
                 )
                 .map((member) => (
                   <GroupMember
@@ -930,7 +939,7 @@ export default function Group({
 
 export async function getServerSideProps(context: NextPageContext) {
   try {
-    const group = await getGroupById(context.query.id as string);
+    const group = (await getGroupById(context.query.id as string)) || null;
 
     return {
       props: { group, headless: context.query.headless == "true" },

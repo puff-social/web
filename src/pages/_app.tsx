@@ -19,7 +19,7 @@ import "../assets/christmas.css";
 import { APIGroup } from "../types/api";
 import { wrapper } from "../state/store";
 import { gateway } from "../utils/gateway";
-import { getCurrentUser } from "../utils/hash";
+import { API_URL, getCurrentUser } from "../utils/hash";
 import { GatewayError, GatewayGroupCreate } from "../types/gateway";
 import { selectSessionState, setSessionState } from "../state/slices/session";
 import { SuspendedModal } from "../components/modals/Suspended";
@@ -114,19 +114,28 @@ function App({ Component, store, props }) {
   }
 
   async function getAndCheckAuth() {
-    const auth = localStorage.getItem("puff-social-auth");
-    if (auth) {
-      try {
-        const usr = await getCurrentUser();
-        dispatch(
-          setSessionState({
-            user: usr.data.user,
-            connection: usr.data.connection,
-            suspended: usr.data.user.flags & UserFlags.suspended,
-          }),
-        );
-      } catch (error) {}
-    }
+    fetch(`${API_URL}/health`)
+      .then(async (data) => {
+        if (data.status == 204 && router.pathname == "/maintenance")
+          return router.push("/");
+
+        const auth = localStorage.getItem("puff-social-auth");
+        if (auth) {
+          try {
+            const usr = await getCurrentUser();
+            dispatch(
+              setSessionState({
+                user: usr.data.user,
+                connection: usr.data.connection,
+                suspended: usr.data.user.flags & UserFlags.suspended,
+              }),
+            );
+          } catch (error) {}
+        }
+      })
+      .catch(() => {
+        if (router.pathname != "/maintenance") router.push("/maintenance");
+      });
   }
 
   const sessionResumeFailed = useCallback(async () => {
