@@ -190,7 +190,13 @@ function App({ Component, store, props }) {
   }, [remoteGatewayAction]);
 
   useEffect(() => {
-    getAndCheckAuth();
+    if (router.pathname == "/maintenance") {
+      setInterval(() => {
+        getAndCheckAuth();
+      }, 5000);
+    } else {
+      getAndCheckAuth();
+    }
 
     if (typeof localStorage != "undefined")
       localStorage.setItem("puff-social-first-visit", "false");
