@@ -43,6 +43,11 @@ const moduleExports = {
         permanent: false,
       },
       {
+        source: "/try-path",
+        destination: "path-web-fullscreen://https://puff.social",
+        permanent: false,
+      },
+      {
         source: "/discord",
         destination: "https://discord.gg/9F8SP9MDJq",
         permanent: false,
