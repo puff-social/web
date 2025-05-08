@@ -97,7 +97,7 @@ export default function ChecklistTool() {
   const connectDevice = useCallback(async () => {
     try {
       setFetchPercentage(0);
-      const { device, profiles } = await instance.init(true, false);
+      const { device, profiles } = await instance.init(true);
       setConnected(true);
       instance.once("gattdisconnect", () => disconnectDevice());
 

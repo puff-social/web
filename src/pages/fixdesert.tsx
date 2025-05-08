@@ -61,7 +61,7 @@ export default function FixDesert() {
 
   const connectDevice = useCallback(async () => {
     try {
-      const { device, profiles } = await instance.init(true, false);
+      const { device, profiles } = await instance.init(true);
       setConnected(true);
       instance.once("gattdisconnect", () => disconnectDevice());
 

@@ -53,7 +53,7 @@ export default function Updater() {
 
   const connectDevice = useCallback(async () => {
     try {
-      const { device, profiles } = await instance.init(false, true);
+      const { device, profiles } = await instance.init(false);
       setConnected(true);
       instance.once("gattdisconnect", () => disconnectDevice());
 
