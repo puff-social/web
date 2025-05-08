@@ -61,7 +61,7 @@ export default function FixDesert() {
 
   const connectDevice = useCallback(async () => {
     try {
-      const { device, profiles } = await instance.init(true);
+      const { device, profiles } = await instance.init(true, false);
       setConnected(true);
       instance.once("gattdisconnect", () => disconnectDevice());
 
@@ -90,7 +90,7 @@ export default function FixDesert() {
       });
       await instance.sendLoraxValueShort(
         DynamicLoraxCharacteristics[Characteristic.PROFILE_COLOR](0),
-        Buffer.from([22, 233, 135, 0, 1, 0, 0, 0])
+        Buffer.from([22, 233, 135, 0, 1, 0, 0, 0]),
       );
     }
   }, [device]);

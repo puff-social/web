@@ -87,7 +87,7 @@ export default function ChecklistTool() {
     }) => {
       setTestResults((tr) => [...tr, res]);
     },
-    [testResults]
+    [testResults],
   );
 
   useEffect(() => {
@@ -97,7 +97,7 @@ export default function ChecklistTool() {
   const connectDevice = useCallback(async () => {
     try {
       setFetchPercentage(0);
-      const { device, profiles } = await instance.init(true);
+      const { device, profiles } = await instance.init(true, false);
       setConnected(true);
       instance.once("gattdisconnect", () => disconnectDevice());
 
@@ -109,7 +109,7 @@ export default function ChecklistTool() {
 
       if (instance.device) {
         const session = await createDebuggingSession(
-          instance.deviceMacAddress.replace(/:/g, "")
+          instance.deviceMacAddress.replace(/:/g, ""),
         );
         dispatch(setSessionId(session.data.id));
       }
@@ -132,13 +132,13 @@ export default function ChecklistTool() {
           // Profile 1
           const temperatureCall = await instance.getValue(
             DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TEMP](0),
-            true
+            true,
           );
 
           insertTestResult({
             characteristic:
               DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TEMP](
-                0
+                0,
               ),
             length: temperatureCall.byteLength,
             expected: 4,
@@ -151,20 +151,20 @@ export default function ChecklistTool() {
                 ? formatMessage(
                     Errors.InvalidByteLength,
                     temperatureCall.byteLength,
-                    4
+                    4,
                   )
                 : undefined,
           });
 
           const timeCall = await instance.getValue(
             DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TIME](0),
-            true
+            true,
           );
 
           insertTestResult({
             characteristic:
               DynamicLoraxCharacteristics[Characteristic.PROFILE_PREHEAT_TIME](
-                0
+                0,
               ),
             length: timeCall.byteLength,
             expected: 4,
@@ -174,14 +174,14 @@ export default function ChecklistTool() {
                 ? formatMessage(
                     Errors.InvalidByteLength,
                     timeCall.byteLength,
-                    4
+                    4,
                   )
                 : undefined,
           });
 
           const vaporModeCall = await instance.getValue(
             DynamicLoraxCharacteristics.PROFILE_INTENSITY(0),
-            true
+            true,
           );
 
           insertTestResult({
@@ -197,14 +197,14 @@ export default function ChecklistTool() {
                 ? formatMessage(
                     Errors.InvalidByteLength,
                     vaporModeCall.byteLength,
-                    4
+                    4,
                   )
                 : undefined,
           });
 
           const colorCall = await instance.getValue(
             DynamicLoraxCharacteristics[Characteristic.PROFILE_COLOR](0),
-            true
+            true,
           );
 
           insertTestResult({
@@ -218,7 +218,7 @@ export default function ChecklistTool() {
                 ? formatMessage(
                     Errors.InvalidByteLength,
                     colorCall.byteLength,
-                    ">30 <=125"
+                    ">30 <=125",
                   )
                 : undefined,
           });
@@ -227,7 +227,7 @@ export default function ChecklistTool() {
 
           const birthdayCall = await instance.getValue(
             LoraxCharacteristicPathMap[Characteristic.DEVICE_BIRTHDAY],
-            true
+            true,
           );
 
           insertTestResult({
@@ -242,14 +242,14 @@ export default function ChecklistTool() {
                 ? formatMessage(
                     Errors.InvalidByteLength,
                     birthdayCall.byteLength,
-                    4
+                    4,
                   )
                 : undefined,
           });
 
           const deviceHwModelCall = await instance.getValue(
             LoraxCharacteristicPathMap[Characteristic.HARDWARE_MODEL],
-            true
+            true,
           );
 
           insertTestResult({
@@ -266,14 +266,14 @@ export default function ChecklistTool() {
                 ? formatMessage(
                     Errors.InvalidByteLength,
                     deviceHwModelCall.byteLength,
-                    4
+                    4,
                   )
                 : undefined,
           });
 
           const deviceHwVersionCall = await instance.getValue(
             LoraxCharacteristicPathMap[Characteristic.HARDWARE_VERSION],
-            true
+            true,
           );
 
           insertTestResult({
@@ -290,7 +290,7 @@ export default function ChecklistTool() {
                 ? formatMessage(
                     Errors.InvalidByteLength,
                     deviceHwVersionCall.byteLength,
-                    4
+                    4,
                   )
                 : undefined,
           });
@@ -299,7 +299,7 @@ export default function ChecklistTool() {
 
           const deviceFwVersion = await instance.getValue(
             LoraxCharacteristicPathMap[Characteristic.FIRMWARE_VERSION],
-            true
+            true,
           );
 
           insertTestResult({
@@ -316,14 +316,14 @@ export default function ChecklistTool() {
                 ? formatMessage(
                     Errors.InvalidByteLength,
                     deviceFwVersion.byteLength,
-                    4
+                    4,
                   )
                 : undefined,
           });
 
           const gitHashCall = await instance.getValue(
             LoraxCharacteristicPathMap[Characteristic.GIT_HASH],
-            true
+            true,
           );
 
           insertTestResult({
@@ -336,7 +336,7 @@ export default function ChecklistTool() {
                 ? formatMessage(
                     Errors.InvalidByteLength,
                     gitHashCall.byteLength,
-                    7
+                    7,
                   )
                 : undefined,
           });
@@ -345,7 +345,7 @@ export default function ChecklistTool() {
 
           const btMacCall = await instance.getValue(
             LoraxCharacteristicPathMap[Characteristic.BT_MAC],
-            true
+            true,
           );
 
           insertTestResult({
@@ -361,7 +361,7 @@ export default function ChecklistTool() {
                 ? formatMessage(
                     Errors.InvalidByteLength,
                     btMacCall.byteLength,
-                    6
+                    6,
                   )
                 : undefined,
           });
@@ -370,7 +370,7 @@ export default function ChecklistTool() {
 
           const deviceSerialCall = await instance.getValue(
             LoraxCharacteristicPathMap[Characteristic.SERIAL_NUMBER],
-            true
+            true,
           );
 
           insertTestResult({
@@ -387,7 +387,7 @@ export default function ChecklistTool() {
                 ? formatMessage(
                     Errors.InvalidByteLength,
                     deviceSerialCall.byteLength,
-                    19
+                    19,
                   )
                 : undefined,
           });
@@ -396,7 +396,7 @@ export default function ChecklistTool() {
 
           const chamberTypeCall = await instance.getValue(
             LoraxCharacteristicPathMap[Characteristic.CHAMBER_TYPE],
-            true
+            true,
           );
 
           insertTestResult({
@@ -413,7 +413,7 @@ export default function ChecklistTool() {
                 ? formatMessage(
                     Errors.InvalidByteLength,
                     chamberTypeCall.byteLength,
-                    1
+                    1,
                   )
                 : undefined,
           });
@@ -422,7 +422,7 @@ export default function ChecklistTool() {
 
           const batteryChargeCall = await instance.getValue(
             LoraxCharacteristicPathMap[Characteristic.BATTERY_SOC],
-            true
+            true,
           );
 
           insertTestResult({
@@ -439,14 +439,14 @@ export default function ChecklistTool() {
                 ? formatMessage(
                     Errors.InvalidByteLength,
                     batteryChargeCall.byteLength,
-                    4
+                    4,
                   )
                 : undefined,
           });
 
           const batteryChargeSourceCall = await instance.getValue(
             LoraxCharacteristicPathMap[Characteristic.BATTERY_CHARGE_SOURCE],
-            true
+            true,
           );
 
           insertTestResult({
@@ -463,14 +463,14 @@ export default function ChecklistTool() {
                 ? formatMessage(
                     Errors.InvalidByteLength,
                     batteryChargeSourceCall.byteLength,
-                    instance.isLorax ? 1 : 4
+                    instance.isLorax ? 1 : 4,
                   )
                 : undefined,
           });
 
           const totalHeatCyclesCall = await instance.getValue(
             LoraxCharacteristicPathMap[Characteristic.TOTAL_HEAT_CYCLES],
-            true
+            true,
           );
 
           insertTestResult({
@@ -487,14 +487,14 @@ export default function ChecklistTool() {
                 ? formatMessage(
                     Errors.InvalidByteLength,
                     totalHeatCyclesCall.byteLength,
-                    4
+                    4,
                   )
                 : undefined,
           });
 
           const avgHeatCycles = await instance.getValue(
             LoraxCharacteristicPathMap[Characteristic.DABS_PER_DAY],
-            true
+            true,
           );
 
           insertTestResult({
@@ -509,7 +509,7 @@ export default function ChecklistTool() {
                 ? formatMessage(
                     Errors.InvalidByteLength,
                     avgHeatCycles.byteLength,
-                    4
+                    4,
                   )
                 : undefined,
           });

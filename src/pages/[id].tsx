@@ -541,7 +541,7 @@ export default function Group({
         setMyDevice((curr) => ({ ...curr, profile }));
         gateway.send(Op.SendDeviceState, { profile });
       });
-      await instance.init();
+      await instance.init(false, true);
 
       const { poller, initState, deviceInfo } = await instance.startPolling();
       try {

@@ -987,7 +987,10 @@ export class Device extends EventEmitter {
     });
   }
 
-  init(skipCharInit?: boolean): Promise<{
+  init(
+    skipCharInit?: boolean,
+    skipFilter?: boolean,
+  ): Promise<{
     profiles: Record<number, PuffcoProfile>;
     device: BluetoothDevice;
   }> {
@@ -998,20 +1001,24 @@ export class Device extends EventEmitter {
           if (isElectron()) store.dispatch(setBleConnectionModalOpen(true));
 
           this.device = await navigator.bluetooth.requestDevice({
-            filters: [
-              {
-                services: [SERVICE],
-              },
-              {
-                services: [LORAX_SERVICE],
-              },
-            ],
-            optionalServices: [
-              Characteristic.MODEL_SERVICE,
-              SILLABS_OTA_SERVICE,
-              LORAX_SERVICE,
-              PUP_SERVICE,
-            ],
+            filters: skipFilter
+              ? []
+              : [
+                  {
+                    services: [SERVICE],
+                  },
+                  {
+                    services: [LORAX_SERVICE],
+                  },
+                ],
+            optionalServices: skipFilter
+              ? []
+              : [
+                  Characteristic.MODEL_SERVICE,
+                  SILLABS_OTA_SERVICE,
+                  LORAX_SERVICE,
+                  PUP_SERVICE,
+                ],
           });
 
           this.emit("device_connected", this.device);

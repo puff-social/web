@@ -53,7 +53,7 @@ export default function Updater() {
 
   const connectDevice = useCallback(async () => {
     try {
-      const { device, profiles } = await instance.init();
+      const { device, profiles } = await instance.init(false, true);
       setConnected(true);
       instance.once("gattdisconnect", () => disconnectDevice());
 
@@ -65,7 +65,7 @@ export default function Updater() {
 
       if (instance.device) {
         const session = await createDebuggingSession(
-          instance.deviceMacAddress.replace(/:/g, "")
+          instance.deviceMacAddress.replace(/:/g, ""),
         );
         dispatch(setSessionId(session.data.id));
       }
@@ -128,7 +128,7 @@ export default function Updater() {
       ).readUInt32LE(0),
       utcTime: device.utcTime,
       deviceLogs: [...device.auditLogs].sort(
-        (a: AuditLog, b: AuditLog) => b.id - a.id
+        (a: AuditLog, b: AuditLog) => b.id - a.id,
       ),
     };
 
