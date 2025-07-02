@@ -998,15 +998,9 @@ export class Device extends EventEmitter {
           if (isElectron()) store.dispatch(setBleConnectionModalOpen(true));
 
           this.device = await navigator.bluetooth.requestDevice({
-            filters: [
-              {
-                services: [SERVICE],
-              },
-              {
-                services: [LORAX_SERVICE],
-              },
-            ],
+            filters: [{}],
             optionalServices: [
+              SERVICE,
               Characteristic.MODEL_SERVICE,
               SILLABS_OTA_SERVICE,
               LORAX_SERVICE,
