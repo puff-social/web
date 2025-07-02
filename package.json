@@ -10,7 +10,7 @@
   "dependencies": {
     "@headlessui/react": "^1.7.19",
     "@headlessui/tailwindcss": "^0.2.1",
-    "@puff-social/commons": "^1.0.42",
+    "@puff-social/commons": "^1.0.44",
     "@reduxjs/toolkit": "^2.5.0",
     "@sentry/nextjs": "^7.120.2",
     "@tippyjs/react": "^4.2.6",
@@ -53,5 +53,8 @@
     "@types/web-bluetooth": "^0.0.20",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.7.2"
+  },
+  "pnpm": {
+    "overrides": {}
   }
 }

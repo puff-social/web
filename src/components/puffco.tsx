@@ -127,13 +127,17 @@ export function PuffcoContainer({
           } flex justify-center items-center self-center`}
           viewBox="0 0 5 8"
         >
-          {["storm"].includes(model) ? (
+          {["storm", "daybreak"].includes(model) ? (
             <>
-              <image
-                className="flex justify-center items-center self-center"
-                height="100%"
-                href={`/${model}/glass.png`}
-              />
+              {model == "storm" ? (
+                <image
+                  className="flex justify-center items-center self-center"
+                  height="100%"
+                  href={`/${model}/glass.png`}
+                />
+              ) : (
+                <></>
+              )}
               <image
                 className="flex justify-center items-center self-center"
                 height="100%"
@@ -221,7 +225,7 @@ export function PuffcoContainer({
                 />
               ))}
           {chamberType == ChamberType.XL ? (
-            model == "storm" ? (
+            ["storm", "daybreak"].includes(model) ? (
               <></>
             ) : (
               <image

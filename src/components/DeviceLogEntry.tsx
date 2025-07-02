@@ -17,6 +17,7 @@ import { PlugConnected, PlugDisconnected } from "./icons/Plug";
 import { BatteryCheck } from "./icons/Battery";
 import { ClockAdjust } from "./icons/Clock";
 import { PowerIcon } from "./icons/Power";
+import { LightbulbOff } from "./icons/LightbulbOff";
 import {
   formatFancyDuration,
   millisToMinutesAndSeconds,
@@ -39,6 +40,7 @@ const IconMap = {
   [AuditLogCode.CHARGE_COMPLETE]: <BatteryCheck />,
   [AuditLogCode.CLOCK_ADJUST]: <ClockAdjust />,
   [AuditLogCode.SYSTEM_BOOT]: <PowerIcon />,
+  [AuditLogCode.MOOD_LIGHT_ENDED]: <LightbulbOff />,
 };
 
 const TitleMap = {
@@ -54,6 +56,7 @@ const TitleMap = {
   [AuditLogCode.CHARGE_COMPLETE]: "Charging Complete",
   [AuditLogCode.CLOCK_ADJUST]: "Device Clock Adjusted",
   [AuditLogCode.SYSTEM_BOOT]: "System Boot",
+  [AuditLogCode.MOOD_LIGHT_ENDED]: "Mood Light Ended",
 };
 
 function AuditData({ entry }: DeviceLogEntry) {
@@ -81,15 +84,20 @@ function AuditData({ entry }: DeviceLogEntry) {
               {(entry.data as HeatCycleLog).timeElapsed * 1000 < 0
                 ? "0:00"
                 : millisToMinutesAndSeconds(
-                  (entry.data as HeatCycleLog).timeElapsed * 1000
-                )}
+                    (entry.data as HeatCycleLog).timeElapsed * 1000,
+                  )}
             </p>
           ) : (
             <></>
           )}
-          {entry.type == AuditLogCode.HEAT_CYCLE_ENTER_PREHEAT ? <p className="mt-2 text-sm italic opacity-50 w-3/4">
-            Temperature is expected low, unless you started another cycle whilst the chamber was hot.
-          </p> : <></>}
+          {entry.type == AuditLogCode.HEAT_CYCLE_ENTER_PREHEAT ? (
+            <p className="mt-2 text-sm italic opacity-50 w-3/4">
+              Temperature is expected low, unless you started another cycle
+              whilst the chamber was hot.
+            </p>
+          ) : (
+            <></>
+          )}
         </div>
       );
     }
@@ -107,8 +115,8 @@ function AuditData({ entry }: DeviceLogEntry) {
             {(entry.data as ChargeLog).timeElapsed * 1000 < 0
               ? "0:00"
               : millisToMinutesAndSeconds(
-                (entry.data as ChargeLog).timeElapsed * 1000
-              )}
+                  (entry.data as ChargeLog).timeElapsed * 1000,
+                )}
           </p>
         </div>
       );
@@ -134,7 +142,7 @@ function AuditData({ entry }: DeviceLogEntry) {
           <p className="text-sm">
             Previous Timestamp:{" "}
             {new Date(
-              (entry.data as ClockAdjustLog).previous * 1000
+              (entry.data as ClockAdjustLog).previous * 1000,
             ).toLocaleString()}
           </p>
           <p className="text-sm">
@@ -142,8 +150,8 @@ function AuditData({ entry }: DeviceLogEntry) {
             {(entry.data as ChargeLog).timeElapsed * 1000 < 1
               ? "now"
               : formatFancyDuration(
-                (entry.data as ClockAdjustLog).uptime * 1000
-              )}
+                  (entry.data as ClockAdjustLog).uptime * 1000,
+                )}
           </p>
         </div>
       );
@@ -154,6 +162,13 @@ function AuditData({ entry }: DeviceLogEntry) {
           <p className="text-sm">
             Cause: {(entry.data as SystemBootLog).cause}
           </p>
+        </div>
+      );
+    }
+    default: {
+      return (
+        <div className="flex flex-row items-center space-x-1">
+          <p>No Data for entry</p>
         </div>
       );
     }
@@ -181,19 +196,7 @@ export function DeviceLogEntry({ entry }: DeviceLogEntry) {
           </Tippy>
         </div>
       </div>
-      {[
-        AuditLogCode.HEAT_CYCLE_ENTER_PREHEAT,
-        AuditLogCode.HEAT_CYCLE_ACTIVE,
-        AuditLogCode.HEAT_CYCLE_COMPLETE,
-        AuditLogCode.HEAT_CYCLE_ABORT_ACTIVE,
-        AuditLogCode.HEAT_CYCLE_ABORT_PREHEAT,
-        AuditLogCode.HEAT_CYCLE_FAULTED,
-        AuditLogCode.HEAT_CYCLE_BOOSTED,
-        AuditLogCode.CHARGER_DISCONNECTED,
-        AuditLogCode.CHARGE_COMPLETE,
-        AuditLogCode.CLOCK_ADJUST,
-        AuditLogCode.SYSTEM_BOOT,
-      ].includes(entry.type) && entry.data ? (
+      {entry.data ? (
         <>
           <div className="space-y-1 mt-2">
             <hr className="w-full rounded-md opacity-20 border-neutral-500 dark:border-neutral-400" />
@@ -207,6 +210,6 @@ export function DeviceLogEntry({ entry }: DeviceLogEntry) {
       )}
     </div>
   ) : (
-    <></>
+    <p>NO TITLE Type: {entry.type}</p>
   );
 }
