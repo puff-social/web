@@ -998,7 +998,318 @@ export class Device extends EventEmitter {
           if (isElectron()) store.dispatch(setBleConnectionModalOpen(true));
 
           this.device = await navigator.bluetooth.requestDevice({
-            filters: [{}],
+            filters: [
+              {
+                services: ["e276967f-ea8a-478a-a92e-d78f5dd15dd5"],
+              },
+              {
+                services: ["06caf9c0-74d3-454f-9be9-e30cd999c17a"],
+              },
+              {
+                manufacturerData: [
+                  {
+                    companyIdentifier: 3075,
+                  },
+                ],
+              },
+              {
+                services: ["420b9b40-457d-4abe-a3bf-71609d79581b"],
+              },
+              {
+                services: ["1d14d6ee-fd63-4fa1-bfa4-8f47b42119f0"],
+              },
+              {
+                namePrefix: "000B57",
+              },
+              {
+                namePrefix: "003C84",
+              },
+              {
+                namePrefix: "040D84",
+              },
+              {
+                namePrefix: "048727",
+              },
+              {
+                namePrefix: "04CD15",
+              },
+              {
+                namePrefix: "04E3E5",
+              },
+              {
+                namePrefix: "086BD7",
+              },
+              {
+                namePrefix: "08B95F",
+              },
+              {
+                namePrefix: "08DDEB",
+              },
+              {
+                namePrefix: "0C2A6F",
+              },
+              {
+                namePrefix: "0C4314",
+              },
+              {
+                namePrefix: "0CAE5F",
+              },
+              {
+                namePrefix: "0CEFF6",
+              },
+              {
+                namePrefix: "142D41",
+              },
+              {
+                namePrefix: "14B457",
+              },
+              {
+                namePrefix: "187A3E",
+              },
+              {
+                namePrefix: "1C34F1",
+              },
+              {
+                namePrefix: "1CC089",
+              },
+              {
+                namePrefix: "286847",
+              },
+              {
+                namePrefix: "287681",
+              },
+              {
+                namePrefix: "28DBA7",
+              },
+              {
+                namePrefix: "2C1165",
+              },
+              {
+                namePrefix: "30FB10",
+              },
+              {
+                namePrefix: "3410F4",
+              },
+              {
+                namePrefix: "3425B4",
+              },
+              {
+                namePrefix: "38398F",
+              },
+              {
+                namePrefix: "385B44",
+              },
+              {
+                namePrefix: "385CFB",
+              },
+              {
+                namePrefix: "3C2EF5",
+              },
+              {
+                namePrefix: "403059",
+              },
+              {
+                namePrefix: "44E2F8",
+              },
+              {
+                namePrefix: "4C5BB3",
+              },
+              {
+                namePrefix: "4C97A1",
+              },
+              {
+                namePrefix: "50325F",
+              },
+              {
+                namePrefix: "540F57",
+              },
+              {
+                namePrefix: "583BC2",
+              },
+              {
+                namePrefix: "588E81",
+              },
+              {
+                namePrefix: "5C0272",
+              },
+              {
+                namePrefix: "5CC7C1",
+              },
+              {
+                namePrefix: "60A423",
+              },
+              {
+                namePrefix: "60B647",
+              },
+              {
+                namePrefix: "60EFAB",
+              },
+              {
+                namePrefix: "680AE2",
+              },
+              {
+                namePrefix: "6C5CB1",
+              },
+              {
+                namePrefix: "6CFD22",
+              },
+              {
+                namePrefix: "705464",
+              },
+              {
+                namePrefix: "70AC08",
+              },
+              {
+                namePrefix: "70C59C",
+              },
+              {
+                namePrefix: "7CC6B6",
+              },
+              {
+                namePrefix: "804B50",
+              },
+              {
+                namePrefix: "842712",
+              },
+              {
+                namePrefix: "842E14",
+              },
+              {
+                namePrefix: "847127",
+              },
+              {
+                namePrefix: "84B4DB",
+              },
+              {
+                namePrefix: "84BA20",
+              },
+              {
+                namePrefix: "84FD27",
+              },
+              {
+                namePrefix: "881A14",
+              },
+              {
+                namePrefix: "8C65A3",
+              },
+              {
+                namePrefix: "8C6FB9",
+              },
+              {
+                namePrefix: "8CF681",
+              },
+              {
+                namePrefix: "9035EA",
+              },
+              {
+                namePrefix: "90395E",
+              },
+              {
+                namePrefix: "90AB96",
+              },
+              {
+                namePrefix: "90FD9F",
+              },
+              {
+                namePrefix: "943469",
+              },
+              {
+                namePrefix: "94B216",
+              },
+              {
+                namePrefix: "94DEB8",
+              },
+              {
+                namePrefix: "94EC32",
+              },
+              {
+                namePrefix: "980C33",
+              },
+              {
+                namePrefix: "A46DD4",
+              },
+              {
+                namePrefix: "A49E69",
+              },
+              {
+                namePrefix: "B0C7DE",
+              },
+              {
+                namePrefix: "B43522",
+              },
+              {
+                namePrefix: "B43A31",
+              },
+              {
+                namePrefix: "B4E3F9",
+              },
+              {
+                namePrefix: "BC026E",
+              },
+              {
+                namePrefix: "BC33AC",
+              },
+              {
+                namePrefix: "C4D8C8",
+              },
+              {
+                namePrefix: "CC86EC",
+              },
+              {
+                namePrefix: "CCCCCC",
+              },
+              {
+                namePrefix: "D0CF5E",
+              },
+              {
+                namePrefix: "D44867",
+              },
+              {
+                namePrefix: "D87A3B",
+              },
+              {
+                namePrefix: "DC8E95",
+              },
+              {
+                namePrefix: "E0798D",
+              },
+              {
+                namePrefix: "E406BF",
+              },
+              {
+                namePrefix: "E8E07E",
+              },
+              {
+                namePrefix: "EC1BBD",
+              },
+              {
+                namePrefix: "ECF64C",
+              },
+              {
+                namePrefix: "F082C0",
+              },
+              {
+                namePrefix: "F4B3B1",
+              },
+              {
+                namePrefix: "F84477",
+              },
+              {
+                namePrefix: "FC4D6A",
+              },
+              {
+                namePrefix: "F0AD4E",
+              },
+              {
+                manufacturerData: [
+                  {
+                    companyIdentifier: 3075,
+                    dataPrefix: new Uint8Array([1, 3]),
+                  },
+                ],
+              },
+            ],
+            optionalManufacturerData: [3075],
             optionalServices: [
               SERVICE,
               Characteristic.MODEL_SERVICE,
