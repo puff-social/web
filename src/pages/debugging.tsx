@@ -206,7 +206,10 @@ export default function Updater() {
                           API Series : {instance.apiSeries} (
                           {ProductSeriesMap[instance.apiSeries] ?? "Unknown"})
                         </p>
-                        <p>Firmware : {instance.deviceFirmware}</p>
+                        <p>
+                          Firmware : {instance.deviceFirmware} (
+                          {instance.gitHash})
+                        </p>
                         <p>Hardware : {instance.hardwareVersion}</p>
                         <p>MAC : {instance.deviceMacAddress}</p>
                         <p>Device Time : {device.utcTime}</p>

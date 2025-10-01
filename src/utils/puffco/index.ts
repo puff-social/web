@@ -45,8 +45,8 @@ import {
   constructLoraxCommand,
   intArrayToMacAddress,
   isOtaValid,
-  numbersToLetters,
-  openCmd,
+  revisionNumberToString,
+  ope,
   processLoraxEvent,
   processLoraxReply,
   readCmd,
@@ -315,7 +315,7 @@ export class Device extends EventEmitter {
         Characteristic.FIRMWARE_VERSION,
         true,
       );
-      this.deviceFirmware = numbersToLetters(firmwareRaw.readUInt8(0) + 5);
+      this.deviceFirmware = revisionNumberToString(firmwareRaw.readUInt8(0));
     } else {
       const accessSeedKey = await this.service.getCharacteristic(
         Characteristic.ACCESS_KEY,
@@ -915,8 +915,8 @@ export class Device extends EventEmitter {
               const firmwareRaw = await this.getValue(
                 Characteristic.FIRMWARE_VERSION,
               );
-              this.deviceFirmware = numbersToLetters(
-                firmwareRaw.readUInt8(0) + 5,
+              this.deviceFirmware = revisionNumberToString(
+                firmwareRaw.readUInt8(0),
               );
 
               const gitHashRaw = await this.getValue(Characteristic.GIT_HASH);
