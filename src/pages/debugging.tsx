@@ -194,7 +194,7 @@ export default function Updater() {
                       <div className="m-4">
                         <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                           <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                            Session ID
+                            Report ID
                           </div>
                           <div className="text-sm">{debugging.sessionId}</div>
 
@@ -321,7 +321,7 @@ export default function Updater() {
                         className="flex w-full rounded-md bg-blue-600 hover:bg-blue-500 p-2 m-1 text-white font-bold justify-center items-center"
                         onClick={() => sendForReview()}
                       >
-                        Send in for review
+                        Send debugging report
                       </button>
                     </div>
                   ) : (
