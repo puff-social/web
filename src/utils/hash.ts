@@ -19,6 +19,7 @@ export const API_URL =
     : "https://hash.puff.social";
 
 function signRequest<T>(body: T): [string, string] {
+  console.log(body);
   const signature = createHash("sha256")
     .update(JSON.stringify(body))
     .digest("base64");
@@ -42,7 +43,7 @@ export async function sendFeedback(content: string) {
 
 export async function getLeaderboard() {
   return (await fetch(`${API_URL}/v1/leaderboard?limit=10`).then((r) =>
-    r.json()
+    r.json(),
   )) as APIResponse<{ leaderboards: LeaderboardEntry[] }>;
 }
 
@@ -107,7 +108,7 @@ export async function createDebuggingSession(identifier: string) {
 export async function submitDebuggingSession(
   id: string,
   data: Record<any, any>,
-  type?: string
+  type?: string,
 ) {
   // const [signature, body] = signRequest(data);
   const req = await fetch(
@@ -122,7 +123,7 @@ export async function submitDebuggingSession(
           : {}),
       },
       body: JSON.stringify(data),
-    }
+    },
   );
   if (req.status == 403) {
     const json: { error: boolean; code: string } = await req.json();
@@ -134,7 +135,7 @@ export async function submitDebuggingSession(
 
 export async function getLeaderboardDevice(id: string) {
   const req = await fetch(
-    `${API_URL}/v1/device/${id.startsWith("device") ? id : `device_${id}`}`
+    `${API_URL}/v1/device/${id.startsWith("device") ? id : `device_${id}`}`,
   );
   if (req.status != 200) throw { code: "device_not_found" };
   return (await req.json()) as APIResponse<{
@@ -152,7 +153,7 @@ export async function getDiscordOAuth() {
 export async function callbackDiscordOAuth(code: string, state: string) {
   const req = await fetch(
     `${API_URL}/v1/oauth/discord?code=${code}&state=${state}`,
-    { method: "POST" }
+    { method: "POST" },
   );
   if (req.status != 200) throw { code: "invalid_oauth_state" };
   return (await req.json()) as APIResponse<{

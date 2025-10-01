@@ -97,6 +97,7 @@ export function DeviceSettingsModal({
     await trackDevice({
       ...info,
       name: deviceName,
+      series: instance.productSeries,
     });
     toast("Updated device");
     closeModal();

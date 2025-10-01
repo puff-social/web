@@ -1127,6 +1127,7 @@ export class Device extends EventEmitter {
                 name: this.device.name,
                 firmware: this.deviceFirmware,
                 model: this.deviceModel,
+                series: this.productSeries,
               },
             };
 
@@ -1230,6 +1231,7 @@ export class Device extends EventEmitter {
               name: this.device.name,
               firmware: this.deviceFirmware,
               model: this.deviceModel,
+              series: this.productSeries,
               serialNumber: this.deviceSerialNumber,
               hardwareVersion: this.hardwareVersion,
               authenticated: true,
@@ -1328,6 +1330,7 @@ export class Device extends EventEmitter {
     deviceInfo.hardware = this.hardwareVersion;
     deviceInfo.gitHash = this.gitHash;
     deviceInfo.serial = this.deviceSerialNumber;
+    deviceInfo.series = this.productSeries;
 
     const initTemperature = await this.getValue(
       Characteristic.HEATER_TEMP,
