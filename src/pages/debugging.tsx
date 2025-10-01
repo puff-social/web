@@ -20,6 +20,7 @@ import {
   DeviceCommand,
   LoraxCharacteristicPathMap,
   ProductModelMap,
+  ProductSeriesMap,
 } from "@puff-social/commons/dist/puffco";
 import { DeviceLogsModal } from "../components/modals/DeviceLogs";
 import { selectCurrentDeviceState } from "../state/slices/device";
@@ -201,7 +202,10 @@ export default function Updater() {
                           {ProductModelMap[instance.deviceModel] ?? "Unknown"})
                         </p>
                         <p>API Version : {instance.apiVersion}</p>
-                        <p>API Series : {instance.apiSeries}</p>
+                        <p>
+                          API Series : {instance.apiSeries} (
+                          {ProductSeriesMap[instance.apiSeries] ?? "Unknown"})
+                        </p>
                         <p>Firmware : {instance.deviceFirmware}</p>
                         <p>Hardware : {instance.hardwareVersion}</p>
                         <p>MAC : {instance.deviceMacAddress}</p>

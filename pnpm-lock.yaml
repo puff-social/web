@@ -15,8 +15,8 @@ importers:
         specifier: ^0.2.1
         version: 0.2.1(tailwindcss@3.4.17)
       '@puff-social/commons':
-        specifier: '*'
-        version: 1.0.46
+        specifier: ^1.0.48
+        version: 1.0.48
       '@reduxjs/toolkit':
         specifier: ^2.5.0
         version: 2.5.0(react-redux@9.2.0(@types/react@18.3.18)(react@18.2.0)(redux@5.0.1))(react@18.2.0)
@@ -330,8 +330,8 @@ packages:
   '@prisma/engines-version@4.14.0-67.d9a4c5988f480fa576d43970d5a23641aa77bc9c':
     resolution: {integrity: sha512-3jum8/YSudeSN0zGW5qkpz+wAN2V/NYCQ+BPjvHYDfWatLWlQkqy99toX0GysDeaUoBIJg1vaz2yKqiA3CFcQw==}
 
-  '@puff-social/commons@1.0.46':
-    resolution: {integrity: sha512-tYsBgux1buGazRkoGLQ7vzeDmMuyzppIubrvi/MAaQkR/kZ+Ow/jbvbLqRmexTRPkSPHK0/q/jRE9IPugEA33A==, tarball: https://npm.pkg.github.com/download/@puff-social/commons/1.0.46/25c6fa9ac2a489d958a0880964203d10ff452035}
+  '@puff-social/commons@1.0.48':
+    resolution: {integrity: sha512-aNidcfkqrhldcXC7GIAoQ9N0Gl89h3cCBWM35TYPU+gnZ4HibTyjN1EZdtaw59uUmjkLDKPZF6qTsz9IEoEZVQ==, tarball: https://npm.pkg.github.com/download/@puff-social/commons/1.0.48/c5d3bb68924076736080deabbae0b95372dc0007}
 
   '@reduxjs/toolkit@2.5.0':
     resolution: {integrity: sha512-awNe2oTodsZ6LmRqmkFhtb/KH03hUhxOamEQy411m3Njj3BbFvoBovxo4Q1cBWnV1ErprVj9MlF0UPXkng0eyg==}
@@ -1840,7 +1840,7 @@ snapshots:
 
   '@prisma/engines-version@4.14.0-67.d9a4c5988f480fa576d43970d5a23641aa77bc9c': {}
 
-  '@puff-social/commons@1.0.46':
+  '@puff-social/commons@1.0.48':
     dependencies:
       '@prisma/client': 4.14.0
       envsafe: 2.0.3
