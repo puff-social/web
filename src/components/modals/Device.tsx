@@ -44,13 +44,13 @@ export function DeviceSettingsModal({
   }, []);
 
   const [batteryPreservation, setBatteryPreservation] = useState(
-    device.batteryPreservation || 100
+    device.batteryPreservation || 100,
   );
   const [brightness, setBrightness] = useState(device.brightness);
 
   const [deviceName, setDeviceName] = useState(device.deviceName);
   const [deviceDob, setDeviceDob] = useState(
-    new Date(info.dob * 1000).toLocaleDateString()
+    new Date(info.dob * 1000).toLocaleDateString(),
   );
 
   const [badBirthday, setBadBirthday] = useState(false);
@@ -75,7 +75,7 @@ export function DeviceSettingsModal({
 
       setBadBirthday(
         newDob.getFullYear() > new Date().getFullYear() ||
-          newDob.getFullYear() < 2018
+          newDob.getFullYear() < 2018,
       );
       await instance.updateDeviceDob(newDob);
       setDeviceInfo((curr) => ({ ...curr, dob: newDob.getTime() / 1000 }));
@@ -169,6 +169,12 @@ export function DeviceSettingsModal({
                     </p>
                   </span>
                   <span className="flex justify-between">
+                    <p className="font-bold">API Version</p>
+                    <p className="font-bold opacity-40">
+                      {instance.apiVersion} (Series {instance.apiSeries})
+                    </p>
+                  </span>
+                  <span className="flex justify-between">
                     <p className="font-bold">Serial Number</p>
                     <p className="font-bold opacity-40">
                       {instance.deviceSerialNumber || "Unknown (Probably <=Z)"}
@@ -202,13 +208,13 @@ export function DeviceSettingsModal({
                       content={`Your device clock is ${
                         formatRelativeTime(
                           new Date(),
-                          new Date(device.utcTime * 1000)
+                          new Date(device.utcTime * 1000),
                         ).startsWith("-")
                           ? "behind"
                           : "ahead of"
                       } your system time by ${formatRelativeTime(
                         new Date(),
-                        new Date(device.utcTime * 1000)
+                        new Date(device.utcTime * 1000),
                       ).replace("-", "")}`}
                     >
                       <div>

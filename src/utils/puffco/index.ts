@@ -56,6 +56,7 @@ import {
   writeShortCmd,
   convertFromHex,
   convertHexStringToNumArray,
+  SilabsOuis,
 } from "@puff-social/commons/dist/puffco";
 import { Op } from "@puff-social/commons/dist/constants";
 import { setProgress } from "../../state/slices/updater";
@@ -105,6 +106,8 @@ export interface Device {
   isSillabs: boolean;
   isLorax: boolean;
   hasService: boolean;
+  apiVersion: number;
+  apiSeries: number;
 
   pollerSuspended: boolean;
   sendingCommand: boolean;
@@ -242,7 +245,7 @@ export class Device extends EventEmitter {
 
               case LoraxCommands.UNLOCK_ACCESS: {
                 if (msg.response.error) {
-                  console.log("error unlocking");
+                  console.log("error unlocking", msg);
                   return;
                 }
 
@@ -251,6 +254,12 @@ export class Device extends EventEmitter {
                   `padding: 10px; font-size: 1em; line-height: 1.4em; color: white; background: #000000; border-radius: 15px;`,
                   "font-size: 1em;",
                 );
+
+                const apiVersion = (
+                  await this.getValue(LoraxCharacteristicPathMap.API_VERSION)
+                ).readUInt8();
+                this.apiSeries = apiVersion >> 16;
+                this.apiVersion = apiVersion & 0xffff;
 
                 upperResolve(true);
 
@@ -748,34 +757,7 @@ export class Device extends EventEmitter {
             },
             { name: "Peak2OTA" },
             { name: "AppLoader" },
-            { namePrefix: "000B57" },
-            { namePrefix: "003C84" },
-            { namePrefix: "040D84" },
-            { namePrefix: "04CD15" },
-            { namePrefix: "086BD7" },
-            { namePrefix: "0C4314" },
-            { namePrefix: "14B457" },
-            { namePrefix: "2C1165" },
-            { namePrefix: "50325F" },
-            { namePrefix: "540F57" },
-            { namePrefix: "588E81" },
-            { namePrefix: "5C0272" },
-            { namePrefix: "60A423" },
-            { namePrefix: "680AE2" },
-            { namePrefix: "804B50" },
-            { namePrefix: "842E14" },
-            { namePrefix: "847127" },
-            { namePrefix: "84BA20" },
-            { namePrefix: "84FD27" },
-            { namePrefix: "8CF681" },
-            { namePrefix: "9035EA" },
-            { namePrefix: "90FD9F" },
-            { namePrefix: "94DEB8" },
-            { namePrefix: "B4E3F9" },
-            { namePrefix: "BC33AC" },
-            { namePrefix: "CC86EC" },
-            { namePrefix: "CCCCCC" },
-            { namePrefix: "EC1BBD" },
+            ...SilabsOuis.map((oui) => ({ namePrefix: oui })),
           ],
           optionalServices: [
             Characteristic.MODEL_SERVICE,
