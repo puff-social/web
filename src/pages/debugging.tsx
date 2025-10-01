@@ -24,6 +24,7 @@ import {
 } from "@puff-social/commons/dist/puffco";
 import { DeviceLogsModal } from "../components/modals/DeviceLogs";
 import { selectCurrentDeviceState } from "../state/slices/device";
+import { PuffcoContainer } from "../components/puffco";
 
 const instance = new Device();
 if (typeof window != "undefined") window["instance"] = instance;
@@ -191,78 +192,82 @@ export default function Updater() {
                 ) : bluetooth ? (
                   connected && instance.device && debugging.sessionId ? (
                     <div className="flex flex-col justify-start">
-                      <div className="m-4">
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                            Report ID
-                          </div>
-                          <div className="text-sm">{debugging.sessionId}</div>
+                      <div className="m-4 flex items-start space-x-6">
+                        <div className="w-64 h-64 flex items-center justify-center">
+                          <PuffcoContainer
+                            id="debug-preview"
+                            model={ProductModelMap[
+                              instance.deviceModel
+                            ].toLowerCase()}
+                            productSeries={instance.apiSeries}
+                            svgClassName="w-64 h-64"
+                          />
+                        </div>
 
-                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                            Device Name
-                          </div>
-                          <div className="text-sm">{instance.device.name}</div>
+                        <div className="flex-1">
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              Report ID
+                            </div>
+                            <div className="text-sm">{debugging.sessionId}</div>
 
-                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                            Device Serial
-                          </div>
-                          <div className="text-sm">
-                            {instance.deviceSerialNumber}
-                          </div>
+                            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              Device Serial
+                            </div>
+                            <div className="text-sm">
+                              {instance.deviceSerialNumber}
+                            </div>
 
-                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                            Model
-                          </div>
-                          <div className="text-sm">
-                            {instance.deviceModel} (
-                            {ProductModelMap[instance.deviceModel] ?? "Unknown"}
-                            )
-                          </div>
+                            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              Model
+                            </div>
+                            <div className="text-sm">
+                              {instance.deviceModel} (
+                              {ProductModelMap[instance.deviceModel] ??
+                                "Unknown"}
+                              )
+                            </div>
 
-                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                            API Version
-                          </div>
-                          <div className="text-sm">{instance.apiVersion}</div>
+                            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              API Version
+                            </div>
+                            <div className="text-sm">{instance.apiVersion}</div>
 
-                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                            API Series
-                          </div>
-                          <div className="text-sm">
-                            {instance.apiSeries} (
-                            {ProductSeriesMap[instance.apiSeries] ?? "Unknown"})
-                          </div>
+                            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              API Series
+                            </div>
+                            <div className="text-sm">
+                              {instance.apiSeries} (
+                              {ProductSeriesMap[instance.apiSeries] ??
+                                "Unknown"}
+                              )
+                            </div>
 
-                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                            Firmware
-                          </div>
-                          <div className="text-sm">
-                            {instance.deviceFirmware} ({instance.gitHash})
-                          </div>
+                            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              Firmware
+                            </div>
+                            <div className="text-sm">
+                              {instance.deviceFirmware} ({instance.gitHash})
+                            </div>
 
-                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                            Hardware
-                          </div>
-                          <div className="text-sm">
-                            {instance.hardwareVersion}
-                          </div>
+                            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              Hardware
+                            </div>
+                            <div className="text-sm">
+                              {instance.hardwareVersion}
+                            </div>
 
-                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                            MAC
-                          </div>
-                          <div className="text-sm">
-                            {instance.deviceMacAddress}
-                          </div>
+                            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              Device Time (UTC)
+                            </div>
+                            <div className="text-sm">{device.utcTime}</div>
 
-                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                            Device Time (UTC)
-                          </div>
-                          <div className="text-sm">{device.utcTime}</div>
-
-                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                            Local Time
-                          </div>
-                          <div className="text-sm">
-                            {new Date(device.utcTime * 1000).toLocaleString()}
+                            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              Local Time
+                            </div>
+                            <div className="text-sm">
+                              {new Date(device.utcTime * 1000).toLocaleString()}
+                            </div>
                           </div>
                         </div>
                       </div>
