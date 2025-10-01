@@ -192,30 +192,79 @@ export default function Updater() {
                   connected && instance.device && debugging.sessionId ? (
                     <div className="flex flex-col justify-start">
                       <div className="m-4">
-                        <p className="font-bond">
-                          Session ID : {debugging.sessionId}
-                        </p>
-                        <p>Device Name : {instance.device.name}</p>
-                        <p>Device Serial : {instance.deviceSerialNumber}</p>
-                        <p>
-                          Model : {instance.deviceModel} (
-                          {ProductModelMap[instance.deviceModel] ?? "Unknown"})
-                        </p>
-                        <p>API Version : {instance.apiVersion}</p>
-                        <p>
-                          API Series : {instance.apiSeries} (
-                          {ProductSeriesMap[instance.apiSeries] ?? "Unknown"})
-                        </p>
-                        <p>
-                          Firmware : {instance.deviceFirmware} (
-                          {instance.gitHash})
-                        </p>
-                        <p>Hardware : {instance.hardwareVersion}</p>
-                        <p>MAC : {instance.deviceMacAddress}</p>
-                        <p>Device Time : {device.utcTime}</p>
-                        <p>
-                          {new Date(device.utcTime * 1000).toLocaleString()}
-                        </p>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            Session ID
+                          </div>
+                          <div className="text-sm">{debugging.sessionId}</div>
+
+                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            Device Name
+                          </div>
+                          <div className="text-sm">{instance.device.name}</div>
+
+                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            Device Serial
+                          </div>
+                          <div className="text-sm">
+                            {instance.deviceSerialNumber}
+                          </div>
+
+                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            Model
+                          </div>
+                          <div className="text-sm">
+                            {instance.deviceModel} (
+                            {ProductModelMap[instance.deviceModel] ?? "Unknown"}
+                            )
+                          </div>
+
+                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            API Version
+                          </div>
+                          <div className="text-sm">{instance.apiVersion}</div>
+
+                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            API Series
+                          </div>
+                          <div className="text-sm">
+                            {instance.apiSeries} (
+                            {ProductSeriesMap[instance.apiSeries] ?? "Unknown"})
+                          </div>
+
+                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            Firmware
+                          </div>
+                          <div className="text-sm">
+                            {instance.deviceFirmware} ({instance.gitHash})
+                          </div>
+
+                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            Hardware
+                          </div>
+                          <div className="text-sm">
+                            {instance.hardwareVersion}
+                          </div>
+
+                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            MAC
+                          </div>
+                          <div className="text-sm">
+                            {instance.deviceMacAddress}
+                          </div>
+
+                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            Device Time (UTC)
+                          </div>
+                          <div className="text-sm">{device.utcTime}</div>
+
+                          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            Local Time
+                          </div>
+                          <div className="text-sm">
+                            {new Date(device.utcTime * 1000).toLocaleString()}
+                          </div>
+                        </div>
                       </div>
 
                       <div className="flex space-x-2">
