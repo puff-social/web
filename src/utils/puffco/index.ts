@@ -46,7 +46,7 @@ import {
   intArrayToMacAddress,
   isOtaValid,
   revisionNumberToString,
-  ope,
+  openCmd,
   processLoraxEvent,
   processLoraxReply,
   readCmd,
