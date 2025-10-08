@@ -5,6 +5,7 @@ import {
   LoraxCommands,
   LoraxCharacteristic,
   DynamicLoraxCharacteristics,
+  parseHeatColorBuffer,
 } from "@puff-social/commons/dist/puffco";
 
 export const intMap = {
@@ -22,4 +23,5 @@ if (typeof window != "undefined") {
   window["LoraxCharacteristic"] = LoraxCharacteristic;
   window["LoraxCharacteristicPathMap"] = LoraxCharacteristicPathMap;
   window["DynamicLoraxCharacteristics"] = DynamicLoraxCharacteristics;
+  window["parseHeatColorBuffer"] = parseHeatColorBuffer;
 }

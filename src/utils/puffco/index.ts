@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 import { EventEmitter } from "events";
 import { pack } from "byte-data";
+
 import { GroupState } from "../../types/gateway";
 import { DeviceInformation, DiagData } from "../../types/api";
 import { trackDiags } from "../hash";
@@ -60,6 +61,7 @@ import {
   AtmosicOuis,
   ProductSeries,
   ProductSeriesMap,
+  parseHeatColorBuffer,
 } from "@puff-social/commons/dist/puffco";
 import { Op } from "@puff-social/commons/dist/constants";
 import { setProgress } from "../../state/slices/updater";
@@ -1970,12 +1972,6 @@ export class Device extends EventEmitter {
                 func,
               );
 
-              if (cursor.byteLength) console.log(msg.response.data, cursor);
-              else if (
-                characteristic ==
-                LoraxCharacteristicPathMap[Characteristic.LANTERN_COLOR]
-              )
-                console.log(msg.response.data, cursor);
               if (msg.response.data.byteLength >= this.loraxLimits.maxPayload) {
                 cursor = Buffer.concat([cursor, msg.response.data]);
                 return resolve(
@@ -2328,26 +2324,23 @@ export class Device extends EventEmitter {
         true,
       );
 
-      //      const colorCall = await this.getValue(
-      //        DynamicLoraxCharacteristics[Characteristic.PROFILE_COLOR](idx),
-      //        true
-      //      );
+      const colorCall = await this.getValue(
+        DynamicLoraxCharacteristics[Characteristic.PROFILE_COLOR](idx),
+        true,
+      );
 
       const intensityCall = await this.getValue(
         DynamicLoraxCharacteristics.PROFILE_INTENSITY(idx),
         true,
       );
 
+      const parsedColor = parseHeatColorBuffer(colorCall);
+
       const temp = Number(temperatureCall.readFloatLE(0));
       const time = Number(timeCall.readFloatLE(0).toFixed(0));
       const intensity = intensityCall.readFloatLE(0);
-      //      const color =
-      //        "#" +
-      //        colorCall.readUInt8(0).toString(16) +
-      //        colorCall.readUInt8(1).toString(16) +
-      //        colorCall.readUInt8(2).toString(16);
 
-      const color = "#ffffff";
+      const color = parsedColor.firstColorHex;
 
       console.log(
         `%c${this.device.name}%c Profile #${
@@ -2356,6 +2349,7 @@ export class Device extends EventEmitter {
         `padding: 10px; font-size: 1em; line-height: 1.4em; color: white; background: ${color}; border-radius: 15px;`,
         "font-size: 1em;",
       );
+      console.log(parsedColor);
       profiles[idx + 1] = {
         name,
         temp,
