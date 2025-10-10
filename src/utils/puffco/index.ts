@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 import { EventEmitter } from "events";
 import { pack } from "byte-data";
+
 import { GroupState } from "../../types/gateway";
 import { DeviceInformation, DiagData } from "../../types/api";
 import { trackDiags } from "../hash";
@@ -45,7 +46,7 @@ import {
   constructLoraxCommand,
   intArrayToMacAddress,
   isOtaValid,
-  numbersToLetters,
+  revisionNumberToString,
   openCmd,
   processLoraxEvent,
   processLoraxReply,
@@ -56,6 +57,13 @@ import {
   writeShortCmd,
   convertFromHex,
   convertHexStringToNumArray,
+  SilabsOuis,
+  AtmosicOuis,
+  ProductSeries,
+  ProductSeriesMap,
+  parseHeatColorBuffer,
+  MinimumFirmwareMap,
+  revisionStringToNumber,
 } from "@puff-social/commons/dist/puffco";
 import { Op } from "@puff-social/commons/dist/constants";
 import { setProgress } from "../../state/slices/updater";
@@ -105,6 +113,9 @@ export interface Device {
   isSillabs: boolean;
   isLorax: boolean;
   hasService: boolean;
+  apiVersion: number;
+  apiSeries: number;
+  productSeries: ProductSeries;
 
   pollerSuspended: boolean;
   sendingCommand: boolean;
@@ -242,7 +253,7 @@ export class Device extends EventEmitter {
 
               case LoraxCommands.UNLOCK_ACCESS: {
                 if (msg.response.error) {
-                  console.log("error unlocking");
+                  console.log("error unlocking", msg);
                   return;
                 }
 
@@ -251,6 +262,25 @@ export class Device extends EventEmitter {
                   `padding: 10px; font-size: 1em; line-height: 1.4em; color: white; background: #000000; border-radius: 15px;`,
                   "font-size: 1em;",
                 );
+
+                const firmware = (
+                  await this.getValue(Characteristic.FIRMWARE_VERSION)
+                ).readUInt8(0);
+
+                if (
+                  firmware >=
+                  revisionStringToNumber(MinimumFirmwareMap.API_VERSIONS)
+                ) {
+                  const apiVersion = (
+                    await this.getValue(LoraxCharacteristicPathMap.API_VERSION)
+                  ).readUInt32LE();
+                  this.apiSeries = apiVersion >> 16;
+                  this.apiVersion = apiVersion & 0xffff;
+                  this.productSeries = this.apiSeries;
+                } else {
+                  this.apiSeries = ProductSeries.Pikachoid;
+                  this.productSeries = this.apiSeries;
+                }
 
                 upperResolve(true);
 
@@ -306,7 +336,7 @@ export class Device extends EventEmitter {
         Characteristic.FIRMWARE_VERSION,
         true,
       );
-      this.deviceFirmware = numbersToLetters(firmwareRaw.readUInt8(0) + 5);
+      this.deviceFirmware = revisionNumberToString(firmwareRaw.readUInt8(0));
     } else {
       const accessSeedKey = await this.service.getCharacteristic(
         Characteristic.ACCESS_KEY,
@@ -748,34 +778,8 @@ export class Device extends EventEmitter {
             },
             { name: "Peak2OTA" },
             { name: "AppLoader" },
-            { namePrefix: "000B57" },
-            { namePrefix: "003C84" },
-            { namePrefix: "040D84" },
-            { namePrefix: "04CD15" },
-            { namePrefix: "086BD7" },
-            { namePrefix: "0C4314" },
-            { namePrefix: "14B457" },
-            { namePrefix: "2C1165" },
-            { namePrefix: "50325F" },
-            { namePrefix: "540F57" },
-            { namePrefix: "588E81" },
-            { namePrefix: "5C0272" },
-            { namePrefix: "60A423" },
-            { namePrefix: "680AE2" },
-            { namePrefix: "804B50" },
-            { namePrefix: "842E14" },
-            { namePrefix: "847127" },
-            { namePrefix: "84BA20" },
-            { namePrefix: "84FD27" },
-            { namePrefix: "8CF681" },
-            { namePrefix: "9035EA" },
-            { namePrefix: "90FD9F" },
-            { namePrefix: "94DEB8" },
-            { namePrefix: "B4E3F9" },
-            { namePrefix: "BC33AC" },
-            { namePrefix: "CC86EC" },
-            { namePrefix: "CCCCCC" },
-            { namePrefix: "EC1BBD" },
+            ...SilabsOuis.map((oui) => ({ namePrefix: oui })),
+            ...AtmosicOuis.map((oui) => ({ namePrefix: oui })),
           ],
           optionalServices: [
             Characteristic.MODEL_SERVICE,
@@ -933,8 +937,8 @@ export class Device extends EventEmitter {
               const firmwareRaw = await this.getValue(
                 Characteristic.FIRMWARE_VERSION,
               );
-              this.deviceFirmware = numbersToLetters(
-                firmwareRaw.readUInt8(0) + 5,
+              this.deviceFirmware = revisionNumberToString(
+                firmwareRaw.readUInt8(0),
               );
 
               const gitHashRaw = await this.getValue(Characteristic.GIT_HASH);
@@ -1018,288 +1022,8 @@ export class Device extends EventEmitter {
               {
                 services: ["1d14d6ee-fd63-4fa1-bfa4-8f47b42119f0"],
               },
-              {
-                namePrefix: "000B57",
-              },
-              {
-                namePrefix: "003C84",
-              },
-              {
-                namePrefix: "040D84",
-              },
-              {
-                namePrefix: "048727",
-              },
-              {
-                namePrefix: "04CD15",
-              },
-              {
-                namePrefix: "04E3E5",
-              },
-              {
-                namePrefix: "086BD7",
-              },
-              {
-                namePrefix: "08B95F",
-              },
-              {
-                namePrefix: "08DDEB",
-              },
-              {
-                namePrefix: "0C2A6F",
-              },
-              {
-                namePrefix: "0C4314",
-              },
-              {
-                namePrefix: "0CAE5F",
-              },
-              {
-                namePrefix: "0CEFF6",
-              },
-              {
-                namePrefix: "142D41",
-              },
-              {
-                namePrefix: "14B457",
-              },
-              {
-                namePrefix: "187A3E",
-              },
-              {
-                namePrefix: "1C34F1",
-              },
-              {
-                namePrefix: "1CC089",
-              },
-              {
-                namePrefix: "286847",
-              },
-              {
-                namePrefix: "287681",
-              },
-              {
-                namePrefix: "28DBA7",
-              },
-              {
-                namePrefix: "2C1165",
-              },
-              {
-                namePrefix: "30FB10",
-              },
-              {
-                namePrefix: "3410F4",
-              },
-              {
-                namePrefix: "3425B4",
-              },
-              {
-                namePrefix: "38398F",
-              },
-              {
-                namePrefix: "385B44",
-              },
-              {
-                namePrefix: "385CFB",
-              },
-              {
-                namePrefix: "3C2EF5",
-              },
-              {
-                namePrefix: "403059",
-              },
-              {
-                namePrefix: "44E2F8",
-              },
-              {
-                namePrefix: "4C5BB3",
-              },
-              {
-                namePrefix: "4C97A1",
-              },
-              {
-                namePrefix: "50325F",
-              },
-              {
-                namePrefix: "540F57",
-              },
-              {
-                namePrefix: "583BC2",
-              },
-              {
-                namePrefix: "588E81",
-              },
-              {
-                namePrefix: "5C0272",
-              },
-              {
-                namePrefix: "5CC7C1",
-              },
-              {
-                namePrefix: "60A423",
-              },
-              {
-                namePrefix: "60B647",
-              },
-              {
-                namePrefix: "60EFAB",
-              },
-              {
-                namePrefix: "680AE2",
-              },
-              {
-                namePrefix: "6C5CB1",
-              },
-              {
-                namePrefix: "6CFD22",
-              },
-              {
-                namePrefix: "705464",
-              },
-              {
-                namePrefix: "70AC08",
-              },
-              {
-                namePrefix: "70C59C",
-              },
-              {
-                namePrefix: "7CC6B6",
-              },
-              {
-                namePrefix: "804B50",
-              },
-              {
-                namePrefix: "842712",
-              },
-              {
-                namePrefix: "842E14",
-              },
-              {
-                namePrefix: "847127",
-              },
-              {
-                namePrefix: "84B4DB",
-              },
-              {
-                namePrefix: "84BA20",
-              },
-              {
-                namePrefix: "84FD27",
-              },
-              {
-                namePrefix: "881A14",
-              },
-              {
-                namePrefix: "8C65A3",
-              },
-              {
-                namePrefix: "8C6FB9",
-              },
-              {
-                namePrefix: "8CF681",
-              },
-              {
-                namePrefix: "9035EA",
-              },
-              {
-                namePrefix: "90395E",
-              },
-              {
-                namePrefix: "90AB96",
-              },
-              {
-                namePrefix: "90FD9F",
-              },
-              {
-                namePrefix: "943469",
-              },
-              {
-                namePrefix: "94B216",
-              },
-              {
-                namePrefix: "94DEB8",
-              },
-              {
-                namePrefix: "94EC32",
-              },
-              {
-                namePrefix: "980C33",
-              },
-              {
-                namePrefix: "A46DD4",
-              },
-              {
-                namePrefix: "A49E69",
-              },
-              {
-                namePrefix: "B0C7DE",
-              },
-              {
-                namePrefix: "B43522",
-              },
-              {
-                namePrefix: "B43A31",
-              },
-              {
-                namePrefix: "B4E3F9",
-              },
-              {
-                namePrefix: "BC026E",
-              },
-              {
-                namePrefix: "BC33AC",
-              },
-              {
-                namePrefix: "C4D8C8",
-              },
-              {
-                namePrefix: "CC86EC",
-              },
-              {
-                namePrefix: "CCCCCC",
-              },
-              {
-                namePrefix: "D0CF5E",
-              },
-              {
-                namePrefix: "D44867",
-              },
-              {
-                namePrefix: "D87A3B",
-              },
-              {
-                namePrefix: "DC8E95",
-              },
-              {
-                namePrefix: "E0798D",
-              },
-              {
-                namePrefix: "E406BF",
-              },
-              {
-                namePrefix: "E8E07E",
-              },
-              {
-                namePrefix: "EC1BBD",
-              },
-              {
-                namePrefix: "ECF64C",
-              },
-              {
-                namePrefix: "F082C0",
-              },
-              {
-                namePrefix: "F4B3B1",
-              },
-              {
-                namePrefix: "F84477",
-              },
-              {
-                namePrefix: "FC4D6A",
-              },
-              {
-                namePrefix: "F0AD4E",
-              },
+              ...SilabsOuis.map((oui) => ({ namePrefix: oui })),
+              ...AtmosicOuis.map((oui) => ({ namePrefix: oui })),
               {
                 manufacturerData: [
                   {
@@ -1419,6 +1143,7 @@ export class Device extends EventEmitter {
                 name: this.device.name,
                 firmware: this.deviceFirmware,
                 model: this.deviceModel,
+                series: this.productSeries,
               },
             };
 
@@ -1522,6 +1247,7 @@ export class Device extends EventEmitter {
               name: this.device.name,
               firmware: this.deviceFirmware,
               model: this.deviceModel,
+              series: this.productSeries,
               serialNumber: this.deviceSerialNumber,
               hardwareVersion: this.hardwareVersion,
               authenticated: true,
@@ -1620,6 +1346,7 @@ export class Device extends EventEmitter {
     deviceInfo.hardware = this.hardwareVersion;
     deviceInfo.gitHash = this.gitHash;
     deviceInfo.serial = this.deviceSerialNumber;
+    deviceInfo.series = this.productSeries;
 
     const initTemperature = await this.getValue(
       Characteristic.HEATER_TEMP,
@@ -1670,22 +1397,30 @@ export class Device extends EventEmitter {
     );
     initState.stateTime = Number(initStateTime.readFloatLE(0));
 
-    const initChargeSource = await this.getValue(
-      Characteristic.BATTERY_CHARGE_SOURCE,
-      true,
-    );
-    initState.chargeSource = Number(
-      (this.isLorax
-        ? initChargeSource.readUInt8(0)
-        : initChargeSource.readFloatLE(0)
-      ).toFixed(0),
-    );
+    if (this.productSeries == ProductSeries.Pikachoid) {
+      const initChargeSource = await this.getValue(
+        Characteristic.BATTERY_CHARGE_SOURCE,
+        true,
+      );
+      initState.chargeSource = Number(
+        (this.isLorax
+          ? initChargeSource.readUInt8(0)
+          : initChargeSource.readFloatLE(0)
+        ).toFixed(0),
+      );
+    } else {
+      initState.chargeSource = 3;
+    }
 
     const initTotalDabs = await this.getValue(
       Characteristic.TOTAL_HEAT_CYCLES,
       true,
     );
-    initState.totalDabs = Number(initTotalDabs.readFloatLE(0));
+    initState.totalDabs = Number(
+      this.productSeries == ProductSeries.Pikachoid
+        ? initTotalDabs.readFloatLE(0)
+        : initTotalDabs.readUInt32LE(0),
+    );
     deviceInfo.totalDabs = initState.totalDabs;
 
     const initDabsPerDay = await this.getValue(
@@ -1863,8 +1598,10 @@ export class Device extends EventEmitter {
     const BatteryProfilePoll = await this.pollValue(
       [
         Characteristic.PROFILE_CURRENT,
-        Characteristic.BATTERY_CHARGE_SOURCE,
         Characteristic.BATTERY_SOC,
+        ...(this.productSeries == ProductSeries.Pikachoid
+          ? [Characteristic.BATTERY_CHARGE_SOURCE]
+          : []),
       ],
       8000,
     );
@@ -1914,7 +1651,11 @@ export class Device extends EventEmitter {
     DabCountPoll.on("data", (data: Buffer, characteristic: string) => {
       if (characteristic == Characteristic.TOTAL_HEAT_CYCLES) {
         if (data.byteLength != 4) return;
-        const val = data.readFloatLE(0);
+
+        const val =
+          this.productSeries == ProductSeries.Pikachoid
+            ? data.readFloatLE(0)
+            : data.readUInt32LE(0);
         if (val != currentDabCount) {
           this.poller?.emit("data", {
             totalDabs: val,
@@ -2259,12 +2000,6 @@ export class Device extends EventEmitter {
                 func,
               );
 
-              if (cursor.byteLength) console.log(msg.response.data, cursor);
-              else if (
-                characteristic ==
-                LoraxCharacteristicPathMap[Characteristic.LANTERN_COLOR]
-              )
-                console.log(msg.response.data, cursor);
               if (msg.response.data.byteLength >= this.loraxLimits.maxPayload) {
                 cursor = Buffer.concat([cursor, msg.response.data]);
                 return resolve(
@@ -2617,26 +2352,23 @@ export class Device extends EventEmitter {
         true,
       );
 
-      //      const colorCall = await this.getValue(
-      //        DynamicLoraxCharacteristics[Characteristic.PROFILE_COLOR](idx),
-      //        true
-      //      );
+      const colorCall = await this.getValue(
+        DynamicLoraxCharacteristics[Characteristic.PROFILE_COLOR](idx),
+        true,
+      );
 
       const intensityCall = await this.getValue(
         DynamicLoraxCharacteristics.PROFILE_INTENSITY(idx),
         true,
       );
 
+      const parsedColor = parseHeatColorBuffer(colorCall);
+
       const temp = Number(temperatureCall.readFloatLE(0));
       const time = Number(timeCall.readFloatLE(0).toFixed(0));
       const intensity = intensityCall.readFloatLE(0);
-      //      const color =
-      //        "#" +
-      //        colorCall.readUInt8(0).toString(16) +
-      //        colorCall.readUInt8(1).toString(16) +
-      //        colorCall.readUInt8(2).toString(16);
 
-      const color = "#ffffff";
+      const color = parsedColor.firstColorHex;
 
       console.log(
         `%c${this.device.name}%c Profile #${
@@ -2645,6 +2377,7 @@ export class Device extends EventEmitter {
         `padding: 10px; font-size: 1em; line-height: 1.4em; color: white; background: ${color}; border-radius: 15px;`,
         "font-size: 1em;",
       );
+      console.log(parsedColor);
       profiles[idx + 1] = {
         name,
         temp,

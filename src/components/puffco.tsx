@@ -1,10 +1,13 @@
 import {
   ChamberType,
   ChargeSource,
+  ProductSeries,
   PuffcoOperatingState,
 } from "@puff-social/commons/dist/puffco/constants";
+import clsx from "clsx";
 
 import { PropsWithoutRef, useEffect, useState } from "react";
+import { twMerge } from "tailwind-merge";
 import usePrefersColorScheme from "use-prefers-color-scheme";
 
 export interface DeviceProps {
@@ -23,11 +26,13 @@ export function PuffcoContainer({
   device,
   model = "peak",
   chamberType = ChamberType.Normal,
+  productSeries = ProductSeries.Pikachoid,
   className,
   svgClassName,
 }: {
   id: string;
   device?: DeviceProps;
+  productSeries?: ProductSeries;
   model?: string;
 } & PropsWithoutRef<any>) {
   const [r, setRed] = useState(0);
@@ -44,9 +49,9 @@ export function PuffcoContainer({
     setBlue(b);
   }
 
-  function animateBrightness(start, end, duration) {
+  function animateBrightness(start: number, end: number, duration: number) {
     let startTimestamp = null;
-    const step = (timestamp) => {
+    const step = (timestamp: number) => {
       if (!startTimestamp) startTimestamp = timestamp;
       const progress = Math.min((timestamp - startTimestamp) / duration, 1);
       setBrightness(Math.floor(progress * (end - start) + start));
@@ -121,123 +126,154 @@ export function PuffcoContainer({
       }`}
     >
       <div className={`flex justify-center items-center self-center`}>
-        <svg
-          className={`${
-            svgClassName || "w-full"
-          } flex justify-center items-center self-center`}
-          viewBox="0 0 5 8"
-        >
-          {["storm", "daybreak"].includes(model) ? (
-            <>
-              {model == "storm" ? (
-                <image
-                  className="flex justify-center items-center self-center"
-                  height="100%"
-                  href={`/${model}/glass.png`}
-                />
-              ) : (
-                <></>
-              )}
-              <image
-                className="flex justify-center items-center self-center"
-                height="100%"
-                href={`/${model}/base.png`}
-              />
-              {chamberType == ChamberType.XL ? (
-                <image
-                  className="flex justify-center items-center self-center"
-                  height="100%"
-                  href={`/${model}/chamber-xl.png`}
-                />
-              ) : chamberType == ChamberType.None ? (
-                <></>
-              ) : (
-                <image
-                  className="flex justify-center items-center self-center"
-                  height="100%"
-                  href={`/${model}/chamber-regular.png`}
-                />
-              )}
-            </>
-          ) : (
-            <image
-              className="flex justify-center items-center self-center"
-              height="100%"
-              href={`/${model}/device.png`}
-            />
-          )}
-          <filter
-            className="flex justify-center items-center self-center"
-            id={`${id}-svg-matrix`}
-            x="0"
-            y="0"
-            height="100%"
+        {productSeries == ProductSeries.Pikachoid ? (
+          <svg
+            className={`${
+              svgClassName || "w-full"
+            } flex justify-center items-center self-center`}
+            viewBox="0 0 5 8"
           >
-            <feColorMatrix
-              type="matrix"
-              values={`${r / 100} 0 0 0 0
-                        0 ${g / 100} 0 0 0
-                        0 0 ${b / 100} 0 0
-                        0 0 0 ${
-                          ["onyx", "pearl", "desert", "flourish"].includes(
-                            model,
-                          ) ||
-                          (!r && !g && !b)
-                            ? 0
-                            : brightness / 100
-                        } 0`}
-            ></feColorMatrix>
-          </filter>
-          {["onyx", "pearl", "desert", "flourish", "storm"].includes(model)
-            ? [
-                "peach/peak-peach-lights-glass-mid-left",
-                "peach/peak-peach-lights-glass-mid-right",
-                "peach/peak-peach-lights-glass-far-left",
-                "peach/peak-peach-lights-glass-far-right",
-                "peach/peak-peach-lights-base-far-left",
-                "peach/peak-peach-lights-base-far-right",
-                "peach/peak-peach-lights-base-mid-left",
-                "peach/peak-peach-lights-base-mid-right",
-                "peach/peak-peach-lights-ring-far-right",
-                "peach/peak-peach-lights-ring-far-left",
-                "peach/peak-peach-lights-ring-mid-left",
-              ].map((img, key) => (
+            {["storm", "daybreak"].includes(model) ? (
+              <>
+                {model == "storm" ? (
+                  <image
+                    className="flex justify-center items-center self-center"
+                    height="100%"
+                    href={`/${model}/glass.png`}
+                  />
+                ) : (
+                  <></>
+                )}
                 <image
                   className="flex justify-center items-center self-center"
                   height="100%"
-                  key={key}
-                  filter={`url(#${id}-svg-matrix)`}
-                  href={`/${img}.png`}
+                  href={`/${model}/base.png`}
                 />
-              ))
-            : [
-                "peak/device-glass-left",
-                "peak/device-glass-right",
-                "peak/device-base-left",
-                "peak/device-base-right",
-              ].map((img, key) => (
-                <image
-                  className="flex justify-center items-center self-center"
-                  height="100%"
-                  key={key}
-                  filter={`url(#${id}-svg-matrix)`}
-                  href={`/${img}.png`}
-                />
-              ))}
-          {chamberType == ChamberType.XL ? (
-            ["storm", "daybreak"].includes(model) ? (
-              <></>
+                {chamberType == ChamberType.XL ? (
+                  <image
+                    className="flex justify-center items-center self-center"
+                    height="100%"
+                    href={`/${model}/chamber-xl.png`}
+                  />
+                ) : chamberType == ChamberType.None ? (
+                  <></>
+                ) : (
+                  <image
+                    className="flex justify-center items-center self-center"
+                    height="100%"
+                    href={`/${model}/chamber-regular.png`}
+                  />
+                )}
+              </>
             ) : (
               <image
                 className="flex justify-center items-center self-center"
                 height="100%"
-                href="/shared/device-xl.png"
+                href={`/${model}/device.png`}
               />
-            )
-          ) : (
-            <></>
-          )}
-        </svg>
+            )}
+            <filter
+              className="flex justify-center items-center self-center"
+              id={`${id}-svg-matrix`}
+              x="0"
+              y="0"
+              height="100%"
+            >
+              <feColorMatrix
+                type="matrix"
+                values={`${r / 100} 0 0 0 0
+                          0 ${g / 100} 0 0 0
+                          0 0 ${b / 100} 0 0
+                          0 0 0 ${
+                            ["onyx", "pearl", "desert", "flourish"].includes(
+                              model,
+                            ) ||
+                            (!r && !g && !b)
+                              ? 0
+                              : brightness / 100
+                          } 0`}
+              ></feColorMatrix>
+            </filter>
+            {["onyx", "pearl", "desert", "flourish", "storm"].includes(model)
+              ? [
+                  "peach/peak-peach-lights-glass-mid-left",
+                  "peach/peak-peach-lights-glass-mid-right",
+                  "peach/peak-peach-lights-glass-far-left",
+                  "peach/peak-peach-lights-glass-far-right",
+                  "peach/peak-peach-lights-base-far-left",
+                  "peach/peak-peach-lights-base-far-right",
+                  "peach/peak-peach-lights-base-mid-left",
+                  "peach/peak-peach-lights-base-mid-right",
+                  "peach/peak-peach-lights-ring-far-right",
+                  "peach/peak-peach-lights-ring-far-left",
+                  "peach/peak-peach-lights-ring-mid-left",
+                ].map((img, key) => (
+                  <image
+                    className="flex justify-center items-center self-center"
+                    height="100%"
+                    key={key}
+                    filter={`url(#${id}-svg-matrix)`}
+                    href={`/${img}.png`}
+                  />
+                ))
+              : [
+                  "peak/device-glass-left",
+                  "peak/device-glass-right",
+                  "peak/device-base-left",
+                  "peak/device-base-right",
+                ].map((img, key) => (
+                  <image
+                    className="flex justify-center items-center self-center"
+                    height="100%"
+                    key={key}
+                    filter={`url(#${id}-svg-matrix)`}
+                    href={`/${img}.png`}
+                  />
+                ))}
+            {chamberType == ChamberType.XL ? (
+              ["storm", "daybreak"].includes(model) ? (
+                <></>
+              ) : (
+                <image
+                  className="flex justify-center items-center self-center"
+                  height="100%"
+                  href="/shared/device-xl.png"
+                />
+              )
+            ) : (
+              <></>
+            )}
+          </svg>
+        ) : productSeries == ProductSeries.Proxy ? (
+          <svg
+            className={twMerge(
+              clsx(
+                "w-full flex justify-center items-center self-center",
+                svgClassName,
+              ),
+            )}
+            viewBox="0 0 5 8"
+          >
+            <image
+              x="0"
+              y="0"
+              width="100%"
+              height="100%"
+              preserveAspectRatio="xMidYMid meet"
+              href={`/proxy/${model}/chamber.png`}
+            />
+            <image
+              x="0"
+              y="0"
+              width="100%"
+              height="100%"
+              preserveAspectRatio="xMidYMid meet"
+              href={`/proxy/${model}/unit.png`}
+            />
+          </svg>
+        ) : (
+          <></>
+        )}
       </div>
     </div>
   );

@@ -17,10 +17,16 @@ import { Settings } from "../components/icons/Settings";
 import {
   AuditLog,
   Characteristic,
+  DeviceCommand,
   LoraxCharacteristicPathMap,
+  ProductModelMap,
+  ProductSeries,
+  ProductSeriesMap,
+  ProxyProductModelMap,
 } from "@puff-social/commons/dist/puffco";
 import { DeviceLogsModal } from "../components/modals/DeviceLogs";
 import { selectCurrentDeviceState } from "../state/slices/device";
+import { PuffcoContainer } from "../components/puffco";
 
 const instance = new Device();
 if (typeof window != "undefined") window["instance"] = instance;
@@ -32,8 +38,6 @@ export default function Updater() {
 
   const [connected, setConnected] = useState(false);
   const [deviceLogsModalOpen, setDeviceLogsModalOpen] = useState(false);
-
-  const [logsPercentage, setLogsPercentage] = useState(0);
 
   const device = useSelector(selectCurrentDeviceState);
   const debugging = useSelector(selectDebuggingState);
@@ -70,25 +74,15 @@ export default function Updater() {
         dispatch(setSessionId(session.data.id));
       }
 
-      toast("Collecting device data and logs.", {
+      toast("Collecting device info.", {
         position: "bottom-center",
-        duration: 6000,
+        duration: 1000,
       });
-
-      instance.on("logsPercentage", setLogsPercentage);
 
       try {
         await instance.setupDevice([
           LoraxCharacteristicPathMap[Characteristic.UTC_TIME],
         ]);
-
-        setTimeout(async () => {
-          try {
-            await instance.readDeviceAuditLogs({ reverse: true });
-          } catch (error) {
-            setConnectionError(`readDeviceAuditLogs : ${error.toString()}`);
-          }
-        }, 1000);
       } catch (error) {
         setConnectionError(`setupDevice : ${error.toString()}`);
       }
@@ -127,14 +121,17 @@ export default function Updater() {
         await instance.getValue(Characteristic.DEVICE_BIRTHDAY, true)
       ).readUInt32LE(0),
       utcTime: device.utcTime,
-      deviceLogs: [...device.auditLogs].sort(
-        (a: AuditLog, b: AuditLog) => b.id - a.id,
-      ),
+      apiVersion: instance.apiVersion,
+      apiSeries: instance.apiSeries,
     };
 
     console.log(data);
 
-    await submitDebuggingSession(debugging.sessionId, data);
+    await submitDebuggingSession(
+      debugging.sessionId,
+      data,
+      "api_version_testing",
+    );
   }, [debugging, device]);
 
   return (
@@ -171,11 +168,13 @@ export default function Updater() {
                 puff.social device debugging tool
               </h2>
 
+              <p className="p-1 font-bold">
+                <span className="text-red-400">STOP!</span> If you were not sent
+                this by a puff.social team member, please do not proceed here.
+              </p>
               <p className="p-1">
-                If your puffco is doing weird things or not working in the
-                application, try to pair with the button below and we'll do our
-                best to pull any useful debugging data, we'll show you this data
-                and give you a way to send it off for review by us.
+                This will connect to your device and retrieve information about
+                the device to help us understand more about various devices.
               </p>
             </div>
 
@@ -195,43 +194,144 @@ export default function Updater() {
                 ) : bluetooth ? (
                   connected && instance.device && debugging.sessionId ? (
                     <div className="flex flex-col justify-start">
-                      <div className="m-4">
-                        <p className="font-bond">
-                          Session ID : {debugging.sessionId}
-                        </p>
-                        <p>Device Name : {instance.device.name}</p>
-                        <p>Device Serial : {instance.deviceSerialNumber}</p>
-                        <p>Model : {instance.deviceModel}</p>
-                        <p>Firmware : {instance.deviceFirmware}</p>
-                        <p>Hardware : {instance.hardwareVersion}</p>
-                        <p>MAC : {instance.deviceMacAddress}</p>
-                        <p>Device Time : {device.utcTime}</p>
-                        <p>
-                          {new Date(device.utcTime * 1000).toLocaleString()}
-                        </p>
+                      <div className="m-4 flex items-start space-x-6">
+                        <div className="w-64 h-64 flex items-center justify-center">
+                          <PuffcoContainer
+                            id="debug-preview"
+                            model={(instance.apiSeries == ProductSeries.Proxy
+                              ? ProxyProductModelMap[instance.deviceModel]
+                              : ProductModelMap[instance.deviceModel]
+                            ).toLowerCase()}
+                            productSeries={instance.apiSeries}
+                            svgClassName="w-64 h-64"
+                          />
+                        </div>
+
+                        <div className="flex-1">
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              Report ID
+                            </div>
+                            <div className="text-sm">{debugging.sessionId}</div>
+
+                            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              Device Serial
+                            </div>
+                            <div className="text-sm">
+                              {instance.deviceSerialNumber}
+                            </div>
+
+                            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              Model
+                            </div>
+                            <div className="text-sm">
+                              {instance.deviceModel} (
+                              {(instance.apiSeries == ProductSeries.Proxy
+                                ? ProxyProductModelMap[instance.deviceModel]
+                                : ProductModelMap[instance.deviceModel]) ??
+                                "Unknown"}
+                              )
+                            </div>
+
+                            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              API Version
+                            </div>
+                            <div className="text-sm">{instance.apiVersion}</div>
+
+                            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              API Series
+                            </div>
+                            <div className="text-sm">
+                              {instance.apiSeries} (
+                              {ProductSeriesMap[instance.apiSeries] ??
+                                "Unknown"}
+                              )
+                            </div>
+
+                            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              Firmware
+                            </div>
+                            <div className="text-sm">
+                              {instance.deviceFirmware} ({instance.gitHash})
+                            </div>
+
+                            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              Hardware
+                            </div>
+                            <div className="text-sm">
+                              {instance.hardwareVersion}
+                            </div>
+
+                            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              Device Time (UTC)
+                            </div>
+                            <div className="text-sm">{device.utcTime}</div>
+
+                            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              Local Time
+                            </div>
+                            <div className="text-sm">
+                              {new Date(device.utcTime * 1000).toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
-                      {logsPercentage == 100 ? (
+                      <div className="flex space-x-2">
+                        {Object.keys(instance.profiles).map((key) => (
+                          <button
+                            key={instance.profiles[key].id}
+                            className="flex w-full rounded-md bg-green-600 p-2 m-1 text-white font-bold justify-center items-center"
+                            onClick={() =>
+                              instance.sendCommand(
+                                DeviceCommand.TEMP_SELECT_STOP,
+                              ) &&
+                              instance.switchProfile(Number(key)) &&
+                              instance.sendCommand(
+                                DeviceCommand.TEMP_SELECT_BEGIN,
+                              )
+                            }
+                          >
+                            {instance.profiles[key].name}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="flex space-x-2">
                         <button
-                          className="flex w-full rounded-md bg-blue-600 hover:bg-blue-500 p-2 m-1 text-white font-bold justify-center items-center"
-                          onClick={() => setDeviceLogsModalOpen(true)}
+                          className="flex w-full rounded-md bg-green-600 p-2 m-1 text-white font-bold justify-center items-center"
+                          onClick={() =>
+                            instance.sendCommand(
+                              DeviceCommand.TEMP_SELECT_BEGIN,
+                            ) &&
+                            instance.sendCommand(DeviceCommand.SWITCH_PROFILE)
+                          }
                         >
-                          View device logs
+                          Switch Profile
                         </button>
-                      ) : (
-                        <></>
-                      )}
+                        <button
+                          className="flex w-full rounded-md bg-green-600 p-2 m-1 text-white font-bold justify-center items-center"
+                          onClick={() =>
+                            instance.sendCommand(DeviceCommand.HEAT_CYCLE_BEGIN)
+                          }
+                        >
+                          Start Heating
+                        </button>
+                        <button
+                          className="flex w-full rounded-md bg-red-600 p-2 m-1 text-white font-bold justify-center items-center"
+                          onClick={() =>
+                            instance.sendCommand(DeviceCommand.HEAT_CYCLE_STOP)
+                          }
+                        >
+                          Stop Heating
+                        </button>
+                      </div>
 
                       <button
                         className="flex w-full rounded-md bg-blue-600 hover:bg-blue-500 p-2 m-1 text-white font-bold justify-center items-center"
-                        disabled={logsPercentage != 100}
                         onClick={() => sendForReview()}
                       >
-                        {logsPercentage == 100
-                          ? "Send in for review"
-                          : `Fetching logs from device ${(
-                              logsPercentage ?? 0
-                            ).toFixed(0)}%`}
+                        Send debugging report
                       </button>
                     </div>
                   ) : (
