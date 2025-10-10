@@ -62,6 +62,8 @@ import {
   ProductSeries,
   ProductSeriesMap,
   parseHeatColorBuffer,
+  MinimumFirmwareMap,
+  revisionStringToNumber,
 } from "@puff-social/commons/dist/puffco";
 import { Op } from "@puff-social/commons/dist/constants";
 import { setProgress } from "../../state/slices/updater";
@@ -261,12 +263,24 @@ export class Device extends EventEmitter {
                   "font-size: 1em;",
                 );
 
-                const apiVersion = (
-                  await this.getValue(LoraxCharacteristicPathMap.API_VERSION)
-                ).readUInt8();
-                this.apiSeries = apiVersion >> 16;
-                this.apiVersion = apiVersion & 0xffff;
-                this.productSeries = this.apiSeries;
+                const firmware = (
+                  await this.getValue(Characteristic.FIRMWARE_VERSION)
+                ).readUInt8(0);
+
+                if (
+                  firmware >=
+                  revisionStringToNumber(MinimumFirmwareMap.API_VERSIONS)
+                ) {
+                  const apiVersion = (
+                    await this.getValue(LoraxCharacteristicPathMap.API_VERSION)
+                  ).readUInt32LE();
+                  this.apiSeries = apiVersion >> 16;
+                  this.apiVersion = apiVersion & 0xffff;
+                  this.productSeries = this.apiSeries;
+                } else {
+                  this.apiSeries = ProductSeries.Pikachoid;
+                  this.productSeries = this.apiSeries;
+                }
 
                 upperResolve(true);
 
@@ -1383,22 +1397,30 @@ export class Device extends EventEmitter {
     );
     initState.stateTime = Number(initStateTime.readFloatLE(0));
 
-    const initChargeSource = await this.getValue(
-      Characteristic.BATTERY_CHARGE_SOURCE,
-      true,
-    );
-    initState.chargeSource = Number(
-      (this.isLorax
-        ? initChargeSource.readUInt8(0)
-        : initChargeSource.readFloatLE(0)
-      ).toFixed(0),
-    );
+    if (this.productSeries == ProductSeries.Pikachoid) {
+      const initChargeSource = await this.getValue(
+        Characteristic.BATTERY_CHARGE_SOURCE,
+        true,
+      );
+      initState.chargeSource = Number(
+        (this.isLorax
+          ? initChargeSource.readUInt8(0)
+          : initChargeSource.readFloatLE(0)
+        ).toFixed(0),
+      );
+    } else {
+      initState.chargeSource = 3;
+    }
 
     const initTotalDabs = await this.getValue(
       Characteristic.TOTAL_HEAT_CYCLES,
       true,
     );
-    initState.totalDabs = Number(initTotalDabs.readFloatLE(0));
+    initState.totalDabs = Number(
+      this.productSeries == ProductSeries.Pikachoid
+        ? initTotalDabs.readFloatLE(0)
+        : initTotalDabs.readUInt32LE(0),
+    );
     deviceInfo.totalDabs = initState.totalDabs;
 
     const initDabsPerDay = await this.getValue(
@@ -1576,8 +1598,10 @@ export class Device extends EventEmitter {
     const BatteryProfilePoll = await this.pollValue(
       [
         Characteristic.PROFILE_CURRENT,
-        Characteristic.BATTERY_CHARGE_SOURCE,
         Characteristic.BATTERY_SOC,
+        ...(this.productSeries == ProductSeries.Pikachoid
+          ? [Characteristic.BATTERY_CHARGE_SOURCE]
+          : []),
       ],
       8000,
     );
@@ -1627,7 +1651,11 @@ export class Device extends EventEmitter {
     DabCountPoll.on("data", (data: Buffer, characteristic: string) => {
       if (characteristic == Characteristic.TOTAL_HEAT_CYCLES) {
         if (data.byteLength != 4) return;
-        const val = data.readFloatLE(0);
+
+        const val =
+          this.productSeries == ProductSeries.Pikachoid
+            ? data.readFloatLE(0)
+            : data.readUInt32LE(0);
         if (val != currentDabCount) {
           this.poller?.emit("data", {
             totalDabs: val,

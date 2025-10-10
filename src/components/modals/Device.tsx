@@ -15,6 +15,9 @@ import { Info } from "../icons/Info";
 import {
   DeviceState,
   ProductModelMap,
+  ProductSeries,
+  ProductSeriesMap,
+  ProxyProductModelMap,
 } from "@puff-social/commons/dist/puffco/constants";
 import { Tippy } from "../Tippy";
 import { formatRelativeTime } from "../../utils/time";
@@ -159,7 +162,10 @@ export function DeviceSettingsModal({
                       placement="bottom"
                     >
                       <p className="font-bold opacity-40">
-                        {ProductModelMap[device.deviceModel]}
+                        {(instance.apiSeries == ProductSeries.Proxy
+                          ? ProxyProductModelMap[device.deviceModel]
+                          : ProductModelMap[device.deviceModel]
+                        ).toLowerCase()}
                       </p>
                     </Tippy>
                   </span>
@@ -172,7 +178,8 @@ export function DeviceSettingsModal({
                   <span className="flex justify-between">
                     <p className="font-bold">API Version</p>
                     <p className="font-bold opacity-40">
-                      {instance.apiVersion} (Series {instance.apiSeries})
+                      {instance.apiVersion} (Series{" "}
+                      {ProductSeriesMap[instance.apiSeries] ?? "Unknown"})
                     </p>
                   </span>
                   <span className="flex justify-between">

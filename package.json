@@ -10,12 +10,13 @@
   "dependencies": {
     "@headlessui/react": "^1.7.19",
     "@headlessui/tailwindcss": "^0.2.1",
-    "@puff-social/commons": "link:../commons",
+    "@puff-social/commons": "^1.0.54",
     "@reduxjs/toolkit": "^2.5.0",
     "@sentry/nextjs": "^7.120.2",
     "@tippyjs/react": "^4.2.6",
     "@vercel/og": "^0.6.4",
     "autoprefixer": "^10.4.20",
+    "bit-twiddle": "^1.0.2",
     "byte-data": "^19.0.1",
     "cbor": "^9.0.2",
     "cbor-redux": "^1.0.0",
@@ -47,6 +48,7 @@
     "virtual-scroller": "^1.13.1"
   },
   "devDependencies": {
+    "@types/bit-twiddle": "^1.0.3",
     "@types/node": "^20.17.11",
     "@types/pako": "^2.0.3",
     "@types/react": "^18.3.18",

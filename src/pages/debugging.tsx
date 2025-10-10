@@ -20,7 +20,9 @@ import {
   DeviceCommand,
   LoraxCharacteristicPathMap,
   ProductModelMap,
+  ProductSeries,
   ProductSeriesMap,
+  ProxyProductModelMap,
 } from "@puff-social/commons/dist/puffco";
 import { DeviceLogsModal } from "../components/modals/DeviceLogs";
 import { selectCurrentDeviceState } from "../state/slices/device";
@@ -196,9 +198,10 @@ export default function Updater() {
                         <div className="w-64 h-64 flex items-center justify-center">
                           <PuffcoContainer
                             id="debug-preview"
-                            model={ProductModelMap[
-                              instance.deviceModel
-                            ].toLowerCase()}
+                            model={(instance.apiSeries == ProductSeries.Proxy
+                              ? ProxyProductModelMap[instance.deviceModel]
+                              : ProductModelMap[instance.deviceModel]
+                            ).toLowerCase()}
                             productSeries={instance.apiSeries}
                             svgClassName="w-64 h-64"
                           />
@@ -223,7 +226,9 @@ export default function Updater() {
                             </div>
                             <div className="text-sm">
                               {instance.deviceModel} (
-                              {ProductModelMap[instance.deviceModel] ??
+                              {(instance.apiSeries == ProductSeries.Proxy
+                                ? ProxyProductModelMap[instance.deviceModel]
+                                : ProductModelMap[instance.deviceModel]) ??
                                 "Unknown"}
                               )
                             </div>
