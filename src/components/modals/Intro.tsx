@@ -20,7 +20,7 @@ export function IntroModal() {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black bg-opacity-25" />
+          <div className="fixed inset-0 bg-black/25" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -35,7 +35,7 @@ export function IntroModal() {
               leaveTo="opacity-0 scale-95"
             >
               {step == 0 ? (
-                <Dialog.Panel className="w-full md:max-w-2xl max-w-screen-xl transform overflow-hidden rounded-2xl bg-white dark:bg-neutral-800 text-black dark:text-white p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className="w-full md:max-w-2xl max-w-(--breakpoint-xl) transform overflow-hidden rounded-2xl bg-white dark:bg-neutral-800 text-black dark:text-white p-6 text-left align-middle shadow-xl transition-all">
                   <div className="flex flex-col rounded-md space-y-4 justify-center items-center relative">
                     <p className="text-2xl font-bold">Welcome to puff.social</p>
 
@@ -61,7 +61,7 @@ export function IntroModal() {
                   </div>
                 </Dialog.Panel>
               ) : step == 1 ? (
-                <Dialog.Panel className="w-full md:max-w-2xl max-w-screen-xl transform overflow-hidden rounded-2xl bg-white dark:bg-neutral-800 text-black dark:text-white p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className="w-full md:max-w-2xl max-w-(--breakpoint-xl) transform overflow-hidden rounded-2xl bg-white dark:bg-neutral-800 text-black dark:text-white p-6 text-left align-middle shadow-xl transition-all">
                   <div className="flex flex-col rounded-md space-y-4 justify-center items-center relative">
                     <span
                       className="absolute top-4 left-4 hover:brightness-75 cursor-pointer"
@@ -106,7 +106,7 @@ export function IntroModal() {
                   </div>
                 </Dialog.Panel>
               ) : step == 2 ? (
-                <Dialog.Panel className="w-full md:max-w-2xl max-w-screen-xl transform overflow-hidden rounded-2xl bg-white dark:bg-neutral-800 text-black dark:text-white p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className="w-full md:max-w-2xl max-w-(--breakpoint-xl) transform overflow-hidden rounded-2xl bg-white dark:bg-neutral-800 text-black dark:text-white p-6 text-left align-middle shadow-xl transition-all">
                   <div className="flex flex-col rounded-md space-y-4 justify-center items-center relative">
                     <span
                       className="absolute top-4 left-4 hover:brightness-75 cursor-pointer"
@@ -142,7 +142,7 @@ export function IntroModal() {
                   </div>
                 </Dialog.Panel>
               ) : step == 3 ? (
-                <Dialog.Panel className="w-full md:max-w-2xl max-w-screen-xl transform overflow-hidden rounded-2xl bg-white dark:bg-neutral-800 text-black dark:text-white p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className="w-full md:max-w-2xl max-w-(--breakpoint-xl) transform overflow-hidden rounded-2xl bg-white dark:bg-neutral-800 text-black dark:text-white p-6 text-left align-middle shadow-xl transition-all">
                   <div className="flex flex-col rounded-md space-y-4 justify-center items-center relative">
                     <span
                       className="absolute top-4 left-4 hover:brightness-75 cursor-pointer"
@@ -190,7 +190,7 @@ export function IntroModal() {
                   </div>
                 </Dialog.Panel>
               ) : step == 4 ? (
-                <Dialog.Panel className="w-full md:max-w-2xl max-w-screen-xl transform overflow-hidden rounded-2xl bg-white dark:bg-neutral-800 text-black dark:text-white p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className="w-full md:max-w-2xl max-w-(--breakpoint-xl) transform overflow-hidden rounded-2xl bg-white dark:bg-neutral-800 text-black dark:text-white p-6 text-left align-middle shadow-xl transition-all">
                   <div className="flex flex-col rounded-md space-y-4 justify-center items-center relative">
                     <span
                       className="absolute top-4 left-4 hover:brightness-75 cursor-pointer"

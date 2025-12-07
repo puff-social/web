@@ -1,74 +1,106 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "tw-animate-css";
 
 body {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Roboto Mono', monospace, 'Noto Color Emoji';
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Roboto Mono", monospace, "Noto Color Emoji";
 }
 
-@layer base {
-  * {
+* {
     @apply transition-colors;
-  }
+}
 
-  body {
+body {
     @apply text-black bg-white dark:text-white dark:bg-neutral-900 transition-all;
-  }
+}
 
-  .tippy-box-tip .tippy-arrow {
+.tippy-box-tip .tippy-arrow {
     @apply rounded-md text-white dark:text-neutral-800 drop-shadow-xl;
-  }
-  
-  .tippy-box-tip {
-    @apply rounded-md bg-white text-black dark:bg-neutral-800 dark:text-white p-2 drop-shadow-xl; 
-  }
-  
-  .tippy-box-none {
-    @apply bg-transparent; 
-  }
+}
+
+.tippy-box-tip {
+    @apply rounded-md bg-white text-black dark:bg-neutral-800 dark:text-white p-2 drop-shadow-xl;
+}
+
+.tippy-box-none {
+    @apply bg-transparent;
 }
 
 .emoji-styles {
-  z-index: 20 !important;
+    z-index: 20 !important;
 }
 
 .coda-regular {
-  font-family: 'Coda';
+    font-family: "Coda";
 }
 
-.rainbow { 
-  background: linear-gradient(124deg, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #dd00f3);
-  background-size: 1800% 1800%;
+.rainbow {
+    background: linear-gradient(
+        124deg,
+        #ff2400,
+        #e81d1d,
+        #e8b71d,
+        #e3e81d,
+        #1de840,
+        #1ddde8,
+        #2b1de8,
+        #dd00f3,
+        #dd00f3
+    );
+    background-size: 1800% 1800%;
 
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 
-  -webkit-animation: rainbow 8s ease infinite;
-  -z-animation: rainbow 8s ease infinite;
-  -o-animation: rainbow 8s ease infinite;
-  animation: rainbow 8s ease infinite;
+    -webkit-animation: rainbow 8s ease infinite;
+    -z-animation: rainbow 8s ease infinite;
+    -o-animation: rainbow 8s ease infinite;
+    animation: rainbow 8s ease infinite;
 }
 
 @-webkit-keyframes rainbow {
-    0% { background-position: 0% 82% }
-    50% { background-position: 100% 19% }
-    100% { background-position: 0% 82% }
+    0% {
+        background-position: 0% 82%;
+    }
+    50% {
+        background-position: 100% 19%;
+    }
+    100% {
+        background-position: 0% 82%;
+    }
 }
 @-moz-keyframes rainbow {
-    0% { background-position: 0% 82% }
-    50% { background-position: 100% 19% }
-    100% { background-position: 0% 82% }
+    0% {
+        background-position: 0% 82%;
+    }
+    50% {
+        background-position: 100% 19%;
+    }
+    100% {
+        background-position: 0% 82%;
+    }
 }
 @-o-keyframes rainbow {
-    0% { background-position: 0% 82% }
-    50% { background-position: 100% 19% }
-    100% { background-position: 0% 82% }
+    0% {
+        background-position: 0% 82%;
+    }
+    50% {
+        background-position: 100% 19%;
+    }
+    100% {
+        background-position: 0% 82%;
+    }
 }
-@keyframes rainbow { 
-    0% { background-position: 0% 82% }
-    50% { background-position: 100% 19% }
-    100% { background-position: 0% 82% }
+@keyframes rainbow {
+    0% {
+        background-position: 0% 82%;
+    }
+    50% {
+        background-position: 100% 19%;
+    }
+    100% {
+        background-position: 0% 82%;
+    }
 }

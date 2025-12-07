@@ -158,7 +158,7 @@ export function GroupActions({
                 (mem) =>
                   mem.away &&
                   typeof mem.device_state == "object" &&
-                  Object.keys(mem.device_state || {}).length > 0
+                  Object.keys(mem.device_state || {}).length > 0,
               ).length !=
                 group.members.filter((mem) => validState(mem.device_state))
                   .length ? (
@@ -239,10 +239,10 @@ export function GroupActions({
                                     className="hidden group-hover:flex rounded-full p-2 w-8 h-8 justify-center items-center bg-black dark:bg-white text-white opacity-50 group-hover:opacity-100 cursor-pointer dark:text-black fixed z-10 right-0"
                                     onClick={() => {
                                       dispatch(
-                                        setEditingProfileIndex(Number(key))
+                                        setEditingProfileIndex(Number(key)),
                                       );
                                       dispatch(
-                                        setEditingProfile(deviceProfiles[key])
+                                        setEditingProfile(deviceProfiles[key]),
                                       );
                                       dispatch(setProfileModalOpen(true));
                                     }}
@@ -255,7 +255,7 @@ export function GroupActions({
                                     onClick={async () => {
                                       await instance.switchProfile(Number(key));
                                       toast(
-                                        `Switched device profile to ${deviceProfiles[key].name}`
+                                        `Switched device profile to ${deviceProfiles[key].name}`,
                                       );
                                     }}
                                   >
@@ -275,7 +275,7 @@ export function GroupActions({
                                       </span>
                                       <p className="text-2xl font-bold">
                                         {Math.round(
-                                          deviceProfiles[key].temp * 1.8 + 32
+                                          deviceProfiles[key].temp * 1.8 + 32,
                                         )}
                                         °
                                       </p>
@@ -317,7 +317,7 @@ export function GroupActions({
                       >
                         <span className="flex p-2 rounded-md text-black dark:text-white bg-stone-100 hover:bg-stone-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer items-center justify-between">
                           {!ui.dismissedBadges.includes(
-                            "deviceProfileEditor"
+                            "deviceProfileEditor",
                           ) ? (
                             <div className="absolute top-0 -right-4 -m-1 bg-red-600 rounded-full px-1">
                               New

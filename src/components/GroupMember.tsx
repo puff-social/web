@@ -190,9 +190,9 @@ export function GroupMember(props: GroupMemberProps) {
       } ${props.thing ? "w-full" : "w-[440px] m-1"} ${
         props.device
           ? props.member?.user?.flags & UserFlags.admin
-            ? "rounded-md bg-gradient-to-r from-blue-500/60 to-purple-700/60 p-px"
+            ? "rounded-md bg-linear-to-r from-blue-500/60 to-purple-700/60 p-px"
             : props.member?.user?.flags & UserFlags.supporter
-              ? "rounded-md bg-gradient-to-r from-green-500/60 to-yellow-600/60 p-px"
+              ? "rounded-md bg-linear-to-r from-green-500/60 to-yellow-600/60 p-px"
               : ""
           : ""
       }`}
@@ -217,7 +217,7 @@ export function GroupMember(props: GroupMemberProps) {
         {christmasTime ? (
           <ChristmasLights
             count={10}
-            altClass="absolute top-0 -z-[60] w-full h-full"
+            altClass="absolute top-0 -z-60 w-full h-full"
           />
         ) : (
           <></>
@@ -772,7 +772,7 @@ export function GroupMember(props: GroupMemberProps) {
                       placement="bottom"
                     >
                       <span className="flex space-x-2">
-                        <p className="text-sm truncate max-w-[8rem]">
+                        <p className="text-sm truncate max-w-32">
                           {props.device.profile.name}
                         </p>
                         <span className="flex space-x-2 text-sm">

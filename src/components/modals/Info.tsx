@@ -23,7 +23,7 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black bg-opacity-25" />
+          <div className="fixed inset-0 bg-black/25" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -37,7 +37,7 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-screen-xl transform overflow-hidden rounded-2xl bg-white dark:bg-neutral-800 text-black dark:text-white p-6 text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-(--breakpoint-xl) transform overflow-hidden rounded-2xl bg-white dark:bg-neutral-800 text-black dark:text-white p-6 text-left align-middle shadow-xl transition-all">
                 <div className="flex flex-col rounded-md space-y-4 justify-center">
                   <p className="text-2xl font-bold">About</p>
                   <span className="flex flex-row space-x-2">
@@ -72,7 +72,7 @@ export function InfoModal({ modalOpen, setModalOpen }: Props) {
                   <span className="flex flex-row space-x-4">
                     <span className="w-full">
                       <img className="w-96 rounded-md" src="/puff.webp" />
-                      <p className="flex text-sm italic opacity-40 break-words flex-wrap">
+                      <p className="flex text-sm italic opacity-40 wrap-break-word flex-wrap">
                         Older design is pictured, updating this graphic soon.
                       </p>
                     </span>
