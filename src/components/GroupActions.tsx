@@ -85,7 +85,7 @@ export function GroupActions({
   setFeedbackModalOpen,
   setLeaderboardOpen,
 }: ActionsProps) {
-  const reactionButton = useRef<HTMLDivElement>();
+  const reactionButton = useRef<HTMLDivElement>(null);
 
   const ui = useSelector(selectUIState);
   const session = useSelector(selectSessionState);

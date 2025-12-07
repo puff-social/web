@@ -1995,7 +1995,7 @@ export class Device extends EventEmitter {
       LoraxCharacteristic.COMMAND,
     );
     try {
-      return await char.writeValueWithoutResponse(message);
+      return await char.writeValueWithoutResponse(Buffer.from(message));
     } catch (error) {
       if (
         error &&
@@ -2870,7 +2870,7 @@ export class Device extends EventEmitter {
             } else {
               await char[
                 this.isPup ? "writeValue" : "writeValueWithoutResponse"
-              ](chunk);
+              ](Buffer.from(chunk));
             }
 
             await new Promise((resolve) => setTimeout(() => resolve(1), 10));

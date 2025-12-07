@@ -81,7 +81,7 @@ interface GroupMemberProps {
 
 export function GroupMember(props: GroupMemberProps) {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
-  const userActionsButton = useRef<HTMLSpanElement>();
+  const userActionsButton = useRef<HTMLSpanElement>(null);
   const [hoveringCard, setHoveringCard] = useState(false);
   const [leaderboardPos, setLeaderboardPos] = useState<number>(
     props.leaderboardPosition || 0,
@@ -728,7 +728,7 @@ export function GroupMember(props: GroupMemberProps) {
                           : ""}
                       </h3>
                       {props.ready ? (
-                        <Checkmark className="ml-2 text-green-700 w-[20px] h-[20px]" />
+                        <Checkmark className="ml-2 text-green-700 w-5 h-5" />
                       ) : (
                         <></>
                       )}

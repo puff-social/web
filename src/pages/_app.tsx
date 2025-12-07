@@ -262,7 +262,6 @@ function App({ Component, store, props }) {
                 <Transition
                   appear
                   show={t.visible}
-                  className="transform flex justify-center items-center rounded-md p-2 bg-white text-black dark:bg-neutral-800 dark:text-white drop-shadow-xl max-w-96"
                   enter="transition-all duration-150"
                   enterFrom="opacity-0 scale-50"
                   enterTo="opacity-100 scale-100"
@@ -270,8 +269,10 @@ function App({ Component, store, props }) {
                   leaveFrom="opacity-100 scale-100"
                   leaveTo="opacity-0 scale-75"
                 >
-                  <ToastIcon toast={t} />
-                  <p className="px-2">{resolveValue(t.message, t)}</p>
+                  <div className="transform flex justify-center items-center rounded-md p-2 bg-white text-black dark:bg-neutral-800 dark:text-white drop-shadow-xl max-w-96">
+                    <ToastIcon toast={t} />
+                    <p className="px-2">{resolveValue(t.message, t)}</p>
+                  </div>
                 </Transition>
               )}
             </Toaster>

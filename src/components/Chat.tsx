@@ -18,7 +18,7 @@ interface Props {
 }
 
 export function ChatBox(props: Props) {
-  const messagesBox = useRef<HTMLDivElement>();
+  const messagesBox = useRef<HTMLDivElement>(null);
   const [content, setContent] = useState<string>();
   const [messages, setMessages] = useState<GroupChatMessage[]>([]);
 
@@ -36,7 +36,7 @@ export function ChatBox(props: Props) {
             behavior: "smooth",
             top: messagesBox.current.scrollHeight,
           }),
-        50
+        50,
       );
       return [...messages, message];
     });
@@ -83,7 +83,7 @@ export function ChatBox(props: Props) {
               <div className="flex justify-between">
                 <span>
                   {props.members.find(
-                    (mem) => mem.session_id == message.author_session_id
+                    (mem) => mem.session_id == message.author_session_id,
                   )?.user?.display_name ||
                     props.user?.display_name ||
                     "Unknown User"}
@@ -91,7 +91,7 @@ export function ChatBox(props: Props) {
                 <span>
                   {new Date(message.message.timestamp).toLocaleTimeString(
                     navigator.language || "en-US",
-                    { timeStyle: "short" }
+                    { timeStyle: "short" },
                   )}
                 </span>
               </div>

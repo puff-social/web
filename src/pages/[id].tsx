@@ -74,7 +74,7 @@ export default function Group({
   const router = useRouter();
   const [initGroup] = useState(initGrp);
 
-  const membersList = useRef<HTMLDivElement>();
+  const membersList = useRef<HTMLDivElement>(null);
 
   const { connectDismissed, group } = useSelector(selectGroupState);
   const dispatch = useDispatch();
