@@ -19,7 +19,7 @@ export function SuspendedModal() {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/25" />
+          <div className="fixed inset-0 bg-black bg-opacity-25" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -44,7 +44,7 @@ export function SuspendedModal() {
                       className="cursor-pointer bg-neutral-700 w-fit rounded-md px-1 underline"
                       onClick={() =>
                         window.open(
-                          `mailto:suspensions@puff.social?subject=Appealing suspension for ${session?.user.id}`,
+                          `mailto:suspensions@puff.social?subject=Appealing suspension for ${session?.user.id}`
                         )
                       }
                     >

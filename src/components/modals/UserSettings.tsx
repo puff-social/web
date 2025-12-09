@@ -13,21 +13,20 @@ export function UserSettingsModal({ modalOpen, setModalOpen }: any) {
   const [defaultVisibility, setDefaultVisibility] = useState(() =>
     typeof localStorage != "undefined"
       ? localStorage.getItem("puff-default-visbility") || "private"
-      : "private",
+      : "private"
   );
 
-  const [groupStartOnBatteryCheck, setGroupStartOnBatteryCheck] = useState(
-    () =>
-      typeof localStorage != "undefined"
-        ? localStorage.getItem("puff-battery-check-start") == "true" || false
-        : false,
+  const [groupStartOnBatteryCheck, setGroupStartOnBatteryCheck] = useState(() =>
+    typeof localStorage != "undefined"
+      ? localStorage.getItem("puff-battery-check-start") == "true" || false
+      : false
   );
 
   const saveSettings = useCallback(() => {
     localStorage.setItem("puff-default-visbility", defaultVisibility);
     localStorage.setItem(
       "puff-battery-check-start",
-      groupStartOnBatteryCheck.toString(),
+      groupStartOnBatteryCheck.toString()
     );
     toast("Updated user settings", {
       position: "top-right",
@@ -51,7 +50,7 @@ export function UserSettingsModal({ modalOpen, setModalOpen }: any) {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/25" />
+          <div className="fixed inset-0 bg-black bg-opacity-25" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">

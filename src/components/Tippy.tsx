@@ -16,8 +16,8 @@ export function Tippy(props: TippyProps & CustomProps) {
         typeof props.content == "string"
           ? "tippy-box-tip"
           : props.bg
-            ? "tippy-box-tip"
-            : "tippy-box-none"
+          ? "tippy-box-tip"
+          : "tippy-box-none"
       } ${props.extraClass}`}
       content={
         typeof props.content == "string" ? (
