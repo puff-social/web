@@ -25,7 +25,7 @@ export default function DeviceOverlay(props: Props) {
   const [oldDomain] = useState(
     () =>
       typeof window !== "undefined" &&
-      window.location.hostname === "clock.puff.social",
+      window.location.hostname === "puff.social",
   );
 
   const watchedUpdate = useCallback(
