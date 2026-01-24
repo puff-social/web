@@ -2,7 +2,7 @@ const { withSentryConfig } = require("@sentry/nextjs");
 const { withPlausibleProxy } = require("next-plausible");
 
 const cspHeader = `
-    default-src wss://rosin.puff.social https://rosin.puff.social https://cdn.puff.social https://hash.puff.social https://o1220194.ingest.sentry.io 'self';
+    default-src wss://puff-ws.dstn.to wss://rosin.puff.social https://puff-ws.dstn.to https://rosin.puff.social https://puffcdn.dstn.to https://cdn.puff.social https://puff-api.dstn.to https://hash.puff.social https://o1220194.ingest.sentry.io 'self';
     script-src 'self' 'unsafe-eval' 'unsafe-inline';
     style-src https://fonts.gstatic.com https://fonts.googleapis.com 'self' 'unsafe-inline';
     img-src https://cdn.puff.social 'self' blob: data:;

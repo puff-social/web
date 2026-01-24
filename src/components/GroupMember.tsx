@@ -517,7 +517,7 @@ export function GroupMember(props: GroupMemberProps) {
                   {props.member?.user && props.member?.user.image ? (
                     <img
                       className="rounded-full p-0.5 w-7 h-7"
-                      src={`https://cdn.puff.social/avatars/${
+                      src={`https://puffcdn.dstn.to/avatars/${
                         props.member?.user.id
                       }/${props.member?.user.image}.${
                         props.member?.user.image.startsWith("a_")

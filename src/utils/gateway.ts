@@ -72,71 +72,71 @@ export interface Gateway {
   on(event: "group_join_error", listener: (error: GatewayError) => void): this;
   on(
     event: "group_visibility_change",
-    listener: (action: GroupActionInitiator & { visibility: string }) => void
+    listener: (action: GroupActionInitiator & { visibility: string }) => void,
   ): this;
   on(event: "group_user_join", listener: (group: GroupUserJoin) => void): this;
   on(event: "group_user_left", listener: (group: GroupUserLeft) => void): this;
   on(
     event: "group_create",
-    listener: (group: GatewayGroupCreate) => void
+    listener: (group: GatewayGroupCreate) => void,
   ): this;
   on(event: "group_update", listener: (group: GatewayGroup) => void): this;
   on(
     event: "group_delete",
-    listener: (group: GatewayGroupAction) => void
+    listener: (group: GatewayGroupAction) => void,
   ): this;
   on(
     event: "group_user_update",
-    listener: (group: GroupUserUpdate) => void
+    listener: (group: GroupUserUpdate) => void,
   ): this;
   on(
     event: "group_user_device_update",
-    listener: (group: GroupUserDeviceUpdate) => void
+    listener: (group: GroupUserDeviceUpdate) => void,
   ): this;
   on(
     event: "group_user_device_disconnect",
-    listener: (group: GroupUserDeviceDisconnect) => void
+    listener: (group: GroupUserDeviceDisconnect) => void,
   ): this;
   on(
     event: "group_action_error",
-    listener: (error: GatewayError) => void
+    listener: (error: GatewayError) => void,
   ): this;
   on(
     event: "group_heat_inquiry",
-    listener: (group: GroupHeatInquire) => void
+    listener: (group: GroupHeatInquire) => void,
   ): this;
   on(event: "group_heat_begin", listener: (heat: GroupHeatBegin) => void): this;
   on(
     event: "group_user_ready",
-    listener: (action: GroupActionInitiator) => void
+    listener: (action: GroupActionInitiator) => void,
   ): this;
   on(
     event: "group_user_unready",
-    listener: (action: GroupActionInitiator) => void
+    listener: (action: GroupActionInitiator) => void,
   ): this;
   on(
     event: "public_groups_update",
-    listener: (groups: APIGroup[]) => void
+    listener: (groups: APIGroup[]) => void,
   ): this;
   on(
     event: "group_create_error",
-    listener: (error: GatewayError) => void
+    listener: (error: GatewayError) => void,
   ): this;
   on(
     event: "group_message",
-    listener: (message: GroupChatMessage) => void
+    listener: (message: GroupChatMessage) => void,
   ): this;
   on(
     event: "group_reaction",
-    listener: (reaction: GroupReaction) => void
+    listener: (reaction: GroupReaction) => void,
   ): this;
   on(
     event: "group_user_kicked",
-    listener: (group: GatewayGroupAction) => void
+    listener: (group: GatewayGroupAction) => void,
   ): this;
   on(
     event: "group_user_away_state",
-    listener: (group: GatewayGroupUserAwayState) => void
+    listener: (group: GatewayGroupUserAwayState) => void,
   ): this;
   on(event: "internal_error", listener: (error: any) => void): this;
   on(event: "syntax_error", listener: (error: any) => void): this;
@@ -147,18 +147,18 @@ export interface Gateway {
   on(event: "user_update_error", listener: (error: GatewayError) => void): this;
   on(
     event: "watched_device_update",
-    listener: (data: GatewayWatchedDeviceUpdate) => void
+    listener: (data: GatewayWatchedDeviceUpdate) => void,
   ): this;
   on(
     event: "remote_action",
-    listener: (data: RemoteActionPayload) => void
+    listener: (data: RemoteActionPayload) => void,
   ): this;
 }
 export class Gateway extends EventEmitter {
   constructor(
-    url = "wss://rosin.puff.social",
+    url = "wss://puff-ws.dstn.to",
     encoding = "json",
-    compression = "none"
+    compression = "none",
   ) {
     super();
 
@@ -173,7 +173,7 @@ export class Gateway extends EventEmitter {
 
   private init(): void {
     this.ws = new WebSocket(
-      `${this.url}/socket?encoding=${this.encoding}&compression=${this.compression}`
+      `${this.url}/socket?encoding=${this.encoding}&compression=${this.compression}`,
     );
     if (this.compression != "none") this.ws.binaryType = "arraybuffer";
 
@@ -199,12 +199,12 @@ export class Gateway extends EventEmitter {
 
       try {
         this.message(message);
-      } catch (error) { }
+      } catch (error) {}
     });
 
     // Close event for websocket
     this.ws.addEventListener("close", (event) =>
-      this.closed(event.code, event.reason)
+      this.closed(event.code, event.reason),
     );
   }
 
@@ -223,7 +223,7 @@ export class Gateway extends EventEmitter {
           ? 1000 * 5
           : this.connectionAttempt == 3
             ? 1000 * 10
-            : 1000 * 15
+            : 1000 * 15,
     );
   }
 
@@ -245,7 +245,7 @@ export class Gateway extends EventEmitter {
       case Op.Hello:
         this.heartbeat = setInterval(
           () => this.sendHeartbeat(),
-          data.d.heartbeat_interval
+          data.d.heartbeat_interval,
         );
 
         if (this.session_token && this.session_id) {
@@ -322,7 +322,7 @@ export class Gateway extends EventEmitter {
           }
           case Event.GroupUserDeviceUpdate: {
             store.dispatch(
-              updateGroupMemberDevice(data.d as GroupUserDeviceUpdate)
+              updateGroupMemberDevice(data.d as GroupUserDeviceUpdate),
             );
             this.emit("group_user_device_update", data.d);
             break;
@@ -346,7 +346,7 @@ export class Gateway extends EventEmitter {
                 store.dispatch(
                   setGroupState({
                     joinErrorMessage: "Unknown or invalid group ID",
-                  })
+                  }),
                 );
                 break;
               }
@@ -379,7 +379,7 @@ export class Gateway extends EventEmitter {
               updateGroupMemberDevice({
                 ...data.d,
                 device_state: null,
-              } as GroupUserDeviceUpdate)
+              } as GroupUserDeviceUpdate),
             );
             this.emit("group_user_device_disconnect", data.d);
             break;
@@ -451,12 +451,13 @@ export class Gateway extends EventEmitter {
 
   private opened(): void {
     console.log(
-      `%c${SOCKET_URL.includes("puff.social")
-        ? SOCKET_URL.split(".")[0].split("//")[1]
-        : "Local"
+      `%c${
+        SOCKET_URL.includes("puff.social") || SOCKET_URL.includes("dstn.to")
+          ? SOCKET_URL.split(".")[0].split("//")[1]
+          : "Local"
       }%c Socket connection opened`,
       "padding: 10px; text-transform: capitalize; font-size: 1em; line-height: 1.4em; color: white; background: #151515; border-radius: 15px;",
-      "font-size: 1em;"
+      "font-size: 1em;",
     );
     this.emit("connected");
     this.resetConnectionThrottle();
@@ -466,12 +467,13 @@ export class Gateway extends EventEmitter {
     if (code != 4006) this.emit("close");
 
     console.log(
-      `%c${SOCKET_URL.includes("puff.social")
-        ? SOCKET_URL.split(".")[0].split("//")[1]
-        : "Local"
+      `%c${
+        SOCKET_URL.includes("puff.social") || SOCKET_URL.includes("dstn.to")
+          ? SOCKET_URL.split(".")[0].split("//")[1]
+          : "Local"
       }%c Socket connection closed ${code} - ${reason || "no reason"}`,
       "padding: 10px; text-transform: capitalize; font-size: 1em; line-height: 1.4em; color: white; background: #151515; border-radius: 15px;",
-      "font-size: 1em;"
+      "font-size: 1em;",
     );
 
     clearInterval(this.heartbeat);
@@ -482,11 +484,9 @@ export class Gateway extends EventEmitter {
 
 export const SOCKET_URL =
   typeof location != "undefined" &&
-    ["localhost", "beta.puff.social"].includes(location.hostname)
-    ? location.hostname == "beta.puff.social"
-      ? "wss://flower.puff.social"
-      : "ws://127.0.0.1:9000"
-    : "wss://rosin.puff.social";
+  ["localhost", "beta.puff.social"].includes(location.hostname)
+    ? "ws://127.0.0.1:9000"
+    : "wss://puff-ws.dstn.to";
 export const gateway = typeof window != "undefined" && new Gateway(SOCKET_URL);
 
 if (typeof window != "undefined") window["gateway"] = gateway;

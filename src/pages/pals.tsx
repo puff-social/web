@@ -33,11 +33,11 @@ export default function PalsPageRedirect() {
       <meta content="summary_large_image" name="twitter:card" />
       <meta
         name="twitter:image"
-        content="https://cdn.puff.social/assets/meta/pals.png"
+        content="https://puffcdn.dstn.to/assets/meta/pals.png"
       />
       <meta
         property="og:image"
-        content="https://cdn.puff.social/assets/meta/pals.png"
+        content="https://puffcdn.dstn.to/assets/meta/pals.png"
       />
 
       <meta http-equiv="refresh" content="0; url=http://rwrd.io/6ao52xb?s" />

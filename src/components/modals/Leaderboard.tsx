@@ -58,7 +58,7 @@ function LeaderboardItem({
               <>
                 <img
                   className="rounded-full p-0.5 w-6 h-6"
-                  src={`https://cdn.puff.social/avatars/${lb.devices.user_id}/${
+                  src={`https://puffcdn.dstn.to/avatars/${lb.devices.user_id}/${
                     lb.devices.users.image
                   }.${lb.devices.users.image.startsWith("a_") ? "gif" : "png"}`}
                 />
@@ -175,7 +175,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                       <div className="flex space-x-2">
                         {leaderboard.slice(0, 3).map((lb, index) => {
                           const dob = automaticRelativeDifference(
-                            new Date(lb.devices.dob)
+                            new Date(lb.devices.dob),
                           );
                           return (
                             <span
@@ -211,11 +211,11 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                                           <>
                                             <img
                                               className="rounded-full p-0.5 w-6 h-6"
-                                              src={`https://cdn.puff.social/avatars/${
+                                              src={`https://puffcdn.dstn.to/avatars/${
                                                 lb.devices.user_id
                                               }/${lb.devices.users.image}.${
                                                 lb.devices.users.image.startsWith(
-                                                  "a_"
+                                                  "a_",
                                                 )
                                                   ? "gif"
                                                   : "png"
@@ -249,7 +249,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                                             ? "Unknown"
                                             : formatter.format(
                                                 dob.duration,
-                                                dob.unit
+                                                dob.unit,
                                               )
                                         }`}
                                         placement="bottom"
@@ -260,7 +260,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                                           "1970-01-01T00:00:01.000Z"
                                             ? "Unknown"
                                             : new Date(
-                                                lb.devices.dob
+                                                lb.devices.dob,
                                               ).toLocaleDateString()}
                                         </p>
                                       </Tippy>
@@ -272,11 +272,11 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                                           🕐{" "}
                                           {formatter.format(
                                             automaticRelativeDifference(
-                                              new Date(lb.devices.last_active)
+                                              new Date(lb.devices.last_active),
                                             ).duration,
                                             automaticRelativeDifference(
-                                              new Date(lb.devices.last_active)
-                                            ).unit
+                                              new Date(lb.devices.last_active),
+                                            ).unit,
                                           )}
                                         </p>
                                       </Tippy>
@@ -299,16 +299,16 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                                                 b: 0,
                                               }
                                             : index == 1
-                                            ? {
-                                                r: 192,
-                                                g: 192,
-                                                b: 192,
-                                              }
-                                            : {
-                                                r: 205,
-                                                g: 127,
-                                                b: 50,
-                                              },
+                                              ? {
+                                                  r: 192,
+                                                  g: 192,
+                                                  b: 192,
+                                                }
+                                              : {
+                                                  r: 205,
+                                                  g: 127,
+                                                  b: 50,
+                                                },
                                         state: PuffcoOperatingState.IDLE,
                                         chargeSource: ChargeSource.None,
                                       }}
@@ -327,7 +327,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                             lb={lb}
                             index={index + 4}
                             last_active={automaticRelativeDifference(
-                              new Date(lb.devices.last_active)
+                              new Date(lb.devices.last_active),
                             )}
                           />
                         );
