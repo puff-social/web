@@ -25,7 +25,8 @@ export default function DeviceOverlay(props: Props) {
   const [oldDomain] = useState(
     () =>
       typeof window !== "undefined" &&
-      window.location.hostname === "puff.social",
+      (window.location.hostname === "puff.social" ||
+        window.location.hostname === "127.0.0.1"),
   );
 
   const watchedUpdate = useCallback(
@@ -91,7 +92,7 @@ export default function DeviceOverlay(props: Props) {
       <MainMeta />
 
       {oldDomain ? (
-        <div className="mb-4 rounded-md border border-amber-400/60 bg-amber-100/80 p-4 text-amber-900 dark:border-amber-400/40 dark:bg-amber-900/40 dark:text-amber-100">
+        <div className="flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md m-1 px-8 w-[440px] h-32 justify-center items-center">
           <p className="text-base font-semibold leading-tight">
             This domain is going away...
           </p>
