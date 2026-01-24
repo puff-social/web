@@ -8,7 +8,7 @@ interface Props {
   setModalOpen: (open: boolean) => void;
 }
 
-const EXPIRY_DATE_EPOCH = 1738627200000;
+const EXPIRY_DATE_EPOCH = 1770163200000;
 
 export function DonationModal({ modalOpen, setModalOpen, from }: Props) {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
@@ -67,7 +67,7 @@ export function DonationModal({ modalOpen, setModalOpen, from }: Props) {
                             </span>{" "}
                             is due for renewal on{" "}
                             <span className="px-1 bg-neutral-300 dark:bg-neutral-600 rounded-md">
-                              February 4th, 2025
+                              February 4th, 2026
                             </span>
                             <span className="px-1 bg-neutral-300 dark:bg-neutral-600 rounded-md ml-2">
                               ({expiry})
@@ -76,12 +76,20 @@ export function DonationModal({ modalOpen, setModalOpen, from }: Props) {
                           <p>
                             For transparency, the domain currently costs{" "}
                             <span className="px-1 bg-neutral-300 dark:bg-neutral-600 rounded-md">
-                              $40/year
+                              $35/year
                             </span>
                           </p>
                           <p>
-                            If you wanna see us stick around, we'd love to have
-                            your support.
+                            If you wanna see the{" "}
+                            <span className="px-1 bg-neutral-300 dark:bg-neutral-600 rounded-md">
+                              puff.social
+                            </span>{" "}
+                            domain stick around, we'd love to have your support,
+                            otherwise{" "}
+                            <span className="px-1 bg-neutral-300 dark:bg-neutral-600 rounded-md">
+                              puff.dstn.to
+                            </span>{" "}
+                            is here to stay
                           </p>
                         </>
                       ) : (

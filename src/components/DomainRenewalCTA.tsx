@@ -4,7 +4,7 @@ import NoSSR from "./NoSSR";
 import { formatRelativeTimeInDays } from "../utils/time";
 import { usePlausible } from "next-plausible";
 
-const EXPIRY_DATE_EPOCH = 1738627200000;
+const EXPIRY_DATE_EPOCH = 1770163200000;
 
 export function DomainRenewalCTA() {
   const plausible = usePlausible();
@@ -31,7 +31,7 @@ export function DomainRenewalCTA() {
             renewal on <span className="font-bold">February 4th</span> ({expiry}
             ){" "}
             <span className="font-bold underline">
-              Keep us around with your support!
+              Keep the domain around with your support!
             </span>
           </p>
           <p>🚨</p>
