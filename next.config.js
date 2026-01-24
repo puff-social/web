@@ -5,7 +5,7 @@ const cspHeader = `
     default-src wss://puff-ws.dstn.to wss://rosin.puff.social https://puff-ws.dstn.to https://rosin.puff.social https://puffcdn.dstn.to https://cdn.puff.social https://puff-api.dstn.to https://hash.puff.social https://o1220194.ingest.sentry.io 'self';
     script-src 'self' 'unsafe-eval' 'unsafe-inline';
     style-src https://fonts.gstatic.com https://fonts.googleapis.com 'self' 'unsafe-inline';
-    img-src https://cdn.puff.social 'self' blob: data:;
+    img-src https://cdn.puff.social https://puffcdn.dstn.to 'self' blob: data:;
     font-src https://fonts.gstatic.com https://fonts.googleapis.com 'self';
     object-src 'none';
     base-uri 'self';
@@ -34,7 +34,7 @@ const moduleExports = {
     return [
       {
         source: "/puffco",
-        destination: "https://puff.social/pals",
+        destination: "https://puff.dstn.to/pals",
         permanent: false,
       },
       {
@@ -44,7 +44,7 @@ const moduleExports = {
       },
       {
         source: "/try-path",
-        destination: "path-web-fullscreen://https://puff.social",
+        destination: "path-web-fullscreen://https://puff.dstn.to",
         permanent: false,
       },
       {

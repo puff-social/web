@@ -10,7 +10,7 @@ export function MainMeta({ pageName }: { pageName?: string }) {
       <meta name="author" content="puff.social" />
       <meta name="copyright" content="Dustin Rouillard" />
       <meta name="rating" content="General" />
-      <meta name="url" content={`https://puff.social/`} />
+      <meta name="url" content={`https://puff.dstn.to/`} />
       <meta name="summary" content={`The Virtual Dab Lounge`} />
       <meta name="subject" content={`The Virtual Dab Lounge`} />
       <meta name="subtitle" content={`The Virtual Dab Lounge`} />

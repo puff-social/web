@@ -11,7 +11,7 @@ export default function PalsPageRedirect() {
       <meta name="copyright" content="Dustin Rouillard" />
       <meta name="theme-color" content="#fbc123" />
       <meta name="rating" content="General" />
-      <meta name="url" content={`https://puff.social/pals`} />
+      <meta name="url" content={`https://puff.dstn.to/pals`} />
       <meta
         name="summary"
         content={`Refer your friends to buy a Puffco and give them $30 off!`}
