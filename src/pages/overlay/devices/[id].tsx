@@ -93,30 +93,32 @@ export default function DeviceOverlay(props: Props) {
       {oldDomain ? (
         <div className="mb-4 rounded-md border border-amber-400/60 bg-amber-100/80 p-4 text-amber-900 dark:border-amber-400/40 dark:bg-amber-900/40 dark:text-amber-100">
           <p className="text-base font-semibold leading-tight">
-            This domain is going away soon.
+            This domain is going away...
           </p>
           <p className="text-sm leading-snug">
             Update any overlays to use{" "}
             <span className="rounded-md bg-neutral-900/80 px-1 py-[2px] font-mono text-xs text-white dark:bg-neutral-200/80 dark:text-neutral-900">
-              puff-clock.dstn.to
+              puff.dstn.to
             </span>{" "}
             so everything keeps working.
           </p>
         </div>
-      ) : null}
-
-      <GroupMember
-        lbDevice={device}
-        lbDeviceMac={Buffer.from(props.id.split("_")[1], "base64").toString(
-          "utf8",
-        )}
-        user={device.users}
-        removeBackground={props.removeBackground}
-        useDeviceName={props.useDeviceName}
-        overlay
-        headless
-        thing={thing}
-      />
+      ) : (
+        <>
+          <GroupMember
+            lbDevice={device}
+            lbDeviceMac={Buffer.from(props.id.split("_")[1], "base64").toString(
+              "utf8",
+            )}
+            user={device.users}
+            removeBackground={props.removeBackground}
+            useDeviceName={props.useDeviceName}
+            overlay
+            headless
+            thing={thing}
+          />
+        </>
+      )}
     </>
   ) : (
     <></>
