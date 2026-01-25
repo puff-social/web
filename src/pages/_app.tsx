@@ -276,7 +276,7 @@ function App({ Component, store, props }) {
   return (
     <Provider store={store}>
       <PlausibleProvider
-        domain="puff.social"
+        domain="puff.dstn.to"
         taggedEvents={true}
         enabled={
           typeof window != "undefined" &&
