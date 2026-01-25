@@ -33,6 +33,10 @@ import { instance } from "./[id]";
 import { DeviceCommand } from "@puff-social/commons/dist/puffco";
 import { DomainRenewalCTA } from "../components/DomainRenewalCTA";
 
+const LEGACY_DOMAIN = "puff.social";
+const TARGET_HOSTNAME = "puff.dstn.to";
+const OVERLAY_PATH = "/overlay";
+
 function AppWrapper({ Component, ...appProps }) {
   const { store, props } = wrapper.useWrappedStore(appProps);
 
@@ -70,6 +74,25 @@ function App({ Component, store, props }) {
       ? new URL(location.href).searchParams.get("ref") == "callkevo"
       : false,
   );
+
+  useEffect(() => {
+    if (typeof window == "undefined") return;
+
+    const { hostname, pathname } = window.location;
+
+    if (hostname !== LEGACY_DOMAIN) return;
+
+    if (pathname === OVERLAY_PATH || pathname.startsWith(`${OVERLAY_PATH}/`)) {
+      return;
+    }
+
+    const redirectUrl = new URL(window.location.href);
+    redirectUrl.hostname = TARGET_HOSTNAME;
+    redirectUrl.protocol = "https:";
+    redirectUrl.port = "";
+
+    window.location.replace(redirectUrl.toString());
+  }, [router.asPath]);
 
   function groupCreated(group: GatewayGroupCreate) {
     toast(`Group ${group.name} (${group.group_id}) created`, {
@@ -291,13 +314,52 @@ function App({ Component, store, props }) {
   );
 }
 
-export async function getInitialProps() {
-  wrapper.getInitialAppProps((store) => async (context) => {
+AppWrapper.getInitialProps = wrapper.getInitialAppProps(
+  (store) => async (context) => {
+    const appProps = await Application.getInitialProps(context);
+
+    const { req, res } = context.ctx;
+
+    const headers = req?.headers ?? {};
+    const forwardedHostHeader = Array.isArray(headers["x-forwarded-host"])
+      ? headers["x-forwarded-host"][0]
+      : headers["x-forwarded-host"];
+    const hostHeader =
+      forwardedHostHeader ??
+      (Array.isArray(headers.host) ? headers.host[0] : headers.host);
+
+    const host = hostHeader?.split(":")[0].toLowerCase();
+    const rawPath =
+      context.ctx.asPath ??
+      (typeof req?.url === "string" ? req.url : undefined) ??
+      context.ctx.pathname ??
+      "/";
+
+    const normalizedPath = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
+    const barePath = normalizedPath.split("?")[0];
+
+    if (
+      req &&
+      res &&
+      !res.headersSent &&
+      !res.writableEnded &&
+      host === LEGACY_DOMAIN &&
+      barePath !== OVERLAY_PATH &&
+      !barePath.startsWith(`${OVERLAY_PATH}/`)
+    ) {
+      const destination = `https://${TARGET_HOSTNAME}${normalizedPath}`;
+      res.writeHead(308, { Location: destination });
+      res.end();
+    }
+
     return {
-      ...(await Application.getInitialProps(context)).pageProps,
-      pathname: context.ctx.pathname,
+      ...appProps,
+      pageProps: {
+        ...appProps.pageProps,
+        pathname: context.ctx.pathname,
+      },
     };
-  });
-}
+  },
+);
 
 export default AppWrapper;
