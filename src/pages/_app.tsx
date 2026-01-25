@@ -37,6 +37,45 @@ const LEGACY_DOMAIN = "puff.social";
 const TARGET_HOSTNAME = "puff.dstn.to";
 const OVERLAY_PATH = "/overlay";
 
+function shouldSkipLegacyRedirect(pathname: string) {
+  return pathname === OVERLAY_PATH || pathname.startsWith(`${OVERLAY_PATH}/`);
+}
+
+function shouldRedirectLegacyDomain(
+  hostname: string | undefined,
+  pathname: string,
+) {
+  const normalizedHost = hostname?.toLowerCase();
+  return (
+    normalizedHost === LEGACY_DOMAIN && !shouldSkipLegacyRedirect(pathname)
+  );
+}
+
+function buildLegacyRedirectUrl(currentHref: string) {
+  const redirectUrl = new URL(currentHref);
+  redirectUrl.hostname = TARGET_HOSTNAME;
+  redirectUrl.protocol = "https:";
+  redirectUrl.port = "";
+  return redirectUrl.toString();
+}
+
+function attemptClientLegacyRedirect() {
+  if (typeof window === "undefined") return false;
+
+  const { hostname, pathname, href } = window.location;
+
+  if (!shouldRedirectLegacyDomain(hostname, pathname)) {
+    return false;
+  }
+
+  window.location.replace(buildLegacyRedirectUrl(href));
+  return true;
+}
+
+if (typeof window !== "undefined") {
+  attemptClientLegacyRedirect();
+}
+
 function AppWrapper({ Component, ...appProps }) {
   const { store, props } = wrapper.useWrappedStore(appProps);
 
@@ -76,22 +115,7 @@ function App({ Component, store, props }) {
   );
 
   useEffect(() => {
-    if (typeof window == "undefined") return;
-
-    const { hostname, pathname } = window.location;
-
-    if (hostname !== LEGACY_DOMAIN) return;
-
-    if (pathname === OVERLAY_PATH || pathname.startsWith(`${OVERLAY_PATH}/`)) {
-      return;
-    }
-
-    const redirectUrl = new URL(window.location.href);
-    redirectUrl.hostname = TARGET_HOSTNAME;
-    redirectUrl.protocol = "https:";
-    redirectUrl.port = "";
-
-    window.location.replace(redirectUrl.toString());
+    attemptClientLegacyRedirect();
   }, [router.asPath]);
 
   function groupCreated(group: GatewayGroupCreate) {
@@ -343,9 +367,7 @@ AppWrapper.getInitialProps = wrapper.getInitialAppProps(
       res &&
       !res.headersSent &&
       !res.writableEnded &&
-      host === LEGACY_DOMAIN &&
-      barePath !== OVERLAY_PATH &&
-      !barePath.startsWith(`${OVERLAY_PATH}/`)
+      shouldRedirectLegacyDomain(host, barePath)
     ) {
       const destination = `https://${TARGET_HOSTNAME}${normalizedPath}`;
       res.writeHead(308, { Location: destination });
