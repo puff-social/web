@@ -22,12 +22,6 @@ export default function DeviceOverlay(props: Props) {
 
   const thing = useMemo(() => router.query?.thing == "true", [router]);
   const [device, setDevice] = useState<GetDeviceEntry>(props.initDevice);
-  const [oldDomain] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      (window.location.hostname === "puff.social" ||
-        window.location.hostname === "127.0.0.1"),
-  );
 
   const watchedUpdate = useCallback(
     (data: GatewayWatchedDeviceUpdate) => {
@@ -91,35 +85,18 @@ export default function DeviceOverlay(props: Props) {
     <>
       <MainMeta />
 
-      {oldDomain ? (
-        <div className="flex flex-col text-black bg-neutral-100 dark:text-white dark:bg-neutral-800 drop-shadow-xl rounded-md m-1 px-8 w-[440px] h-32 justify-center items-center">
-          <p className="text-base font-semibold leading-tight">
-            This domain is going away...
-          </p>
-          <p className="text-sm leading-snug">
-            Update any overlays to use{" "}
-            <span className="rounded-md bg-neutral-900/80 px-1 py-[2px] font-mono text-xs text-white dark:bg-neutral-200/80 dark:text-neutral-900">
-              puff.dstn.to
-            </span>{" "}
-            so everything keeps working.
-          </p>
-        </div>
-      ) : (
-        <>
-          <GroupMember
-            lbDevice={device}
-            lbDeviceMac={Buffer.from(props.id.split("_")[1], "base64").toString(
-              "utf8",
-            )}
-            user={device.users}
-            removeBackground={props.removeBackground}
-            useDeviceName={props.useDeviceName}
-            overlay
-            headless
-            thing={thing}
-          />
-        </>
-      )}
+      <GroupMember
+        lbDevice={device}
+        lbDeviceMac={Buffer.from(props.id.split("_")[1], "base64").toString(
+          "utf8",
+        )}
+        user={device.users}
+        removeBackground={props.removeBackground}
+        useDeviceName={props.useDeviceName}
+        overlay
+        headless
+        thing={thing}
+      />
     </>
   ) : (
     <></>

@@ -45,7 +45,7 @@ export default async function handler(req: NextRequest) {
       >
         <img
           style={{ marginLeft: "20px", marginTop: "20px" }}
-          src={`https://puff.dstn.to/${ProductModelMap[
+          src={`https://puff.social/${ProductModelMap[
             device.model
           ].toLowerCase()}/device.png`}
           width={200}

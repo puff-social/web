@@ -58,53 +58,15 @@ export function DonationModal({ modalOpen, setModalOpen, from }: Props) {
 
                   <span className="flex flex-col space-y-4">
                     <span className="flex flex-col rounded-md space-y-4">
-                      {from == "renewal_cta" ? (
-                        <>
-                          <p>
-                            Our domain{" "}
-                            <span className="px-1 bg-neutral-300 dark:bg-neutral-600 rounded-md">
-                              puff.social
-                            </span>{" "}
-                            is due for renewal on{" "}
-                            <span className="px-1 bg-neutral-300 dark:bg-neutral-600 rounded-md">
-                              February 4th, 2026
-                            </span>
-                            <span className="px-1 bg-neutral-300 dark:bg-neutral-600 rounded-md ml-2">
-                              ({expiry})
-                            </span>
-                          </p>
-                          <p>
-                            For transparency, the domain currently costs{" "}
-                            <span className="px-1 bg-neutral-300 dark:bg-neutral-600 rounded-md">
-                              $35/year
-                            </span>
-                          </p>
-                          <p>
-                            If you wanna see the{" "}
-                            <span className="px-1 bg-neutral-300 dark:bg-neutral-600 rounded-md">
-                              puff.social
-                            </span>{" "}
-                            domain stick around, we'd love to have your support,
-                            otherwise{" "}
-                            <span className="px-1 bg-neutral-300 dark:bg-neutral-600 rounded-md">
-                              puff.dstn.to
-                            </span>{" "}
-                            is here to stay
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <p>
-                            Hey there, a lot of work goes into keeping this site
-                            running, even more went into building it.
-                          </p>
-                          <p>
-                            If you're enjoying the platform and feel like
-                            supporting future development, buying licenses and
-                            actual hosting, we have a couple ways to support.
-                          </p>
-                        </>
-                      )}
+                      <p>
+                        Hey there, a lot of work goes into keeping this site
+                        running, even more went into building it.
+                      </p>
+                      <p>
+                        If you're enjoying the platform and feel like supporting
+                        future development, buying licenses and actual hosting,
+                        we have a couple ways to support.
+                      </p>
                     </span>
                   </span>
                 </div>

@@ -295,7 +295,7 @@ export function GroupMember(props: GroupMemberProps) {
                             },
                           );
                           navigator.clipboard.writeText(
-                            `https://puff.dstn.to/api/device/device_${Buffer.from(
+                            `https://puff.social/api/device/device_${Buffer.from(
                               props.device.deviceMac,
                             ).toString("base64")}`,
                           );
@@ -317,7 +317,7 @@ export function GroupMember(props: GroupMemberProps) {
                               },
                             );
                             navigator.clipboard.writeText(
-                              `https://puff.dstn.to/overlay/devices/device_${Buffer.from(
+                              `https://puff.social/overlay/devices/device_${Buffer.from(
                                 props.device.deviceMac,
                               ).toString("base64")}`,
                             );

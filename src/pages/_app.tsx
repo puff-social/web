@@ -33,49 +33,6 @@ import { instance } from "./[id]";
 import { DeviceCommand } from "@puff-social/commons/dist/puffco";
 import { DomainRenewalCTA } from "../components/DomainRenewalCTA";
 
-const LEGACY_DOMAIN = "puff.social";
-const TARGET_HOSTNAME = "puff.dstn.to";
-const OVERLAY_PATH = "/overlay";
-
-function shouldSkipLegacyRedirect(pathname: string) {
-  return pathname === OVERLAY_PATH || pathname.startsWith(`${OVERLAY_PATH}/`);
-}
-
-function shouldRedirectLegacyDomain(
-  hostname: string | undefined,
-  pathname: string,
-) {
-  const normalizedHost = hostname?.toLowerCase();
-  return (
-    normalizedHost === LEGACY_DOMAIN && !shouldSkipLegacyRedirect(pathname)
-  );
-}
-
-function buildLegacyRedirectUrl(currentHref: string) {
-  const redirectUrl = new URL(currentHref);
-  redirectUrl.hostname = TARGET_HOSTNAME;
-  redirectUrl.protocol = "https:";
-  redirectUrl.port = "";
-  return redirectUrl.toString();
-}
-
-function attemptClientLegacyRedirect() {
-  if (typeof window === "undefined") return false;
-
-  const { hostname, pathname, href } = window.location;
-
-  if (!shouldRedirectLegacyDomain(hostname, pathname)) {
-    return false;
-  }
-
-  window.location.replace(buildLegacyRedirectUrl(href));
-  return true;
-}
-
-if (typeof window !== "undefined") {
-  attemptClientLegacyRedirect();
-}
-
 function AppWrapper({ Component, ...appProps }) {
   const { store, props } = wrapper.useWrappedStore(appProps);
 
@@ -113,10 +70,6 @@ function App({ Component, store, props }) {
       ? new URL(location.href).searchParams.get("ref") == "callkevo"
       : false,
   );
-
-  useEffect(() => {
-    attemptClientLegacyRedirect();
-  }, [router.asPath]);
 
   function groupCreated(group: GatewayGroupCreate) {
     toast(`Group ${group.name} (${group.group_id}) created`, {
@@ -276,7 +229,7 @@ function App({ Component, store, props }) {
   return (
     <Provider store={store}>
       <PlausibleProvider
-        domain="puff.dstn.to"
+        domain="puff.social"
         taggedEvents={true}
         enabled={
           typeof window != "undefined" &&
@@ -361,18 +314,6 @@ AppWrapper.getInitialProps = wrapper.getInitialAppProps(
 
     const normalizedPath = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
     const barePath = normalizedPath.split("?")[0];
-
-    if (
-      req &&
-      res &&
-      !res.headersSent &&
-      !res.writableEnded &&
-      shouldRedirectLegacyDomain(host, barePath)
-    ) {
-      const destination = `https://${TARGET_HOSTNAME}${normalizedPath}`;
-      res.writeHead(308, { Location: destination });
-      res.end();
-    }
 
     return {
       ...appProps,

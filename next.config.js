@@ -34,7 +34,7 @@ const moduleExports = {
     return [
       {
         source: "/puffco",
-        destination: "https://puff.dstn.to/pals",
+        destination: "https://puff.social/pals",
         permanent: false,
       },
       {
@@ -44,7 +44,7 @@ const moduleExports = {
       },
       {
         source: "/try-path",
-        destination: "path-web-fullscreen://https://puff.dstn.to",
+        destination: "path-web-fullscreen://https://puff.social",
         permanent: false,
       },
       {

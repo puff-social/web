@@ -60,7 +60,7 @@ export default async function handler(req: NextRequest) {
           display: "flex",
         }}
       >
-        <img src="https://puff.dstn.to/pixel-peak.png" />
+        <img src="https://puff.social/pixel-peak.png" />
         <div
           style={{
             fontSize: 60,
@@ -106,7 +106,7 @@ export default async function handler(req: NextRequest) {
           display: "flex",
         }}
       >
-        <img src="https://puff.dstn.to/pixel-peak.png" />
+        <img src="https://puff.social/pixel-peak.png" />
         <div
           style={{
             fontSize: 60,
