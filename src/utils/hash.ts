@@ -14,9 +14,9 @@ export const API_URL =
     ["localhost", "dev.puff.social"].includes(location.hostname)) ||
   ["1", "2"].includes(process.env.DEV ?? process.env.NEXT_PUBLIC_DEV)
     ? typeof location != "undefined" && location.hostname == "beta.puff.social"
-      ? "https://puff-api.dstn.to"
+      ? "https://hash.puff.social"
       : "http://127.0.0.1:8000"
-    : "https://puff-api.dstn.to";
+    : "https://hash.puff.social";
 
 function signRequest<T>(body: T): [string, string] {
   const signature = createHash("sha256")

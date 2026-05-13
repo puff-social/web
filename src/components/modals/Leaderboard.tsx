@@ -58,7 +58,7 @@ function LeaderboardItem({
               <>
                 <img
                   className="rounded-full p-0.5 w-6 h-6"
-                  src={`https://puffcdn.dstn.to/avatars/${lb.devices.user_id}/${
+                  src={`https://cdn.puff.social/avatars/${lb.devices.user_id}/${
                     lb.devices.users.image
                   }.${lb.devices.users.image.startsWith("a_") ? "gif" : "png"}`}
                 />
@@ -211,7 +211,7 @@ export function LeaderboardModal({ modalOpen, setModalOpen }: any) {
                                           <>
                                             <img
                                               className="rounded-full p-0.5 w-6 h-6"
-                                              src={`https://puffcdn.dstn.to/avatars/${
+                                              src={`https://cdn.puff.social/avatars/${
                                                 lb.devices.user_id
                                               }/${lb.devices.users.image}.${
                                                 lb.devices.users.image.startsWith(

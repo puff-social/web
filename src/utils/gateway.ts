@@ -156,7 +156,7 @@ export interface Gateway {
 }
 export class Gateway extends EventEmitter {
   constructor(
-    url = "wss://puff-ws.dstn.to",
+    url = "wss://rosin.dstn.to",
     encoding = "json",
     compression = "none",
   ) {
@@ -486,7 +486,7 @@ export const SOCKET_URL =
   typeof location != "undefined" &&
   ["localhost", "beta.puff.social"].includes(location.hostname)
     ? "ws://127.0.0.1:9000"
-    : "wss://puff-ws.dstn.to";
+    : "wss://rosin.dstn.to";
 export const gateway = typeof window != "undefined" && new Gateway(SOCKET_URL);
 
 if (typeof window != "undefined") window["gateway"] = gateway;

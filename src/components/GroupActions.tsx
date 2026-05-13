@@ -563,7 +563,7 @@ export function GroupActions({
               <>
                 <img
                   className="rounded-full p-0.5 w-7 h-7"
-                  src={`https://puffcdn.dstn.to/avatars/${session.user.id}/${
+                  src={`https://cdn.puff.social/avatars/${session.user.id}/${
                     session.user.image
                   }.${session.user.image.startsWith("a_") ? "gif" : "png"}`}
                 />

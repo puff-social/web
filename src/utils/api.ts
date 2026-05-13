@@ -8,7 +8,7 @@ export const API_URL =
       : "http://127.0.0.1:9000"
     : process.env.NEXT_PUBLIC_DEV == "1"
       ? "http://127.0.0.1:9000"
-      : process.env.GATEWAY_HOST || "https://puff-ws.dstn.to";
+      : process.env.GATEWAY_HOST || "https://rosin.dstn.to";
 
 export async function getGroups() {
   const req: APIResponse<APIGroup[]> = await fetch(`${API_URL}/v1/groups`).then(

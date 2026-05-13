@@ -38,7 +38,7 @@ export function KevoModal() {
             >
               <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white dark:bg-neutral-800 text-black dark:text-white p-6 text-left align-middle shadow-xl transition-all space-y-3">
                 <img
-                  src="https://puffcdn.dstn.to/kevo.png"
+                  src="https://cdn.puff.social/kevo.png"
                   className="rounded-md"
                 />
 
