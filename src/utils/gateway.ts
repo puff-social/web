@@ -486,7 +486,7 @@ export const SOCKET_URL =
   typeof location != "undefined" &&
   ["localhost", "beta.puff.social"].includes(location.hostname)
     ? "ws://127.0.0.1:9000"
-    : "wss://rosin.dstn.to";
+    : "wss://rosin.puff.social";
 export const gateway = typeof window != "undefined" && new Gateway(SOCKET_URL);
 
 if (typeof window != "undefined") window["gateway"] = gateway;
