@@ -156,7 +156,7 @@ export interface Gateway {
 }
 export class Gateway extends EventEmitter {
   constructor(
-    url = "wss://rosin.dstn.to",
+    url = "wss://rosin.puff.social",
     encoding = "json",
     compression = "none",
   ) {
