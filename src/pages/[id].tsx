@@ -613,6 +613,7 @@ export default function Group({
       setDeviceInfo(deviceInfo as DeviceInformation);
       setMyDevice((curr) => ({ ...curr, ...initState }));
       gateway.send(Op.SendDeviceState, {
+        deviceSeries: instance.productSeries,
         serialNumber: deviceInfo.serial,
         ...initState,
       });

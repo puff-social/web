@@ -19,6 +19,7 @@ export const API_URL =
     : "https://hash.puff.social";
 
 function signRequest<T>(body: T): [string, string] {
+  console.log(body);
   const signature = createHash("sha256")
     .update(JSON.stringify(body))
     .digest("base64");

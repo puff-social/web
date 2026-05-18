@@ -15,6 +15,9 @@ import { Info } from "../icons/Info";
 import {
   DeviceState,
   ProductModelMap,
+  ProductSeries,
+  ProductSeriesMap,
+  ProxyProductModelMap,
 } from "@puff-social/commons/dist/puffco/constants";
 import { Tippy } from "../Tippy";
 import { formatRelativeTime } from "../../utils/time";
@@ -44,13 +47,13 @@ export function DeviceSettingsModal({
   }, []);
 
   const [batteryPreservation, setBatteryPreservation] = useState(
-    device.batteryPreservation || 100
+    device.batteryPreservation || 100,
   );
   const [brightness, setBrightness] = useState(device.brightness);
 
   const [deviceName, setDeviceName] = useState(device.deviceName);
   const [deviceDob, setDeviceDob] = useState(
-    new Date(info.dob * 1000).toLocaleDateString()
+    new Date(info.dob * 1000).toLocaleDateString(),
   );
 
   const [badBirthday, setBadBirthday] = useState(false);
@@ -75,7 +78,7 @@ export function DeviceSettingsModal({
 
       setBadBirthday(
         newDob.getFullYear() > new Date().getFullYear() ||
-          newDob.getFullYear() < 2018
+          newDob.getFullYear() < 2018,
       );
       await instance.updateDeviceDob(newDob);
       setDeviceInfo((curr) => ({ ...curr, dob: newDob.getTime() / 1000 }));
@@ -97,6 +100,7 @@ export function DeviceSettingsModal({
     await trackDevice({
       ...info,
       name: deviceName,
+      series: instance.productSeries,
     });
     toast("Updated device");
     closeModal();
@@ -158,7 +162,10 @@ export function DeviceSettingsModal({
                       placement="bottom"
                     >
                       <p className="font-bold opacity-40">
-                        {ProductModelMap[device.deviceModel]}
+                        {(instance.apiSeries == ProductSeries.Proxy
+                          ? ProxyProductModelMap[device.deviceModel]
+                          : ProductModelMap[device.deviceModel]
+                        ).toLowerCase()}
                       </p>
                     </Tippy>
                   </span>
@@ -166,6 +173,13 @@ export function DeviceSettingsModal({
                     <p className="font-bold">Firmware</p>
                     <p className="font-bold opacity-40">
                       {info.firmware} ({info.gitHash})
+                    </p>
+                  </span>
+                  <span className="flex justify-between">
+                    <p className="font-bold">API Version</p>
+                    <p className="font-bold opacity-40">
+                      {instance.apiVersion} (Series{" "}
+                      {ProductSeriesMap[instance.apiSeries] ?? "Unknown"})
                     </p>
                   </span>
                   <span className="flex justify-between">
@@ -202,13 +216,13 @@ export function DeviceSettingsModal({
                       content={`Your device clock is ${
                         formatRelativeTime(
                           new Date(),
-                          new Date(device.utcTime * 1000)
+                          new Date(device.utcTime * 1000),
                         ).startsWith("-")
                           ? "behind"
                           : "ahead of"
                       } your system time by ${formatRelativeTime(
                         new Date(),
-                        new Date(device.utcTime * 1000)
+                        new Date(device.utcTime * 1000),
                       ).replace("-", "")}`}
                     >
                       <div>

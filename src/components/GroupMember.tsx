@@ -33,6 +33,8 @@ import {
   DeviceState,
   EASTER_EGG_CYCLE_COUNTS,
   ProductModelMap,
+  ProductSeries,
+  ProxyProductModelMap,
   PuffcoOperatingState,
   SerialPrefixMap,
   TEMPERATURE_MAX,
@@ -417,18 +419,37 @@ export function GroupMember(props: GroupMemberProps) {
                     SerialPrefixMap.Desert,
                   )
                     ? "desert"
-                    : ProductModelMap[
-                          props.device
-                            ? props.device.deviceModel
-                            : props.lbDevice?.model
-                        ]
-                      ? ProductModelMap[
-                          props.device
-                            ? props.device.deviceModel
-                            : props.lbDevice?.model
-                        ].toLowerCase()
-                      : ProductModelMap[0].toLowerCase()
+                    : (
+                          props.device.deviceSeries == ProductSeries.Proxy
+                            ? ProxyProductModelMap[
+                                props.device
+                                  ? props.device.deviceModel
+                                  : props.lbDevice?.model
+                              ]
+                            : ProductModelMap[
+                                props.device
+                                  ? props.device.deviceModel
+                                  : props.lbDevice?.model
+                              ]
+                        )
+                      ? (props.device.deviceSeries == ProductSeries.Proxy
+                          ? ProxyProductModelMap[
+                              props.device
+                                ? props.device.deviceModel
+                                : props.lbDevice?.model
+                            ]
+                          : ProductModelMap[
+                              props.device
+                                ? props.device.deviceModel
+                                : props.lbDevice?.model
+                            ]
+                        ).toLowerCase()
+                      : (props.device.deviceSeries == ProductSeries.Proxy
+                          ? ProxyProductModelMap[0]
+                          : ProductModelMap[0]
+                        ).toLowerCase()
                 }
+                productSeries={props.device.deviceSeries}
                 device={props.device || { activeColor: { r: 0, g: 0, b: 0 } }}
               />
               <span className="flex flex-col p-4 w-full min-w-[60%]">

@@ -1,3 +1,4 @@
+import { ProductSeries } from "@puff-social/commons/dist/puffco";
 import { PuffcoProfile } from "./puffco";
 
 export interface APIResponse<T> {
@@ -36,6 +37,7 @@ export interface DeviceInformation {
   utcTime: number;
   lastDabAt: string;
   serial: string;
+  series: ProductSeries;
   batteryPreservation: number;
 }
 
@@ -49,6 +51,7 @@ export interface DiagParameters {
   dob?: number;
   name: string;
   model: string;
+  series: ProductSeries;
   firmware: string;
   hardwareVersion?: number;
   serialNumber?: string;
@@ -96,6 +99,7 @@ export interface LeaderboardEntry {
     dabs: number;
     avg_dabs: number;
     model: string;
+    series: ProductSeries;
     firmware: string;
     hardware: string;
     last_active: string;
